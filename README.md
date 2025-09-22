@@ -10,8 +10,8 @@ Team members
 ## Description
 For this project we will be creating a web application that can generate test for professors and/or students
 
-Project/Software Deployment Document[GitHub] (https://github.com/senior-design-25-26/bagd/blob/main/docs/installation_doc.md)
+Project/Software Deployment Document[GitHub] (https://github.com/senior-design-25-26/bagd/blob/main/docs/installation_doc.md)  
 User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/main/docs/userman_doc.md)
 
-Built with (list the technologies used)
+Built with (list the technologies used)  
 License (if any)
