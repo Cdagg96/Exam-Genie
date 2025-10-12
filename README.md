@@ -14,14 +14,14 @@ Project/Software Deployment Document[GitHub] (https://github.com/senior-design-2
 User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/main/docs/userman_doc.md)
 
 Built with (list the technologies used)  
-· Front-end – React, Typescript, next.js
+  - Front-end – React, Typescript, next.js
 
-· Back-end – next.js
+  - Back-end – next.js
 
-· Database – MongoDB Atlas
+  - Database – MongoDB Atlas
 
-· User-Interface – Tailwind CSS
+  - User-Interface – Tailwind CSS
 
-· Wireframe software- Figma
+  - Wireframe software- Figma
 
 License (if any)
