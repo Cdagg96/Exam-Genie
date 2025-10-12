@@ -13,7 +13,7 @@ For this project we will be creating a web application that can generate test fo
 Project/Software Deployment Document[GitHub] (https://github.com/senior-design-25-26/bagd/blob/main/docs/installation_doc.md)  
 User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/main/docs/userman_doc.md)
 
-Built with (list the technologies used)  
+## Built with (list the technologies used)  
   - Front-end – React, Typescript, next.js
 
   - Back-end – next.js
@@ -24,4 +24,5 @@ Built with (list the technologies used)
 
   - Wireframe software- Figma
 
-License (if any)
+## License (if any)
+No license asof now
