@@ -1,4 +1,4 @@
-user manual document
+# How to run the server
 
 ## Getting Started
 
