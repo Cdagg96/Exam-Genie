@@ -27,3 +27,32 @@ User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/m
 
 ## License (if any)
 No license asof now
+
+## Branching in git
+
+1. List all the local branches:
+
+
+      ```
+     git branch
+      ```
+3. Create a new branch and switch to it:
+
+    ```
+    git branch <branch name>
+    git checkout <branch name>
+
+    or
+
+    git checkout -b <branch name>
+    ```
+4. Make changes and commit
+
+   ```
+   git add .
+   git commit -m "message"
+   ```
+5. Push branch to github
+   ```
+   git push -u origin <branch name>
+   ```
