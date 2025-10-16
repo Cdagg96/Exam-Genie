@@ -58,3 +58,23 @@ Branch naming convention: feature/homeUI
    ```
    git push -u origin <branch name>
    ```
+## Pulling changes to main into local branch
+
+1. Make sure local branch is up to date
+
+   ```
+   git status
+   git add .
+   git commit -m "WIP: my changes"   # if you have uncommitted changes
+    ```
+2. Fetch changes from GitHub
+
+   ```
+   git merge origin/main
+   ```
+
+3. Merge main into current branch
+
+   ```
+   git merge origin/main
+   ```
