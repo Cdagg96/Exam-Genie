@@ -58,7 +58,7 @@ Branch naming convention: feature/homeUI
    ```
    git push -u origin <branch name>
    ```
-## Pulling changes to main into local branch
+## Pulling changes from main into local branch
 
 1. Make sure local branch is up to date
 
@@ -70,7 +70,7 @@ Branch naming convention: feature/homeUI
 2. Fetch changes from GitHub
 
    ```
-   git merge origin/main
+   git fetch origin
    ```
 
 3. Merge main into current branch
