@@ -30,6 +30,8 @@ No license asof now
 
 ## Branching in git
 
+Branch naming convention: feature/homeUI
+
 1. List all the local branches:
 
 
