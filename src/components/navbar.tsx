@@ -21,18 +21,10 @@ export default function Navbar() {
           />
         </Link>
         <div className="flex space-x-8">
-          <Link href="../data_view/" className="text-stone-800 hover:text-black">
-            Questions
-          </Link>
-          <Link href="../exam_gen/" className="text-stone-800 hover:text-black">
-            Generator
-          </Link>
-          <Link href="#" className="text-stone-800 hover:text-black">
-            Help
-          </Link>
-          <Link href="../contact/" className="text-stone-800 hover:text-black">
-            Contact
-          </Link>
+          <Link href="../data_view/" className="text-stone-800 hover:text-black">Questions</Link>
+          <Link href="../exam_gen/" className="text-stone-800 hover:text-black">Generator</Link>
+          <Link href="#" className="text-stone-800 hover:text-black">Help</Link>
+          <Link href="../contact/" className="text-stone-800 hover:text-black">Contact</Link>
 
           <button
             onClick={() => setIsLoginOpen(true)}
@@ -43,7 +35,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ✅ Keep modal mounted, control visibility via props */}
+      
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </>
   );
