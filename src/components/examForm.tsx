@@ -118,14 +118,19 @@ import React, { useState } from "react";
                 {/* Allowed Types */}
                 <section className="rounded-2xl border p-4 shadow-sm">
                 <h2 className="mb-3 text-lg font-semibold">Allowed Question Types</h2>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <p className="mb-3 text-sm text-gray-600">
+                        Set how many questions of each type you want. Use 0 to exclude a type.
+                    </p>
+                    <div className="grid gap-4 sm:grid-cols-2">
                         {TYPES.map((t) => (
                         <label key={t.value} className="inline-flex items-center gap-2">
                             <input
-                            type="checkbox"
-                            className="h-4 w-4"
-                            checked={allowedTypes.includes(t.value)}
-                            onChange={() => toggleType(t.value)}
+                            type="number"
+                            min={0}
+                            className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
+                            //className="h-4 w-4"
+                            //checked={allowedTypes.includes(t.value)}
+                            //onChange={() => toggleType(t.value)}
                             />
                         <span>{t.label}</span>
                         </label>
