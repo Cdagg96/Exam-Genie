@@ -14,10 +14,10 @@ export default function Navbar() {
             />
         </Link>
         <div className="flex space-x-8">
-            <Link href="#" className="text-stone-800 hover:text-black">Questions</Link>
-            <Link href="#" className="text-stone-800 hover:text-black">Generator</Link>
+            <Link href="../data_view/" className="text-stone-800 hover:text-black">Questions</Link>
+            <Link href="../exam_gen/" className="text-stone-800 hover:text-black">Generator</Link>
             <Link href="#" className="text-stone-800 hover:text-black">Help</Link>
-            <Link href="#" className="text-stone-800 hover:text-black">Contact</Link>
+            <Link href="../contact/" className="text-stone-800 hover:text-black">Contact</Link>
             <Link href="#" className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center">Sign in</Link>
         </div>
     </div>
