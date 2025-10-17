@@ -30,6 +30,8 @@ No license asof now
 
 ## Branching in git
 
+Branch naming convention: feature/homeUI
+
 1. List all the local branches:
 
 
@@ -55,4 +57,24 @@ No license asof now
 5. Push branch to github
    ```
    git push -u origin <branch name>
+   ```
+## Pulling changes from main into local branch
+
+1. Make sure local branch is up to date
+
+   ```
+   git status
+   git add .
+   git commit -m "WIP: my changes"   # if you have uncommitted changes
+    ```
+2. Fetch changes from GitHub
+
+   ```
+   git fetch origin
+   ```
+
+3. Merge main into current branch
+
+   ```
+   git merge origin/main
    ```
