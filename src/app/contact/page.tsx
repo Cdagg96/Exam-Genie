@@ -2,13 +2,16 @@
 import NavBar from "@/components/navbar";
 export default function ContactPage() {
   return (
-    <div className="items-center justify-items-center min-h-screen p-8 bg-gradient-to-b from-[#EFF6FF] to-white">
-      <NavBar />
-        <div className="max-w-2xl mx-auto">
-          {/* Header with Icon */}
+    
+    <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
+        <header>
+            <NavBar />
+          </header>
+        <div className="max-w-4xl mx-auto">
+          {/* Prompt */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4 pt-8">Report a Issue</h1>
-            <p className="text-lg text-gray-600 max-w-md mx-auto leading-relaxed">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Want to report a Issue? Please do not hesitate to contact us directly. Thank you for helping make Exam Genie better.
             </p>
           </div>
