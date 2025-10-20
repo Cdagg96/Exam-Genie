@@ -1,6 +1,13 @@
+"use client";
+
+
+import { useState } from "react";
 import NavBar from "@/components/navbar";
+import QuestionForm from "@/components/QuestionForm";
+
 
 export default function DatabaseActionPage() {
+    const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
     return (
         <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
             <header>
@@ -13,6 +20,7 @@ export default function DatabaseActionPage() {
                 <p className="text-gray-600 mb-8 text-lg max-w-2xl">
                     Manage and view all questions in the database. Filter by topic, difficulty, or type to find specific questions.
                 </p>
+
 
                 {/* Filtering Section */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
@@ -34,6 +42,7 @@ export default function DatabaseActionPage() {
                             </select>
                         </div>
 
+
                         {/* Difficulty Filter */}
                         <div className="text-left">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -48,6 +57,7 @@ export default function DatabaseActionPage() {
                                 <option value="5">5</option>
                             </select>
                         </div>
+
 
                         {/* Type Filter */}
                         <div className="text-left">
@@ -64,6 +74,7 @@ export default function DatabaseActionPage() {
                             </select>
                         </div>
                     </div>
+
 
                     {/* Last Used Filter */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-md">
@@ -86,6 +97,7 @@ export default function DatabaseActionPage() {
                         </div>
                     </div>
 
+
                     {/* Filter Actions */}
                     <div className="flex justify-end space-x-4 mt-8">
                         <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
@@ -96,6 +108,7 @@ export default function DatabaseActionPage() {
                         </button>
                     </div>
                 </div>
+
 
                 {/* Empty Questions Table */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
@@ -131,6 +144,7 @@ export default function DatabaseActionPage() {
                             </thead>
                             <tbody>
 
+
                                 {/* Empty table body */}
                                 <tr>
                                     <td colSpan={8} className="px-6 py-24 text-center">
@@ -143,9 +157,10 @@ export default function DatabaseActionPage() {
                     </div>
                 </div>
 
+
                 {/* Add Question Button */}
                 <div className="mt-12 flex justify-center">
-                    <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2">
+                    <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2"  onClick={() => setIsQuestionFormOpen(true)}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
@@ -153,6 +168,12 @@ export default function DatabaseActionPage() {
                     </button>
                 </div>
             </main>
+            <QuestionForm isOpen={isQuestionFormOpen} onClose={() => setIsQuestionFormOpen(false)} />
         </div>
+       
     );
 }
+
+
+
+
