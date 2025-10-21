@@ -13,6 +13,13 @@ export async function POST(req:Request) {
                 {status: 400}
             );
         }
+        // Temperary check to make sure only MC is inserted into DB until others are implemented
+        if(body.type === "TF" || body.type === "FIB" || body.type === "Essay" || body.type === "Code"){
+            return NextResponse.json(
+                {ok: false, error: "Types not implemented yet"},
+                {status: 401}
+            );
+        }
 
         // convert fields if needed
         body.lastUsed = body.lastUsed ?? null;

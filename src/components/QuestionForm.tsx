@@ -49,6 +49,10 @@ export default function BackgroundModal({
                 toast.success("Question Created!") // Notification that question was created
                 onClose(); // Close the popup
             }
+            else if(res.status === 401){
+                // temporary notification until other types are implemented
+                toast.error("Please choose multiple choice type")
+            }
             else{
                 console.error(result);
                 toast.error("Failed to create question");
@@ -95,6 +99,7 @@ export default function BackgroundModal({
                         <option value="TF">True/False</option>
                         <option value="FIB">Fill in the Blank</option>
                         <option value="Essay">Essay</option>
+                        <option value="Code">Code</option>
                     </select>
 
                     {/* Question difficulty */}
@@ -107,7 +112,7 @@ export default function BackgroundModal({
                         required
                     />
 
-                    {/* Question type(s) */}
+                    {/* Question topic(s) */}
                     <input
                         className="border p-2 w-full rounded"
                         placeholder="Topic(s) (comma separated)"
@@ -117,6 +122,7 @@ export default function BackgroundModal({
                     />
 
                     {/* MC options */}
+                    {type === "MC" && (
                     <div className="flex gap-2">
                         <input 
                             className="border p-2 flex-1 rounded" 
@@ -140,8 +146,52 @@ export default function BackgroundModal({
                             required />
                             
                     </div>
+                    )}
+
+                    {/* True/False options */}
+                    {type === "TF" && (
+                        <div className="mt-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Correct answer
+                            </label>
+                            <div className="flex gap-2">
+                                <button 
+                                    type="button"
+                                    onClick={() => setCorrect("true")}
+                                    className={`border p-2 flex-1 rounded text-center transition-all
+                                    ${correctAnswer === "true" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
+                                >
+                                True
+                                </button>
+                                <button 
+                                    type="button"
+                                    onClick={() => setCorrect("false")}
+                                    className={`border p-2 flex-1 rounded text-center transition-all
+                                    ${correctAnswer === "false" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
+                                >
+                                False
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* FIB/Essay/Code only have one "option" box */}
+                    {(type === "FIB" || type === "Essay" || type === "Code") && (
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Correct answer
+                            </label>
+                            <input
+                                className="border p-2 w-full rounded"
+                                value={correctAnswer}
+                                onChange={(e) => setCorrect(e.target.value)}
+                                required
+                            />
+                        </div>
+                    )}
 
                     {/* MC correct answer*/}
+                    {type === "MC" && (
                     <label className="block">
                         Correct answer:
                         <select
@@ -155,6 +205,8 @@ export default function BackgroundModal({
                         <option value="C">C</option>
                         </select>
                     </label>
+                    )}
+
 
                     <div className="flex justify-center">
                         <button
