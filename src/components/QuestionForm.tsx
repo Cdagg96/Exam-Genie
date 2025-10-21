@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import React, {useState} from "react";
+import toast from "react-hot-toast";
 
 export default function BackgroundModal({
     isOpen,
@@ -10,9 +11,57 @@ export default function BackgroundModal({
 }) {
     if (!isOpen) return null;
 
+    // States for each of the form fields
+    const [stem, setStem] = useState("");
+    const [type, setType] = useState("MC");
+    const [difficulty, setDifficulty] = useState(1);
+    const [topics, setTopics] = useState("");
+    const [choiceA, setChoiceA] = useState("");
+    const [choiceB, setChoiceB] = useState("");
+    const [choiceC, setChoiceC] = useState("");
+    const [correctAnswer, setCorrect] = useState("A");
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // Set the data structure
+        const data = {
+            stem, type, difficulty,
+            topics: topics.split(",").map(t => t.trim()),
+            choices: [
+                {label:"A", text:choiceA, isCorrect: correctAnswer === "A"},
+                {label:"B", text:choiceB, isCorrect: correctAnswer === "B"},
+                {label:"C", text:choiceC, isCorrect: correctAnswer === "C"}
+            ],
+            lastUsed: null 
+        };
+
+        try {
+            const res = await fetch("../api/questions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+
+            if(res.ok){
+                toast.success("Question Created!") // Notification that question was created
+                onClose(); // Close the popup
+            }
+            else{
+                console.error(result);
+                toast.error("Failed to create question");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Network/Server error");
+        }
+    }
+
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-white text-black rounded-2xl shadow-2xl w-[50rem] h-[25rem] flex flex-col relative">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+            <div className="bg-white text-black rounded-2xl shadow-2xl w-[40rem] p-6 relative overflow-hidden">
 
                 {/* Close button */}
                 <button
@@ -22,88 +71,100 @@ export default function BackgroundModal({
                     &times;
                 </button>
 
-                {/* Title */}
-                <div className="flex justify-center mt-10">
-                    <h1 className="text-2xl font-semibold text-gray-800 text-center">
-                        Add a Question
-                    </h1>
-                </div>
+                <h1 className="text-2xl font-bold mb-4 text-center">Add a Question</h1>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-6">
+                
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Question Stem */}
+                    <input
+                        className="border p-2 w-full rounded"
+                        placeholder="Question"
+                        value={stem}
+                        onChange={(e) => setStem(e.target.value)}
+                        required
+                    />
 
-                    {/* Topic Dropdown (might need to be a text box eventually) */}
-                    <div className="text-left">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Topic
-                        </label>
-                        <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                            <option value="">Select Question Topic</option>
-                            <option value="Topic1">Topic 1</option>
-                            <option value="Topic2">Topic 2</option>
-                            <option value="Topic3">Topic 3</option>
-                            <option value="Topic4">Topic 4</option>
-                        </select>
-                    </div>
-
-                    {/* Type Dropdown */}
-                    <div className="text-left">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Type
-                        </label>
-                        <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                            <option value="">Select Question Type</option>
-                            <option value="Multiple Choice">Multiple Choice</option>
-                            <option value="Essay">Essay</option>
-                            <option value="FIB">Fill In The Blank</option>
-                            <option value="True/False">True/False</option>
-                            <option value="Coding">Coding</option>
-                        </select>
-                    </div>
-
-
-                    {/* Difficulity dropdown */}
-                    <div className="text-left">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Difficulty
-                        </label>
-                        <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                            <option value="">Select Question Difficulty</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </div>
-
-                </div>
-                {/* Question Textbox dropdown */}
-                <div className="mt-6 text-left px-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Question
-                    </label>
-                    <textarea
-
-                        placeholder="Enter your question here..."
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                    ></textarea>
-                </div>
-
-                {/* Submit Button */}
-                <div className="mt-8 flex justify-center">
-                    <button
-                        type="submit"
-                        className="px-8 py-3 rounded-xl font-semibold text-white shadow-md bg-black hover:bg-gradient-to-r hover:from-blue-400 hover:via-cyan-400 hover:to-blue-600 transition-all duration-300 hover:shadow-lg"
-                        onClick={() => {
-                            // TODO: Add logic to save the form values here
-                            console.log("Form submitted!");
-                        }}
+                    {/* Question Type */}
+                    <select
+                        className="border p-2 w-full rounded"
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                        required
                     >
-                        Submit
-                    </button>
-                </div>
+                        <option value="MC">Multiple Choice</option>
+                        <option value="TF">True/False</option>
+                        <option value="FIB">Fill in the Blank</option>
+                        <option value="Essay">Essay</option>
+                    </select>
 
+                    {/* Question difficulty */}
+                    <input
+                        className="border p-2 w-full rounded"
+                        type="number"
+                        placeholder="Difficulty (1-5)"
+                        value={difficulty}
+                        onChange={(e) => setDifficulty(Number(e.target.value))}
+                        required
+                    />
 
+                    {/* Question type(s) */}
+                    <input
+                        className="border p-2 w-full rounded"
+                        placeholder="Topic(s) (comma separated)"
+                        value={topics}
+                        onChange={(e) => setTopics(e.target.value)}
+                        required
+                    />
+
+                    {/* MC options */}
+                    <div className="flex gap-2">
+                        <input 
+                            className="border p-2 flex-1 rounded" 
+                            placeholder="Choice A" 
+                            value={choiceA} 
+                            onChange={(e) => setChoiceA(e.target.value)}
+                            required />
+                
+                        <input 
+                            className="border p-2 flex-1 rounded" 
+                            placeholder="Choice B"
+                            value={choiceB}
+                            onChange={(e) => setChoiceB(e.target.value)}
+                            required />
+                            
+                        <input 
+                            className="border p-2 flex-1 rounded" 
+                            placeholder="Choice C" 
+                            value={choiceC} 
+                            onChange={(e) => setChoiceC(e.target.value)}
+                            required />
+                            
+                    </div>
+
+                    {/* MC correct answer*/}
+                    <label className="block">
+                        Correct answer:
+                        <select
+                            className="border p-2 ml-2 rounded"
+                            value={correctAnswer}
+                            onChange={(e) => setCorrect(e.target.value)}
+                            required
+                        >
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        </select>
+                    </label>
+
+                    <div className="flex justify-center">
+                        <button
+                        type="submit"
+                        className="bg-black text-white px-6 py-2 rounded hover:bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 transition-all"
+                        >
+                        Add Question
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
