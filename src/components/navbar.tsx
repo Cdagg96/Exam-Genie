@@ -26,18 +26,24 @@ export default function Navbar() {
           <Link href="../exam_gen/" className="text-stone-800 hover:text-black">Generator</Link>
           <Link href="#" className="text-stone-800 hover:text-black">Help</Link>
           <Link href="../contact/" className="text-stone-800 hover:text-black">Contact</Link>
-
+          
           {!LoggedIn &&
             <button
             onClick={() => setIsLoginOpen(true)}
-            className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center">
+            className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center -mt-1">
             Sign in
             </button>
           }
-          
-          
+          {/*Signout Button*/}
+          {LoggedIn &&
+            <button
+            onClick={() => setLoggedIn(false)}
+            className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center -mt-1">
+            Sign Out
+            </button>
+          }
 
-
+          
         </div>
       </div>
 
