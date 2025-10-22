@@ -7,6 +7,7 @@ import LoginModal from "./LoginModal";
 
 export default function Navbar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [LoggedIn, setLoggedIn] = useState(false);
 
   return (
     <>
@@ -26,17 +27,22 @@ export default function Navbar() {
           <Link href="#" className="text-stone-800 hover:text-black">Help</Link>
           <Link href="../contact/" className="text-stone-800 hover:text-black">Contact</Link>
 
-          <button
+          {!LoggedIn &&
+            <button
             onClick={() => setIsLoginOpen(true)}
-            className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center"
-          >
+            className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center">
             Sign in
-          </button>
+            </button>
+          }
+          
+          
+
+
         </div>
       </div>
 
       
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} LoggedIn ={LoggedIn} setLoggedIn={setLoggedIn} />
     </>
   );
 }
