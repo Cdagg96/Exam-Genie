@@ -17,7 +17,7 @@ export default function LoginModal({
 
   //Register states
   const [registerData, setRegisterData] = useState({
-    username: "",
+    role: "",
     email: "",
     password: ""
   });
@@ -25,7 +25,7 @@ export default function LoginModal({
   //Alert states
   const [loginAlert, setLoginAlert] = useState<{ type: "success" | "error" | null; message: string }>({ type: null, message: "" });
   const [registerAlert, setRegisterAlert] = useState<{ type: "success" | "error" | null; message: string }>({ type: null, message: "" });
-  
+
   // Don’t render anything if not open
   if (!isOpen) return null;
 
@@ -65,8 +65,8 @@ export default function LoginModal({
   };
 
   //Handle register submission
-  const handleRegister = () => {
-    if (!registerData.username || !registerData.email || !registerData.password) {
+  const handleRegister = async () => {
+    if (!registerData.role || !registerData.email || !registerData.password) {
       setRegisterAlert({
         type: "error",
         message: "Not all register fields are filled out."
@@ -76,6 +76,28 @@ export default function LoginModal({
         setRegisterAlert({ type: null, message: "" });
       }, 3000);
     } else {
+      try {
+        const res = await fetch("/api/user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(registerData),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setRegisterAlert({ type: "error", message: data.message || "Registration failed." });
+        } else {
+          setRegisterAlert({ type: "success", message: "User registered successfully!" });
+          setRegisterData({ role: "", email: "", password: "" }); // clear inputs
+        }
+      } catch (err) {
+        console.error(err);
+        setRegisterAlert({ type: "error", message: "Server error. Try again later." });
+      }
+
+
+
       setRegisterAlert({
         type: "success",
         message: "All register fields are filled out."
@@ -114,40 +136,40 @@ export default function LoginModal({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
       <div className="bg-white text-black rounded-2xl shadow-2xl w-[70rem] h-[30rem] flex relative">
-        
+
         {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-black hover:text-gray-500 text-2xl"
         >
-        {/*means the x*/}
+          {/*means the x*/}
           &times;
         </button>
 
         {/* Login Section */}
         <div className="flex-1 flex flex-col justify-center items-center space-y-4 px-10">
           <h2 className="text-3xl font-semibold mb-2">Login</h2>
-          
+
           {/* Login Alert */}
           {renderAlert(loginAlert.type, loginAlert.message)}
 
           <input
             type="text"
-            name = "email"
+            name="email"
             placeholder="Email"
-            value = {loginData.email}
-            onChange = {handleLoginChange}
+            value={loginData.email}
+            onChange={handleLoginChange}
             className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
           />
           <input
             type="password"
-            name = "password"
+            name="password"
             placeholder="Password"
-            value = {loginData.password}
-            onChange = {handleLoginChange}
+            value={loginData.password}
+            onChange={handleLoginChange}
             className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
           />
-          <button onClick = {handleLogin} className="w-3/4 p-3 bg-stone-600 text-white rounded-lg hover:bg-stone-900 transition">
+          <button onClick={handleLogin} className="w-3/4 p-3 bg-stone-600 text-white rounded-lg hover:bg-stone-900 transition">
             Sign In
           </button>
         </div>
@@ -158,35 +180,52 @@ export default function LoginModal({
         {/* Register Section */}
         <div className="flex-1 flex flex-col justify-center items-center space-y-4 px-10">
           <h2 className="text-3xl font-semibold mb-2">Register</h2>
-          
+
           {/* Register Alert */}
           {renderAlert(registerAlert.type, registerAlert.message)}
 
-          <input
-            type="text"
-            name = "username"
-            placeholder="Username"
-            value = {registerData.username}
-            onChange = {handleRegisterChange}
-            className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
-          />
+          <div className="flex justify-center gap-4 mb-2">
+            <button
+              type="button"
+              onClick={() => setRegisterData(prev => ({ ...prev, role: "teacher" }))}
+              className={`px-4 py-2 rounded-lg border transition ${registerData.role === "teacher"
+                  ? "bg-stone-900 text-white border-stone-900"
+                  : "bg-stone-700 text-white border-stone-700 hover:bg-stone-800"
+                }`}
+            >
+              Teacher
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRegisterData(prev => ({ ...prev, role: "student" }))}
+              className={`px-4 py-2 rounded-lg border transition ${registerData.role === "student"
+                  ? "bg-stone-900 text-white border-stone-900"
+                  : "bg-stone-700 text-white border-stone-700 hover:bg-stone-800"
+                }`}
+            >
+              Student
+            </button>
+          </div>
+
+
           <input
             type="email"
-            name = "email"
+            name="email"
             placeholder="Email"
-            value = {registerData.email}
-            onChange = {handleRegisterChange}
+            value={registerData.email}
+            onChange={handleRegisterChange}
             className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
           />
           <input
             type="password"
-            name = "password"
+            name="password"
             placeholder="Password"
-            value = {registerData.password}
-            onChange = {handleRegisterChange}
+            value={registerData.password}
+            onChange={handleRegisterChange}
             className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
           />
-          <button onClick = {handleRegister} className="w-3/4 p-3 bg-stone-600 text-white rounded-lg hover:bg-stone-900 transition">
+          <button onClick={handleRegister} className="w-3/4 p-3 bg-stone-600 text-white rounded-lg hover:bg-stone-900 transition">
             Register
           </button>
         </div>
