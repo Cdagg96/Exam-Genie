@@ -12,9 +12,9 @@ export async function POST(request: NextRequest) {
     //Check if both fields are filled out
     if (!issueType || !message) {
       return NextResponse.json(
-        { 
+        {
           error: 'Issue type and message are required',
-          success: false 
+          success: false
         },
         { status: 400 }
       );
@@ -23,9 +23,9 @@ export async function POST(request: NextRequest) {
     //Check if Resend API key is correct
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json(
-        { 
+        {
           error: 'Email service is not configured',
-          success: false 
+          success: false
         },
         { status: 500 }
       );
@@ -47,23 +47,23 @@ export async function POST(request: NextRequest) {
           <p class="text-gray-600 mt-5 text-sm">
             This issue was submitted from your contact form.
           </p>
-      </div>`,
+        </div>`,
     });
 
     if (error) {
       return NextResponse.json(
-        { 
+        {
           error: `Failed to send email: ${error.message}`,
-          success: false 
+          success: false
         },
         { status: 500 }
       );
     }
 
     return NextResponse.json(
-      { 
+      {
         message: 'Issue report sent successfully!',
-        success: true 
+        success: true
       },
       { status: 200 }
     );

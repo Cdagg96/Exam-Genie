@@ -1,8 +1,48 @@
 // app/contact/page.tsx
+"use client";
 import NavBar from "@/components/navbar";
-export default function ContactPage() {
-  return (
+import React, { useState } from "react";
+import toast from "react-hot-toast";
 
+export default function ContactPage() {
+  //States for form fields
+  const [issueType, setIssueType] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    //Set the data structure
+    const data = {
+      issueType,
+      message
+    };
+
+    try {
+      const res = await fetch("/api/send_email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        toast.success("Issue reported successfully!");
+        //Clear the form
+        setIssueType("");
+        setMessage("");
+      } else {
+        console.error(result);
+        toast.error(result.error || "Failed to send issue report");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Network/Server error");
+    }
+  }
+
+  return (
     <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
       <header>
         <NavBar />
@@ -10,15 +50,15 @@ export default function ContactPage() {
       <div className="max-w-4xl mx-auto">
         {/* Prompt */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 pt-8">Report a Issue</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 pt-8">Report a issue</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Want to report a Issue? Please do not hesitate to contact us directly. Thank you for helping make Exam Genie better.
+            Want to report a issue? Please do not hesitate to contact us directly. Thank you for helping make Exam Genie better.
           </p>
         </div>
 
         {/* Contact Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* Issue Type */}
             <div className="space-y-2">
@@ -28,7 +68,7 @@ export default function ContactPage() {
                 </svg>
                 Issue Type
               </label>
-              <select className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none bg-gray-50" defaultValue="">
+              <select className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none bg-gray-50" value={issueType} onChange={(e) => setIssueType(e.target.value)} required>
                 <option disabled value="">Select issue type</option>
                 <option>Functional Bug</option>
                 <option>UI/UX Issue</option>
@@ -46,24 +86,28 @@ export default function ContactPage() {
                 Issue Description
               </label>
               <textarea
-                name="message"
-                id="message"
-                rows={6}
-                placeholder="Please describe the Issue in details."
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none bg-gray-50 resize-vertical"
+                rows={6}
+                placeholder="Please describe the issue in detail."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                required
+
               />
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-gray-600 to-gray-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center justify-center group"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-              </svg>
-              Submit Bug Report
-            </button>
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-gray-600 to-gray-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center justify-center group"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                Submit Bug Report
+              </button>
+            </div>
           </form>
         </div>
       </div>
