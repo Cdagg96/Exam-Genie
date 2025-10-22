@@ -1,13 +1,80 @@
 "use client";
 
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavBar from "@/components/navbar";
 import QuestionForm from "@/components/QuestionForm";
 
+interface Question {
+    _id: string;
+    stem: string;
+    type: string;
+    difficulty: string;
+    topics: string[];
+    choices: {
+        label: string;
+        text: string;
+        isCorrect: boolean;
+    }[];
+    lastUsed: string | null;
+    userID: string;
+}
 
 export default function DatabaseActionPage() {
     const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    //Fetch questions from MongoDB
+    const fetchQuestions = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/question_table');
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch questions');
+            }
+
+            const data = await response.json();
+            setQuestions(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+            console.error('Error fetching questions:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    //Runs when page opens to get questions
+    useEffect(() => {
+        fetchQuestions();
+    }, []);
+
+    //Runs when the add question form closes to potentially grab new questions just added
+    const handleFormClose = () => {
+        setIsQuestionFormOpen(false);
+        fetchQuestions();
+    };
+
+    //Helper function to format choices (label then text plus can have multiple choices)
+    const formatChoices = (choices: any[] | undefined): string => {
+        if (!choices || !Array.isArray(choices)) return 'N/A';
+
+        return choices.map(choice => {
+            if (choice.label && choice.text) {
+                return `${choice.label}: ${choice.text}`;
+            }
+            return JSON.stringify(choice);
+        }).join(', ');
+    };
+
+    //Helper function to format topics (can have multiple topics)
+    const formatTopics = (topics: string[] | undefined): string => {
+        if (!topics || !Array.isArray(topics)) return 'No topic';
+        return topics.join(', ');
+    };
+
     return (
         <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
             <header>
@@ -110,48 +177,101 @@ export default function DatabaseActionPage() {
                 </div>
 
 
-                {/* Empty Questions Table */}
+                {/* Questions Table */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
+                    <div className="overflow-x-auto w-full max-w-full">
+                        <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
                             <thead className="bg-gradient-to-r from-blue-50 to-cyan-50">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
-                                        ID
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                         Question
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                         Type
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                         Difficulty
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                         Topic
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                         Choices
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                         Last Used
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-
-
-                                {/* Empty table body */}
-                                <tr>
-                                    <td colSpan={8} className="px-6 py-24 text-center">
-                                        <div className="text-gray-400 text-lg">No questions found</div>
-                                        <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
-                                    </td>
-                                </tr>
+                                {loading ? (
+                                    //Questions Loading
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                            <div className="text-gray-400 text-lg">Loading questions</div>
+                                        </td>
+                                    </tr>
+                                ) : error ? (
+                                    //Error while loading questions
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                            <div className="text-gray-400 text-lg">Error Loading questions</div>
+                                            <div className="text-red-400 text-sm mt-2">{error}</div>
+                                            <button
+                                                onClick={fetchQuestions}
+                                                className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
+                                                Retry
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ) : questions.length == 0 ? (
+                                    //No questions
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                            <div className="text-gray-400 text-lg">No questions found</div>
+                                            <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    //Questions data
+                                    questions.map((question, index) => (
+                                        <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                            <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                <div className="truncate" title={question.stem}>
+                                                    {question.stem}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                {question.type}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                {question.difficulty}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                {formatTopics(question.topics)}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                <div className="truncate" title={formatChoices(question.choices)}>
+                                                    {formatChoices(question.choices)}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                {question.lastUsed || 'Never'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button className="text-blue-600 hover:text-blue-900 mr-3">
+                                                    Edit
+                                                </button>
+                                                <button className="text-red-600 hover:text-red-900">
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -160,7 +280,7 @@ export default function DatabaseActionPage() {
 
                 {/* Add Question Button */}
                 <div className="mt-12 flex justify-center">
-                    <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2"  onClick={() => setIsQuestionFormOpen(true)}>
+                    <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
@@ -168,9 +288,9 @@ export default function DatabaseActionPage() {
                     </button>
                 </div>
             </main>
-            <QuestionForm isOpen={isQuestionFormOpen} onClose={() => setIsQuestionFormOpen(false)} />
+            <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} />
         </div>
-       
+
     );
 }
 
