@@ -42,7 +42,7 @@ export default function LoginModal({
   };
 
   //Handle login submission
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!loginData.email || !loginData.password) {
       setLoginAlert({
         type: "error",
@@ -52,16 +52,32 @@ export default function LoginModal({
       setTimeout(() => {
         setLoginAlert({ type: null, message: "" });
       }, 3000);
-    } else {
-      setLoginAlert({
-        type: "success",
-        message: "All login fields are filled out."
+      return;
+    } 
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(loginData),
       });
-      //Clear Alert 3 seconds
-      setTimeout(() => {
-        setLoginAlert({ type: null, message: "" });
-      }, 3000);
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoginAlert({ type: "error", message: data.message || "Login failed." });
+      } else {
+        setLoginAlert({ type: "success", message: "Login successful!" });
+        setLoginData({ email: "", password: "" }); // clear inputs
+      }
+    } catch (err) {
+      console.error(err);
+      setLoginAlert({ type: "error", message: "Server error. Try again later." });
     }
+
+    setTimeout(() => {
+      setLoginAlert({ type: null, message: "" });
+    }, 3000);
   };
 
   //Handle register submission
@@ -96,12 +112,6 @@ export default function LoginModal({
         setRegisterAlert({ type: "error", message: "Server error. Try again later." });
       }
 
-
-
-      setRegisterAlert({
-        type: "success",
-        message: "All register fields are filled out."
-      });
       //Clear Alert 3 seconds
       setTimeout(() => {
         setRegisterAlert({ type: null, message: "" });
