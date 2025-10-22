@@ -1,10 +1,47 @@
-software/project installation document
+# Project Installation Guide
 
-Install Node.js (Windows) 
-(Run)
+Follow the steps below to set up your environment and install all required dependencies.
+
+---
+
+## Prerequisites
+Before starting, make sure you have **Node.js** and **npm** installed on your system.
+
+---
+
+## Install Node.js
+
+### Windows
+
+```bash
+# Install NVM (Node Version Manager)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+
+# Install the latest LTS (Long-Term Support) version of Node.js
 nvm install --lts
+
+# Use the installed LTS version
 nvm use --lts
 
-Install Node.js (macOS)
+```
+### Mac
+```bash
+# Install Node.js using Homebrew
 brew install node
+```
+
+---
+
+## Install Resend
+
+```bash
+npm install resend
+```
+
+---
+
+## Install Toast
+
+```bash
+npm install react-hot-toast
+```
