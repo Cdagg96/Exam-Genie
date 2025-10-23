@@ -4,8 +4,12 @@ import React, { useState } from "react";
 export default function LoginModal({
   isOpen,
   onClose,
+  setLoggedIn,
+  LoggedIn,
 }: {
   isOpen: boolean;
+  LoggedIn: boolean;
+  setLoggedIn: (value: boolean) => void;
   onClose: () => void;
 }) {
 
@@ -69,6 +73,8 @@ export default function LoginModal({
       } else {
         setLoginAlert({ type: "success", message: "Login successful!" });
         setLoginData({ email: "", password: "" }); // clear inputs
+        setLoggedIn(true);
+        onClose();
       }
     } catch (err) {
       console.error(err);
