@@ -8,7 +8,7 @@ export default function examGen(){
             <NavBar />
         </header>
           <main className="flex flex-col items-center justify-center">
-              <h1 className="text-5xl mb-10 font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
+              <h1 className="text-5xl pt-8 pb-4 font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
                   Generate Exam
               </h1>
               <ExamForm />
