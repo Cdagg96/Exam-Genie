@@ -2,7 +2,7 @@
  * File to test question form
  * 
  * Test1 -> Render MC input: when submit is hit fetch is called with correct data payload, shows toast.success, calls onClose()
- * Test2 -> Conditional UI: MC selected shows choices A-C, TF selected shows True/False buttons
+ * Test2 -> Conditional UI: TF selected shows True/False buttons and returns 401 with toast.error
  */
 
 import { describe, it, test, expect, vi, beforeEach } from "vitest";
@@ -11,7 +11,7 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import toast from "react-hot-toast";
 
-// 1) Define the mock functions inside the mock factory (no outer refs)
+// Define the mock functions
 vi.mock("react-hot-toast", () => {
   return {
     default: {
@@ -24,7 +24,7 @@ vi.mock("react-hot-toast", () => {
 // Import after the mock
 import QuestionForm from "../components/QuestionForm";
 
-// Mock fetch (reset per test)
+// Mock fetch
 beforeEach(() => {
   vi.resetAllMocks();
   global.fetch = vi.fn();
@@ -36,6 +36,7 @@ function openModal() {
   return onClose;
 }
 
+// 1. Test for question form component
 test("MC: submits valid form → posts and shows success toast, closes modal", async () => {
   const user = userEvent.setup();
   const onClose = openModal();
@@ -63,7 +64,7 @@ test("MC: submits valid form → posts and shows success toast, closes modal", a
   // Submit
   await user.click(screen.getByRole("button", { name: /add question/i }));
 
-  // Assert fetch called with expected payload
+  // Check that fetch called with expected payload
   expect(global.fetch).toHaveBeenCalledTimes(1);
   const [url, opts] = (global.fetch as any).mock.calls[0];
   expect(String(url)).toMatch(/\/api\/questions$/);
@@ -80,7 +81,44 @@ test("MC: submits valid form → posts and shows success toast, closes modal", a
     { label: "C", text: "#", isCorrect: false },
   ]);
 
-  // success toast + modal closed
+  // Check that toast.success and onClose is called
   expect((toast as any).success).toHaveBeenCalledWith("Question Created!");
   expect(onClose).toHaveBeenCalled();
+});
+
+test("TF: true/false buttons should appear and submitting should return 401 with error toast", async () => {
+  const user = userEvent.setup();
+  const onClose = openModal();
+
+  // Set type to TF
+  const typeCombo = screen.getByLabelText(/type/i);
+  await user.selectOptions(typeCombo, "TF");
+  // True/False buttons should appear
+  const trueB = screen.getByRole("button", {name: "True"});
+  const falseB = screen.getByRole("button", {name: "False"});
+  expect(trueB).toBeInTheDocument();
+  expect(falseB).toBeInTheDocument();
+
+  // Fill the rest of the form
+  await user.type(screen.getByPlaceholderText(/question/i), "Which starts a comment in C++?");
+  await user.clear(screen.getByPlaceholderText(/difficulty/i));
+  await user.type(screen.getByPlaceholderText(/difficulty/i), "1");
+  await user.type(screen.getByPlaceholderText(/topic/i), "C++ Syntax");
+
+  // choose correct answer A
+  await user.click(trueB);
+
+  // mock error 401 from POST
+  (global.fetch as any).mockResolvedValue({
+    ok: false,
+    status: 401,
+    json: async () => ({ error: "Please choose multiple choice type" }),
+  });
+
+  // Submit
+  await user.click(screen.getByRole("button", { name: /add question/i }));
+
+  expect(global.fetch).toHaveBeenCalledTimes(1);
+  expect((toast as any).error).toHaveBeenCalledWith("Please choose multiple choice type");
+  expect(onClose).toHaveBeenCalledTimes(0); // Doesn't close the popup
 });

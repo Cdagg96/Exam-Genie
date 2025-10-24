@@ -90,6 +90,8 @@ export default function BackgroundModal({
 
                     {/* Question Type */}
                     <select
+                        id="typeSelect"
+                        aria-label="Type"
                         className="border p-2 w-full rounded"
                         value={type}
                         onChange={(e) => setType(e.target.value)}
