@@ -1,4 +1,8 @@
-# Test Generator v1
+<div style="position: relative;">
+  <h1 style="display: inline;">Exam Genie v1</h1>
+  <img src="https://github.com/user-attachments/assets/a3d37804-8f73-4c84-9e30-26eab9313d04" width="102" height="102" style="position: absolute; right: 0; top: 0;" alt="Logo">
+</div>
+
 ## Client - Nasseef Abukamail
 ## Team BAGD
 Team members
