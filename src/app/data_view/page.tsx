@@ -1,9 +1,9 @@
 "use client";
 
-
 import { useState, useEffect } from "react";
 import NavBar from "@/components/navbar";
 import QuestionForm from "@/components/QuestionForm";
+import FilterBox from "@/components/filterBox";
 
 interface Question {
     _id: string;
@@ -25,6 +25,7 @@ export default function DatabaseActionPage() {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
 
     //Fetch questions from MongoDB
     const fetchQuestions = async () => {
@@ -50,6 +51,16 @@ export default function DatabaseActionPage() {
     useEffect(() => {
         fetchQuestions();
     }, []);
+
+    //Creates a unique list of topics for the filter box
+    useEffect(() => {
+    const uniqueTopics = Array.from(
+        new Set(questions.flatMap(quest => quest.topics))
+    ).map(topic => ({ value: topic, label: topic }));
+
+    //Store the list of unique topics if any changes occur in questions
+    setTopics(uniqueTopics);
+    }, [questions]);
 
     //Runs when the add question form closes to potentially grab new questions just added
     const handleFormClose = () => {
@@ -95,20 +106,12 @@ export default function DatabaseActionPage() {
                         Filter Questions
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Topic Filter */}
-                        <div className="text-left">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Topic
-                            </label>
-                            <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                <option value="">All Topics</option>
-                                <option value="Topic1">Topic 1</option>
-                                <option value="Topic2">Topic 2</option>
-                                <option value="Topic3">Topic 3</option>
-                                <option value="Topic4">Topic 5</option>
-                            </select>
-                        </div>
-
+                        {/* Topic Filter Box */}
+                        <FilterBox
+                            options={topics}
+                            label="Topic"
+                            placeholder="Search a topic"
+                        />
 
                         {/* Difficulty Filter */}
                         <div className="text-left">
