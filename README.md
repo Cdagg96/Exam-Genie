@@ -31,6 +31,8 @@ User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/m
 
   - Email sending- Resend
 
+  - PDF Creator- jsPDF
+
 ## License (if any)
 No license asof now
 
