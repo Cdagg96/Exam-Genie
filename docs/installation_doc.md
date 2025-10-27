@@ -45,3 +45,16 @@ npm install resend
 ```bash
 npm install react-hot-toast
 ```
+
+## Install jsPDF
+
+```bash
+npm install jspdf
+```
+
+## Install for Testing
+
+```bash
+npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
+```
+
