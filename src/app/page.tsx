@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import NavBar from "@/components/navbar";
 import { useState } from "react";
@@ -30,9 +31,12 @@ export default function Home() {
             {/* Info icon from Heroicons */}
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              fill="none" viewBox="0 0 24 24" 
-              strokeWidth={1.5} stroke="currentColor" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              strokeWidth={1.5} 
+              stroke="currentColor" 
               className="absolute size-6 -top-6 -right-2"
+              data-testid="create-test-icon"
             >
               <path 
                 strokeLinecap="round" 
@@ -61,9 +65,12 @@ export default function Home() {
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              fill="none" viewBox="0 0 24 24" 
-              strokeWidth={1.5} stroke="currentColor" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              strokeWidth={1.5} 
+              stroke="currentColor" 
               className="absolute size-6 -top-6 -right-2"
+              data-testid="view-questions-icon"
             >
               <path
                 strokeLinecap="round" 

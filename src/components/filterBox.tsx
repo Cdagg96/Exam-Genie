@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 
 //Setting up the properties for the FilterBox component (Only works with searching for topics right now)
