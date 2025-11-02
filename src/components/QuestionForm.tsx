@@ -149,6 +149,8 @@ export default function BackgroundModal({
                         type="number"
                         placeholder="Difficulty (1-5)"
                         value={difficulty}
+                        min={1}
+                        max={5}
                         onChange={(e) => setDifficulty(Number(e.target.value))}
                         required
                     />
