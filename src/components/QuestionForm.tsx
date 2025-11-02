@@ -20,21 +20,60 @@ export default function BackgroundModal({
     const [choiceB, setChoiceB] = useState("");
     const [choiceC, setChoiceC] = useState("");
     const [correctAnswer, setCorrect] = useState("A");
+    const [extendedAnswer, setExAnswer] = useState("");
+    const [fibAnswer, setFIBAnswer] = useState("");
+    const [blankLines, setBlankLines] = useState(1);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Set the data structure
-        const data = {
+        // Set the base data structure
+        const base_data = {
             stem, type, difficulty,
             topics: topics.split(",").map(t => t.trim()),
-            choices: [
-                {label:"A", text:choiceA, isCorrect: correctAnswer === "A"},
-                {label:"B", text:choiceB, isCorrect: correctAnswer === "B"},
-                {label:"C", text:choiceC, isCorrect: correctAnswer === "C"}
-            ],
             lastUsed: null 
         };
+
+        let data;
+
+        // Change the answer portion based on what type of question it is
+        switch(type){
+            case "MC":
+                data = {
+                    ...base_data,
+                    choices: [
+                        {label:"A", text:choiceA, isCorrect: correctAnswer === "A"},
+                        {label:"B", text:choiceB, isCorrect: correctAnswer === "B"},
+                        {label:"C", text:choiceC, isCorrect: correctAnswer === "C"}
+                    ],
+                };
+                break;
+            case "TF":
+                data = {
+                    ...base_data,
+                    choices: [
+                        {label:"True", text:"True", isCorrect: correctAnswer === "True"},
+                        {label:"False", text:"False", isCorrect: correctAnswer === "False"},
+                    ],
+                };
+                break;
+            case "FIB":
+                data = {
+                    ...base_data,
+                    answer: fibAnswer,
+                    blankLines: 1,
+                };
+                break;
+            case "Short Answer":
+            case "Essay":
+            case "Code":
+                data = {
+                    ...base_data,
+                    answer: extendedAnswer || "",
+                    lines: blankLines,
+                };
+                break;
+        }
 
         try {
             const res = await fetch("../api/questions", {
@@ -159,17 +198,17 @@ export default function BackgroundModal({
                             <div className="flex gap-2">
                                 <button 
                                     type="button"
-                                    onClick={() => setCorrect("true")}
+                                    onClick={() => setCorrect("True")}
                                     className={`border p-2 flex-1 rounded text-center transition-all
-                                    ${correctAnswer === "true" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
+                                    ${correctAnswer === "True" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
                                 >
                                 True
                                 </button>
                                 <button 
                                     type="button"
-                                    onClick={() => setCorrect("false")}
+                                    onClick={() => setCorrect("False")}
                                     className={`border p-2 flex-1 rounded text-center transition-all
-                                    ${correctAnswer === "false" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
+                                    ${correctAnswer === "False" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
                                 >
                                 False
                                 </button>
@@ -177,16 +216,41 @@ export default function BackgroundModal({
                         </div>
                     )}
 
-                    {/* FIB/Essay/Code only have one "option" box */}
-                    {(type === "FIB" || type === "Essay" || type === "Code") && (
+                    {/* Essay/Code only have one "option" box */}
+                    {(type === "Essay" || type === "Code") && (
                         <div className="mt-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Correct answer
                             </label>
                             <input
                                 className="border p-2 w-full rounded"
-                                value={correctAnswer}
-                                onChange={(e) => setCorrect(e.target.value)}
+                                value={extendedAnswer}
+                                onChange={(e) => setExAnswer(e.target.value)}
+                                required
+                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Number of blank lines
+                            </label>
+                            <input
+                                type="number"
+                                className="border p-2 w-full rounded"
+                                value={blankLines}
+                                onChange={(e) => setBlankLines(Number(e.target.value))}
+                                required
+                            />
+                        </div>
+                    )}
+
+                    {/* FIB only have one "option" box and one blank line*/}
+                    {(type == "FIB") && (
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Correct answer
+                            </label>
+                            <input
+                                className="border p-2 w-full rounded"
+                                value={fibAnswer}
+                                onChange={(e) => setFIBAnswer(e.target.value)}
                                 required
                             />
                         </div>

@@ -7,19 +7,13 @@ export async function POST(req:Request) {
         const body = await req.json();
         
         // validate the data coming in
-        if(!body.stem || !body.type || !body.difficulty || !body.topics || !body.choices){
+        if(!body.stem || !body.type || !body.difficulty || !body.topics){
             return NextResponse.json(
                 {ok: false, error: "Missing required fields"},
                 {status: 400}
             );
         }
-        // Temperary check to make sure only MC is inserted into DB until others are implemented
-        if(body.type === "TF" || body.type === "FIB" || body.type === "Essay" || body.type === "Code"){
-            return NextResponse.json(
-                {ok: false, error: "Types not implemented yet"},
-                {status: 401}
-            );
-        }
+        
 
         // convert fields if needed
         body.lastUsed = body.lastUsed ?? null;
