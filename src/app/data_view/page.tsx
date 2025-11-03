@@ -16,6 +16,7 @@ interface Question {
         text: string;
         isCorrect: boolean;
     }[];
+    answer: string;
     lastUsed: string | null;
     userID: string;
 }
@@ -74,11 +75,42 @@ export default function DatabaseActionPage() {
 
         return choices.map(choice => {
             if (choice.label && choice.text) {
+                if(choice.label == "True" || choice.label == "False"){
+                    return `${choice.label}`;
+                }
                 return `${choice.label}: ${choice.text}`;
             }
+            
             return JSON.stringify(choice);
-        }).join(', ');
+        }).join(' ');
     };
+
+    // Helper function to format answers
+    const formatAnswers = (question: Question): string => {
+        const { type, choices, answer } = question;
+
+        // MC / TF: answer lives in choices
+        if ((type === "MC" || type === "TF") && Array.isArray(choices)) {
+            const correct = choices.find(choice => choice.isCorrect);
+            return correct?.label || "N/A";
+        }
+
+        // Everything else (FIB, Essay): answer is on the question
+        if (answer && answer.trim().length > 0) {
+            return answer;
+        }
+
+        return "N/A";
+    };
+
+    // Helper function that adds blank line after question stem if it is FIB
+    const formatQuestion = (question: Question): string => {
+        const { stem, type } = question;
+        if(type == "FIB"){
+            return stem + " __";
+        }
+        return stem;
+    }
 
     //Helper function to format topics (can have multiple topics)
     const formatTopics = (topics: string[] | undefined): string => {
@@ -202,6 +234,9 @@ export default function DatabaseActionPage() {
                                         Choices
                                     </th>
                                     <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        Answer
+                                    </th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                         Last Used
                                     </th>
                                     <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider">
@@ -243,8 +278,8 @@ export default function DatabaseActionPage() {
                                     questions.map((question, index) => (
                                         <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                             <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
-                                                <div className="truncate" title={question.stem}>
-                                                    {question.stem}
+                                                <div className="truncate" title={formatQuestion(question)}>
+                                                    {formatQuestion(question)}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
@@ -259,6 +294,11 @@ export default function DatabaseActionPage() {
                                             <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
                                                 <div className="truncate" title={formatChoices(question.choices)}>
                                                     {formatChoices(question.choices)}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <div className="truncate" title={formatAnswers(question)}>
+                                                    {formatAnswers(question)}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
