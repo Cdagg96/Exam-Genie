@@ -15,6 +15,8 @@ export async function POST(req:Request) {
             typeCounts,
         } = body;
 
+        body.lastUsed = body.lastUsed ?? null;
+
         // create the connection
         const client = await clientPromise;
         const db = client.db(process.env.MONGODB_DB);
@@ -58,12 +60,15 @@ export async function POST(req:Request) {
         // get the total questions
         const totalPoints = items.reduce((s, it) => s + it.points, 0);
 
+        const lastUsed = body.lastUsed ?? null;
+        
         const exam_data = {
             title,
             timeLimitMin: timeLimit,
             difficulty,
             totalPoints,
             questions: items,
+            lastUsed,
             createdAt: new Date(),
             updatedAt: new Date()
         }
