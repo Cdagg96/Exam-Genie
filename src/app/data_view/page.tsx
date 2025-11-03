@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import NavBar from "@/components/navbar";
 import QuestionForm from "@/components/QuestionForm";
 import FilterBox from "@/components/filterBox";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import toast from "react-hot-toast";
 
 interface Question {
     _id: string;
@@ -27,12 +29,18 @@ export default function DatabaseActionPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
+    const [questionTextToDelete, setQuestionTextToDelete] = useState<string>("");
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     //Fetch questions from MongoDB
     const fetchQuestions = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/question_table');
+            const response = await fetch("../api/questions", {
+                method: 'GET',
+            });
 
             if (!response.ok) {
                 throw new Error('Failed to fetch questions');
@@ -116,6 +124,52 @@ export default function DatabaseActionPage() {
     const formatTopics = (topics: string[] | undefined): string => {
         if (!topics || !Array.isArray(topics)) return 'No topic';
         return topics.join(', ');
+    };
+
+    //Delete question handler
+    const handleDeleteClick = (questionId: string, questionStem: string) => {
+        setQuestionToDelete(questionId);
+        setQuestionTextToDelete(questionStem);
+        setDeleteModalOpen(true);
+    };
+
+    //Confirm delete question
+    const handleConfirmDelete = async () => {
+        if (!questionToDelete) return;
+
+        try {
+            setDeleteLoading(true);
+            const response = await fetch(`/api/questions?id=${questionToDelete}`, {
+                method: 'DELETE',
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                toast.success("Question deleted successfully!");
+                await fetchQuestions();
+            } else {
+                throw new Error(result.error || 'Failed to delete question');
+            }
+            
+        } catch (err) {
+            console.error('Error deleting question:', err);
+            toast.error(err instanceof Error ? err.message : 'Failed to delete question');
+        } 
+        //Always runs to stop loading and close modal
+        finally {
+            setDeleteLoading(false);
+            setDeleteModalOpen(false);
+            setQuestionToDelete(null);
+            setQuestionTextToDelete("");
+        }
+    };
+
+    //Cancel delete question
+    const handleCancelDelete = () => {
+        setDeleteModalOpen(false);
+        setQuestionToDelete(null);
+        setQuestionTextToDelete("");
     };
 
     return (
@@ -308,7 +362,7 @@ export default function DatabaseActionPage() {
                                                 <button className="text-blue-600 hover:text-blue-900 mr-3">
                                                     Edit
                                                 </button>
-                                                <button className="text-red-600 hover:text-red-900">
+                                                <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(question._id, formatQuestion(question))}>
                                                     Delete
                                                 </button>
                                             </td>
@@ -332,6 +386,15 @@ export default function DatabaseActionPage() {
                 </div>
             </main>
             <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} />
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={deleteModalOpen}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                questionText={questionTextToDelete}
+                isLoading={deleteLoading}
+            />
         </div>
 
     );
