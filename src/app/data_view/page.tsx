@@ -38,7 +38,9 @@ export default function DatabaseActionPage() {
     const fetchQuestions = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/question_table');
+            const response = await fetch("../api/questions", {
+                method: 'GET',
+            });
 
             if (!response.ok) {
                 throw new Error('Failed to fetch questions');
@@ -137,7 +139,7 @@ export default function DatabaseActionPage() {
 
         try {
             setDeleteLoading(true);
-            const response = await fetch(`/api/questionsDelete?id=${questionToDelete}`, {
+            const response = await fetch(`/api/questions?id=${questionToDelete}`, {
                 method: 'DELETE',
             });
 
