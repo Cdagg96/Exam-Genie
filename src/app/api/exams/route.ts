@@ -31,20 +31,51 @@ export async function POST(req:Request) {
 
         // Loop through each question type and grab -
         // the corresponding number of questions
-        for(const [type, count] of Object.entries(typeCounts)){
-            const size = Number(count) || 0;
-            if (size <= 0) continue;
-            
-            const match: any = {type};
+        // Build pairs for type-count
+        const pairs: Array<{type: string; requested: number}> =
+            Object.entries(typeCounts).map(([t, n]) => ({
+                type: t,
+                requested: Number(n) || 0,
+        })).filter(p => p.requested > 0);
 
-            // Check to see the difficulty annd what questions we should match to
-            const band = DIFF_MAP[difficulty];
-            if(band) match.difficulty = {$in: band};
+        // Check to see the difficulty annd what questions we should match to
+        const band = DIFF_MAP[difficulty];
+        const diffFilter = band ? {$in: band} : undefined;
+
+        // Check availability for each type in the DB
+        const shortages: Array<{type: string; requested: number; available: number}> = [];
+
+        for(const {type, requested} of pairs){
+            const match: any = {type};
+            if(diffFilter) match.difficulty = diffFilter;
+
+            const available = await questionsdb.countDocuments(match);
+            if(available < requested){
+                shortages.push({type, requested, available});
+            }
+        }
+
+        // If there are shortages in the DB, fail
+        if(shortages.length){
+            return NextResponse.json(
+                {
+                    ok: false,
+                    error: "Not enough questions to create exam",
+                    shortages
+                },
+                {status: 401}
+            );
+        }
+
+        // Now go through and grab questions if valid
+        for(const {type, requested} of pairs){
+            const match: any = {type};
+            if(diffFilter) match.difficulty = diffFilter;
 
             // Randomly sample questions for current type
             const sample = await questionsdb.aggregate([
                 {$match: match},
-                {$sample: {size}}
+                {$sample: {size: requested}}
             ]).toArray();
 
             // loop throup the array of sample questions and push them onto items

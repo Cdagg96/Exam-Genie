@@ -96,6 +96,12 @@ export default function ExamForm() {
             if(res.ok){
                 toast.success("Exam Created!") // Notification that question was created
             }
+            else if(result?.shortages?.length){
+                const msg = result.shortages.map((s: any) =>
+                    `${s.type}: requested ${s.requested}, available ${s.available}`
+                ).join("\n");
+                toast.error(`Not enough questions\n--------------\n ${msg}`, {duration: 10000});
+            }
             else{
                 console.error(result);
                 toast.error("Failed to create exam");
@@ -121,7 +127,7 @@ export default function ExamForm() {
             };
         });
 
-        generateExamPDF(examSpec, questions);
+        //generateExamPDF(examSpec, questions);
     }
 
     return (
