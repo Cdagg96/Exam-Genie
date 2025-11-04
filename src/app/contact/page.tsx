@@ -8,6 +8,8 @@ export default function ContactPage() {
   //States for form fields
   const [issueType, setIssueType] = useState("");
   const [message, setMessage] = useState("");
+  //State for stoping submission button spam
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,6 +19,9 @@ export default function ContactPage() {
       issueType,
       message
     };
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
       const res = await fetch("/api/send_email", {
@@ -39,7 +44,11 @@ export default function ContactPage() {
     } catch (error) {
       console.error(error);
       toast.error("Network/Server error");
+    }finally {
+      // waits one sec before user can press the button again
+      setTimeout(() => setIsSubmitting(false), 1000);
     }
+
   }
 
   return (
@@ -100,6 +109,7 @@ export default function ContactPage() {
             <div className="flex justify-center">
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full bg-gradient-to-r from-gray-600 to-gray-700 text-white py-4 px-6 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center justify-center group"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">

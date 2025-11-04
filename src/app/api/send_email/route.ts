@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     //Send email to tgen57485@gmail.com
     const { data, error } = await resend.emails.send({
-      from: 'Exam Geine <onboarding@resend.dev>',
+      from: 'Exam Genie <onboarding@resend.dev>',
       to: ['tgen57485@gmail.com'],
       subject: `New Issue Report: ${issueType}`,
       html: `
