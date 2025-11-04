@@ -8,14 +8,12 @@ export async function POST(req:Request) {
         
         const {
             title,
-            timeLimit,             // consider renaming to timeLimitMin for clarity
+            timeLimit,
             difficulty = "mixed",
             randomize = true,
             totalQuestions,
             typeCounts,
         } = body;
-
-        body.lastUsed = body.lastUsed ?? null;
 
         // create the connection
         const client = await clientPromise;
@@ -31,6 +29,8 @@ export async function POST(req:Request) {
             hard:  [4, 5],
         };
 
+        // Loop through each question type and grab -
+        // the corresponding number of questions
         for(const [type, count] of Object.entries(typeCounts)){
             const size = Number(count) || 0;
             if (size <= 0) continue;
@@ -61,7 +61,7 @@ export async function POST(req:Request) {
         const totalPoints = items.reduce((s, it) => s + it.points, 0);
 
         const lastUsed = body.lastUsed ?? null;
-        
+
         const exam_data = {
             title,
             timeLimitMin: timeLimit,

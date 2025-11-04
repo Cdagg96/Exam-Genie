@@ -42,8 +42,8 @@ export default function ExamForm() {
         "Essay",
     ]);
     const [typeCounts, setTypeCounts] = useState<Record<QuestionType, number>>({
-        MC: 10,
-        TF: 5,
+        MC: 0,
+        TF: 0,
         Essay: 0,
         FIB: 0,
         Coding: 0,
@@ -141,17 +141,6 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Total Questions</span>
-                            <input
-                                type="number"
-                                min={1}
-                                className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
-                                value={totalQuestions}
-                                onChange={(e) => setTotalQuestions(Number(e.target.value))}
-                                required
-                            />
-                        </label>
-                        <label className="flex flex-col gap-1">
                             <span className="text-sm font-medium">Time Limit</span>
                             <input
                                 type="number"
@@ -199,25 +188,32 @@ export default function ExamForm() {
                         ))}
                     </div>
                 </section>
-                <div className="flex items-center justify-end gap-3">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setTitle("");
-                            setTotalQuestions(25);
-                            setDifficulty("mixed");
-                            setTimeLimit(60);
-                            setRandomize(true);
-                            setAllowedTypes(["MC", "TF", "Essay"]);
-                            setSections([{ ...DEFAULT_SECTION }]);
-                        }}
-                        className="rounded-xl border px-4 py-2 hover:bg-gray-50"
-                    >
-                        Reset
-                    </button>
-                    <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
-                        Generate
-                    </button>
+                <div className="flex items-center justify-between">
+                    <div className="flex gap-3">
+                        <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
+                            Download
+                        </button>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTitle("");
+                                setTotalQuestions(25);
+                                setDifficulty("mixed");
+                                setTimeLimit(60);
+                                setRandomize(true);
+                                setAllowedTypes(["MC", "TF", "Essay"]);
+                                setSections([{ ...DEFAULT_SECTION }]);
+                            }}
+                            className="rounded-xl border px-4 py-2 hover:bg-gray-50"
+                        >
+                            Reset
+                        </button>
+                        <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
+                            Generate
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
