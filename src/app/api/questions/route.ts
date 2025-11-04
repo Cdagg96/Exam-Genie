@@ -110,3 +110,70 @@ export async function GET() {
     );
   }
 }
+
+//Update a question in the database
+export async function PUT(req: Request) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+        const body = await req.json();
+
+        //Validate the ID
+        if (!id) {
+            return NextResponse.json(
+                { ok: false, error: "Question ID is required" },
+                { status: 400 }
+            );
+        }
+
+        //Check if the ID is a valid ObjectId
+        if (!ObjectId.isValid(id)) {
+            return NextResponse.json(
+                { ok: false, error: "Invalid question ID" },
+                { status: 400 }
+            );
+        }
+
+        //Validate required fields
+        if (!body.stem || !body.type || !body.difficulty || !body.topics) {
+            return NextResponse.json(
+                { ok: false, error: "Missing required fields" },
+                { status: 400 }
+            );
+        }
+
+        const client = await clientPromise;
+        const db = client.db(process.env.MONGODB_DB);
+
+        //Update the document with new data and update timestamp
+        const updateData = {
+            ...body,
+            lastUpdated: new Date()
+        };
+
+        const result = await db.collection("questions").updateOne(
+            { _id: new ObjectId(id) },
+            { $set: updateData }
+        );
+
+        //If no document was updated, the question was not found
+        if (result.matchedCount === 0) {
+            return NextResponse.json(
+                { ok: false, error: "Question not found" },
+                { status: 404 }
+            );
+        }
+
+        //Successful update
+        return NextResponse.json(
+            { ok: true, message: "Question updated successfully!" },
+            { status: 200 }
+        );
+    } catch (error) {
+        console.error("Error updating question: ", error);
+        return NextResponse.json(
+            { ok: false, error: "Internal server error" },
+            { status: 500 }
+        );
+    }
+}
