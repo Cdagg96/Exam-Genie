@@ -1,33 +1,23 @@
 "use client";
 import jsPDF from "jspdf";
 import React, { useState } from "react";
-// Minimal UI-only form for exam generation (no API calls)
-// File: app/components/ExamForm.tsx
-// Usage (example): app/exams/new/page.tsx -> import and render <ExamForm/>
+import toast from "react-hot-toast";
 
 
 export type QuestionType =
-    | "multiple_choice"
-    | "true_false"
-    | "short_answer"
-    | "fill_in_blank"
-    | "coding";
+    | "MC"
+    | "TF"
+    | "Essay"
+    | "FIB"
+    | "Coding";
 
 
 const TYPES: { value: QuestionType; label: string }[] = [
-    { value: "multiple_choice", label: "Multiple Choice" },
-    { value: "true_false", label: "True/False" },
-    { value: "short_answer", label: "Short Answer" },
-    { value: "fill_in_blank", label: "Fill in the Blank" },
-    { value: "coding", label: "Coding" },
-];
-
-
-const DIFFICULTIES = [
-    { value: "easy", label: "Easy" },
-    { value: "medium", label: "Medium" },
-    { value: "hard", label: "Hard" },
-    { value: "mixed", label: "Mixed" },
+    { value: "MC", label: "Multiple Choice" },
+    { value: "TF", label: "True/False" },
+    { value: "Essay", label: "Short Answer" },
+    { value: "FIB", label: "Fill in the Blank" },
+    { value: "Coding", label: "Coding" },
 ];
 
 
@@ -47,10 +37,17 @@ export default function ExamForm() {
     const [timeLimit, setTimeLimit] = useState(60);
     const [randomize, setRandomize] = useState(true);
     const [allowedTypes, setAllowedTypes] = useState<QuestionType[]>([
-        "multiple_choice",
-        "true_false",
-        "short_answer",
+        "MC",
+        "TF",
+        "Essay",
     ]);
+    const [typeCounts, setTypeCounts] = useState<Record<QuestionType, number>>({
+        MC: 0,
+        TF: 0,
+        Essay: 0,
+        FIB: 0,
+        Coding: 0,
+    });
 
 
     // Simple optional sections (can remove if you want ultra-minimal)
@@ -73,9 +70,46 @@ export default function ExamForm() {
     const removeSection = (i: number) => setSections((p) => p.filter((_, idx) => idx !== i));
 
 
-    function onSubmit(e: React.FormEvent) {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // UI-only: do nothing for now. Keep this console for dev visibility.
+
+        const data = {
+            title, 
+            timeLimit, 
+            difficulty, 
+            allowedTypes,
+            typeCounts,
+            totalQuestions,
+            questions: [],
+            totalPoints: 0
+        }
+
+        try {
+            const res = await fetch("../api/exams", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+
+            if(res.ok){
+                toast.success("Exam Created!") // Notification that question was created
+            }
+            else if(result?.shortages?.length){
+                const msg = result.shortages.map((s: any) =>
+                    `${s.type}: requested ${s.requested}, available ${s.available}`
+                ).join("\n");
+                toast.error(`Not enough questions\n--------------\n ${msg}`, {duration: 10000});
+            }
+            else{
+                console.error(result);
+                toast.error("Failed to create exam");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Network/Server error");
+        }
 
         const examSpec = { title, totalQuestions, difficulty, timeLimit, randomize, allowedTypes, sections };
 
@@ -93,12 +127,12 @@ export default function ExamForm() {
             };
         });
 
-        generateExamPDF(examSpec, questions);
+        //generateExamPDF(examSpec, questions);
     }
 
     return (
         <div className="mx-auto max-w-3xl">
-            <form onSubmit={onSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <section className="rounded-2xl border p-4 shadow-sm">
                     <h2 className="mb-3 text-lg font-semibold">General</h2>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -109,16 +143,7 @@ export default function ExamForm() {
                                 placeholder="Midterm – Algorithms"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                            />
-                        </label>
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Total Questions</span>
-                            <input
-                                type="number"
-                                min={1}
-                                className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
-                                value={totalQuestions}
-                                onChange={(e) => setTotalQuestions(Number(e.target.value))}
+                                required
                             />
                         </label>
                         <label className="flex flex-col gap-1">
@@ -129,7 +154,22 @@ export default function ExamForm() {
                                 className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
                                 value={timeLimit}
                                 onChange={(e) => setTimeLimit(Number(e.target.value))}
+                                required
                             />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">Difficulty</span>
+                            <select
+                                className="rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2"
+                                value={difficulty}
+                                onChange={(e) => setDifficulty(e.target.value)}
+                                required
+                            >
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                                <option value="mixed">Mixed</option>
+                            </select>
                         </label>
                     </div>
                 </section>
@@ -146,34 +186,40 @@ export default function ExamForm() {
                                     type="number"
                                     min={0}
                                     className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
-                                //className="h-4 w-4"
-                                //checked={allowedTypes.includes(t.value)}
-                                //onChange={() => toggleType(t.value)}
+                                    value={typeCounts[t.value]}
+                                    onChange={e => setTypeCounts(prev => ({ ...prev, [t.value]: Number(e.target.value) }))}
                                 />
                                 <span>{t.label}</span>
                             </label>
                         ))}
                     </div>
                 </section>
-                <div className="flex items-center justify-end gap-3">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setTitle("");
-                            setTotalQuestions(25);
-                            setDifficulty("mixed");
-                            setTimeLimit(60);
-                            setRandomize(true);
-                            setAllowedTypes(["multiple_choice", "true_false", "short_answer"]);
-                            setSections([{ ...DEFAULT_SECTION }]);
-                        }}
-                        className="rounded-xl border px-4 py-2 hover:bg-gray-50"
-                    >
-                        Reset
-                    </button>
-                    <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
-                        Save (Simple PDF ONLY)
-                    </button>
+                <div className="flex items-center justify-between">
+                    <div className="flex gap-3">
+                        <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
+                            Download
+                        </button>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTitle("");
+                                setTotalQuestions(25);
+                                setDifficulty("mixed");
+                                setTimeLimit(60);
+                                setRandomize(true);
+                                setAllowedTypes(["MC", "TF", "Essay"]);
+                                setSections([{ ...DEFAULT_SECTION }]);
+                            }}
+                            className="rounded-xl border px-4 py-2 hover:bg-gray-50"
+                        >
+                            Reset
+                        </button>
+                        <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
+                            Generate
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
