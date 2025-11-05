@@ -52,6 +52,14 @@ npm install react-hot-toast
 npm install jspdf
 ```
 
+## Install for Calendar Component
+
+```bash
+npm install @mui/x-date-pickers dayjs
+
+npm install @emotion/react @emotion/styled
+```
+
 ## Install for Testing
 
 ```bash
