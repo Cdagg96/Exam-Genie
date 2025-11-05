@@ -37,17 +37,33 @@ export async function POST(request: NextRequest) {
       to: ['tgen57485@gmail.com'],
       subject: `New Issue Report: ${issueType}`,
       html: `
-        <div class="font-sans p-5">
-          <h2 class="text-gray-800 text-xl font-bold mb-4">New Issue Report</h2>
-          <div class="border border-gray-200 rounded-lg p-4">
-            <p class="mb-2"><strong>Issue Type:</strong> ${issueType}</p>
-            <p class="mb-2"><strong>Description:</strong></p>
-            <p class="whitespace-pre-wrap border border-gray-200 rounded p-3">${message}</p>
+        <div style="font-family: 'Inter', Arial, sans-serif; background: #f3f8ff; padding: 40px; border-radius: 12px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+            
+            <div style="background: linear-gradient(to right, #60a5fa, #22d3ee, #2563eb); padding: 20px;">
+              <h1 style="margin: 0; font-size: 28px; text-align: center; font-weight: 700; color: white;">
+                New Issue Report
+              </h1>
+            </div>
+
+            <div style="padding: 30px;">
+              <p style="font-size: 16px; color: #1e3a8a; font-weight: 600;">Issue Type:</p>
+              <p style="font-size: 16px; background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 15px; border-radius: 6px;">
+                ${issueType}
+              </p>
+
+              <p style="font-size: 16px; color: #1e3a8a; font-weight: 600; margin-top: 20px;">Description:</p>
+              <p style="white-space: pre-wrap; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 15px; line-height: 1.5; color: #1e293b;">
+                ${message}
+              </p>
+
+              <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
+                This issue was submitted from your contact form.
+              </p>
+            </div>
           </div>
-          <p class="text-gray-600 mt-5 text-sm">
-            This issue was submitted from your contact form.
-          </p>
-        </div>`,
+        </div>
+      `,
     });
 
     if (error) {
