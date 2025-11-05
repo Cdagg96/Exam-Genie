@@ -40,8 +40,9 @@ export default function DatabaseActionPage() {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [questionToEdit, setQuestionToEdit] = useState<Question | null>(null);
     const [lastUsedDate, setLastUsedDate] = useState<Dayjs | null>(null);
+    const [dateInputValue, setDateInputValue] = useState('');
     const [calendarOpen, setCalendarOpen] = useState(false);
-    const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLButtonElement | null>(null);
+    const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLDivElement | null>(null);
 
 
     //Fetch questions from MongoDB
@@ -195,6 +196,25 @@ export default function DatabaseActionPage() {
         fetchQuestions();
     };
 
+    const handleDateInputChange = (inputValue: string) => {
+        setDateInputValue(inputValue);
+
+        //Try to parse it, but don't worry if it's invalid
+        const parsedDate = dayjs(inputValue, 'MM/DD/YYYY', true);
+        if (parsedDate.isValid()) {
+            setLastUsedDate(parsedDate);
+        } else {
+            setLastUsedDate(null);
+        }
+    };
+
+    //Update when calendar is used
+    const handleCalendarChange = (newValue: Dayjs | null) => {
+        setLastUsedDate(newValue);
+        setDateInputValue(newValue ? newValue.format('MM/DD/YYYY') : '');
+        setCalendarOpen(false);
+    };
+
     return (
         <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
             <header>
@@ -261,17 +281,16 @@ export default function DatabaseActionPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Last Used
                             </label>
-                            <div className="relative">
+                            <div className="relative" ref={setCalendarAnchorEl}>
                                 <input
                                     type="text"
                                     placeholder="Ex: 01/01/2025"
-                                    value={lastUsedDate ? lastUsedDate.format('MM/DD/YYYY') : ''}
+                                    value={dateInputValue}
+                                    onChange={(e) => handleDateInputChange(e.target.value)}
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
-                                    readOnly
                                 />
                                 <button
                                     type="button"
-                                    ref={setCalendarAnchorEl}
                                     className="absolute inset-y-0 right-0 flex items-center pr-3"
                                     onClick={() => setCalendarOpen(true)}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
@@ -287,6 +306,7 @@ export default function DatabaseActionPage() {
                                     onChange={(newValue) => {
                                         setLastUsedDate(newValue);
                                         setCalendarOpen(false);
+                                        handleCalendarChange(newValue);
                                     }}
                                     slotProps={{
                                         popper: {
