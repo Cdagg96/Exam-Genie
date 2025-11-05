@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import NavBar from "@/components/navbar";
 import { useState } from "react";
 import Link from "next/link";
@@ -86,9 +85,9 @@ export default function Home() {
             )}
           </div>
 
-          <button className="block w-110 h-15 bg-stone-800 text-white text-xl rounded-2xl shadow hover:bg-black">
+          <Link href="../data_view/" className="block w-110 h-15 bg-stone-800 text-white text-xl rounded-2xl shadow hover:bg-black flex items-center justify-center">
             View Your Questions
-          </button>
+          </Link>
         </div>
       </div>
     </div>

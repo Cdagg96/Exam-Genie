@@ -5,18 +5,31 @@ interface ConfirmationModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
-    questionText?: string;
+    text?: string;
     isLoading?: boolean;
+    type?: 'question' | 'exam';
 }
 
 export default function ConfirmationModal({
     isOpen,
     onClose,
     onConfirm,
-    questionText,
-    isLoading = false
+    text,
+    isLoading = false,
+    type = 'question'
 }: ConfirmationModalProps) {
     if (!isOpen) return null;
+
+    // pick the messages/values based on type of deletion
+    const deleteStatement = type === 'question' ? 'Delete Question' : 'Delete Exam';
+    const confirmationMessage = type === 'question'
+        ? 'Are you sure you want to delete this question? This action cannot be undone.'
+        : 'Are you sure you want to delete this exam? This action cannot be undone.';
+
+    const deletionType = type === 'question' ? 'Question' : 'Exam';
+    const buttonText = isLoading
+        ? type === 'question' ? 'Deleting Question...' : 'Deleting Exam...'
+        : type === 'question' ? 'Delete Question' : 'Delete Exam';
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
@@ -30,19 +43,19 @@ export default function ConfirmationModal({
                     &times;
                 </button>
 
-                <h1 className="text-2xl font-bold mb-4 text-center">Delete Question</h1>
+                <h1 className="text-2xl font-bold mb-4 text-center">{deleteStatement}</h1>
 
                 <div className="space-y-4">
                     {/* Message */}
                     <p className="text-gray-700 text-center">
-                        Are you sure you want to delete this question? This action cannot be undone.
+                        {confirmationMessage}
                     </p>
 
                     {/* Question Display */}
-                    {questionText && (
+                    {text && (
                         <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                            <h3 className="font-semibold text-gray-800 mb-2">Question:</h3>
-                            <p className="text-gray-700 whitespace-pre-wrap">{questionText}</p>
+                            <h3 className="font-semibold text-gray-800 mb-2">{deletionType}</h3>
+                            <p className="text-gray-700 whitespace-pre-wrap">{text}</p>
                         </div>
                     )}
 
@@ -54,7 +67,7 @@ export default function ConfirmationModal({
                             onClick={onConfirm}
                             disabled={isLoading}
                         >
-                            {isLoading ? "Deleting..." : "Delete Question"}
+                            {buttonText}
                         </button>
                     </div>
                 </div>
