@@ -2,6 +2,7 @@
 import jsPDF from "jspdf";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import ExamPreviewModel from "@/components/examPreview";
 
 
 export type QuestionType =
@@ -28,6 +29,25 @@ const DEFAULT_SECTION = {
     difficulty: "mixed",
 };
 
+// What consists of an exam question
+export type ExamQuestionItem = {
+    questionId: string;
+    type: QuestionType;
+    points: number;
+    order?: number;
+    snapshot?:any; // Snapshot of question
+}
+
+// What consists of a whole exam
+export type ExamDoc = {
+    _id: string;
+    title: string;
+    timeLimitMin: number;
+    difficulty: string;
+    totalPoints: number;
+    questions: ExamQuestionItem[];
+}
+
 
 export default function ExamForm() {
     // Core fields (minimal state)
@@ -53,21 +73,8 @@ export default function ExamForm() {
     // Simple optional sections (can remove if you want ultra-minimal)
     const [sections, setSections] = useState([{ ...DEFAULT_SECTION }]);
 
-
-    const toggleType = (t: QuestionType) => {
-        setAllowedTypes((prev) =>
-            prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-        );
-    };
-
-
-    const updateSection = (i: number, patch: Partial<typeof DEFAULT_SECTION>) => {
-        setSections((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
-    };
-
-
-    const addSection = () => setSections((p) => [...p, { ...DEFAULT_SECTION }]);
-    const removeSection = (i: number) => setSections((p) => p.filter((_, idx) => idx !== i));
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewExam, setPreviewExam] = useState<ExamDoc | null>(null);
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -95,6 +102,8 @@ export default function ExamForm() {
 
             if(res.ok){
                 toast.success("Exam Created!") // Notification that question was created
+                setPreviewExam(result.exam);
+                setPreviewOpen(true);
             }
             else if(result?.shortages?.length){
                 const msg = result.shortages.map((s: any) =>
@@ -196,9 +205,7 @@ export default function ExamForm() {
                 </section>
                 <div className="flex items-center justify-between">
                     <div className="flex gap-3">
-                        <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
-                            Download
-                        </button>
+                        
                     </div>
                     <div className="flex gap-3">
                         <button
@@ -222,9 +229,16 @@ export default function ExamForm() {
                     </div>
                 </div>
             </form>
+            <ExamPreviewModel
+                open={previewOpen}
+                onClose={() => setPreviewOpen(false)}
+                exam={previewExam}
+            />
         </div>
     );
 }
+
+
 
 function generateExamPDF(examSpec: any,
     questions: { number: number; text: string; type: string }[]

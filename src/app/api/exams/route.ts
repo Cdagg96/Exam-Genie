@@ -155,7 +155,13 @@ export async function POST(req:Request) {
                 items.push({
                     questionId: q._id,
                     type: q.type,
-                    points: 1
+                    points: 1,
+                    snapshot: {
+                        stem: q.stem,
+                        choices: q.choices,
+                        answer: q.answer,
+                        difficulty: q.difficulty
+                    }
                 })
             }
         }
@@ -179,7 +185,7 @@ export async function POST(req:Request) {
         const result = await db.collection("exams").insertOne(exam_data);
         
         return NextResponse.json(
-            {ok: true, message: "Exam created!", insertedId: result.insertedId},
+            {ok: true, message: "Exam created!", exam: { _id: result.insertedId, ...exam_data }},
             {status: 201}
         );
     } catch (error) {
