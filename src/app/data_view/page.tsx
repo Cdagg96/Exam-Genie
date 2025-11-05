@@ -6,6 +6,7 @@ import QuestionForm from "@/components/QuestionForm";
 import FilterBox from "@/components/filterBox";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import toast from "react-hot-toast";
+import EditQuestionModal from "@/components/EditQuestionModal";
 
 interface Question {
     _id: string;
@@ -33,6 +34,8 @@ export default function DatabaseActionPage() {
     const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
     const [questionTextToDelete, setQuestionTextToDelete] = useState<string>("");
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [questionToEdit, setQuestionToEdit] = useState<Question | null>(null);    
 
     //Fetch questions from MongoDB
     const fetchQuestions = async () => {
@@ -172,6 +175,19 @@ export default function DatabaseActionPage() {
         setQuestionTextToDelete("");
     };
 
+    //Edit question handler
+    const handleEditClick = (question: Question) => {
+        setQuestionToEdit(question);
+        setEditModalOpen(true);
+    };
+
+    //Handle when edit is complete
+    const handleEditComplete = () => {
+        setEditModalOpen(false);
+        setQuestionToEdit(null);
+        fetchQuestions();
+    };
+    
     return (
         <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
             <header>
@@ -268,9 +284,9 @@ export default function DatabaseActionPage() {
 
                 {/* Questions Table */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
-                    <div className="overflow-x-auto w-full max-w-full">
+                    <div className="overflow-x-auto w-full max-w-full max-h-90 overflow-y-auto">
                         <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
-                            <thead className="bg-gradient-to-r from-blue-50 to-cyan-50">
+                            <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 sticky top-0">
                                 <tr>
                                     <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                         Question
@@ -359,7 +375,7 @@ export default function DatabaseActionPage() {
                                                 {question.lastUsed || 'Never'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button className="text-blue-600 hover:text-blue-900 mr-3">
+                                                <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => handleEditClick(question)}>
                                                     Edit
                                                 </button>
                                                 <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(question._id, formatQuestion(question))}>
@@ -395,6 +411,14 @@ export default function DatabaseActionPage() {
                 text={questionTextToDelete}
                 isLoading={deleteLoading}
                 type="question"
+            />
+            
+            {/* Edit Question Modal */}
+            <EditQuestionModal
+                isOpen={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                question={questionToEdit}
+                onQuestionUpdated={handleEditComplete}
             />
         </div>
 
