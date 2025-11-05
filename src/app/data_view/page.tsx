@@ -392,8 +392,9 @@ export default function DatabaseActionPage() {
                 isOpen={deleteModalOpen}
                 onClose={handleCancelDelete}
                 onConfirm={handleConfirmDelete}
-                questionText={questionTextToDelete}
+                text={questionTextToDelete}
                 isLoading={deleteLoading}
+                type="question"
             />
         </div>
 

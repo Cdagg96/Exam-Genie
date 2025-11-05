@@ -43,7 +43,7 @@ export default function Navbar() {
         <div className="flex space-x-8">
           <Link href="../data_view/" className="text-stone-800 hover:text-black">Questions</Link>
           <Link href="../exam_gen/" className="text-stone-800 hover:text-black">Generator</Link>
-          <Link href="#" className="text-stone-800 hover:text-black">Help</Link>
+          <Link href="../past_exams/" className="text-stone-800 hover:text-black">Exams</Link>
           <Link href="../contact/" className="text-stone-800 hover:text-black">Contact</Link>
 
           {loaded && !LoggedIn &&
