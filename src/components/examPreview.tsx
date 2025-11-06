@@ -11,7 +11,7 @@ export default function ExamPreviewModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 print:bg-transparent">
-      <div className="relative max-h-[90vh] w-full max-w-[8.5in] overflow-auto rounded-2xl bg-white p-8 shadow-2xl
+      <div className="relative max-h-[90vh] w-full max-w-[8.5in] overflow-hidden rounded-2xl bg-white p-8 shadow-2xl
                       print:static print:max-h-none print:w-[8.5in] print:rounded-none print:shadow-none print:p-10">
         {/* Close (X) */}
         <button
