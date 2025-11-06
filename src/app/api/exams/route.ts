@@ -155,7 +155,14 @@ export async function POST(req:Request) {
                 items.push({
                     questionId: q._id,
                     type: q.type,
-                    points: 1
+                    points: 1,
+                    snapshot: {
+                        stem: q.stem,
+                        choices: q.choices,
+                        answer: q.answer,
+                        difficulty: q.difficulty,
+                        blankLines: q.lines
+                    }
                 })
             }
         }
@@ -164,6 +171,10 @@ export async function POST(req:Request) {
         const totalPoints = items.reduce((s, it) => s + it.points, 0);
 
         const lastUsed = body.lastUsed ?? null;
+
+        // Sort the order of types (MC, TF, FIB, Short Answer, Code)
+        const TYPE_ORDER = ["MC", "TF", "FIB", "Essay", "Code"];
+        items.sort((a, b) => TYPE_ORDER.indexOf(a.type) - TYPE_ORDER.indexOf(b.type));
 
         const exam_data = {
             title,
@@ -179,7 +190,7 @@ export async function POST(req:Request) {
         const result = await db.collection("exams").insertOne(exam_data);
         
         return NextResponse.json(
-            {ok: true, message: "Exam created!", insertedId: result.insertedId},
+            {ok: true, message: "Exam created!", exam: { _id: result.insertedId, ...exam_data }},
             {status: 201}
         );
     } catch (error) {
