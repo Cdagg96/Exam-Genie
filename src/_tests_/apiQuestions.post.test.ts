@@ -27,6 +27,9 @@ function makeRequest(body: any){
 }
 
 describe("Testing POST (api/questions) with MC only", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
     test("Returns 201 when type is MC and all fields are valid", async () => {
         // Create the mock question
         const req = makeRequest({
@@ -65,7 +68,7 @@ describe("Testing POST (api/questions) with MC only", () => {
         });
 
         const response = await POST(req); // Make the POST
-        expect(response.status).toBe(401); // Valid insert returns status of 201
+        expect(response.status).toBe(201); // Valid insert returns status of 201
 
         // Make sure we wrote to the right collection
         expect(collection).toHaveBeenCalledWith("questions");
@@ -90,7 +93,7 @@ describe("Testing POST (api/questions) with MC only", () => {
         expect(response.status).toBe(400); // Valid insert returns status of 201
 
         // Make sure we wrote to the right collection
-        expect(collection).toHaveBeenCalledWith("questions");
-        expect(insertOne).toHaveBeenCalledTimes(1);
+        expect(collection).not.toHaveBeenCalled();
+        expect(insertOne).not.toHaveBeenCalled();
     });
 })

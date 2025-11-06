@@ -7,6 +7,9 @@ import FilterBox from "@/components/filterBox";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import toast from "react-hot-toast";
 import EditQuestionModal from "@/components/EditQuestionModal";
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
 
 interface Question {
     _id: string;
@@ -35,7 +38,12 @@ export default function DatabaseActionPage() {
     const [questionTextToDelete, setQuestionTextToDelete] = useState<string>("");
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
-    const [questionToEdit, setQuestionToEdit] = useState<Question | null>(null);    
+    const [questionToEdit, setQuestionToEdit] = useState<Question | null>(null);
+    const [lastUsedDate, setLastUsedDate] = useState<Dayjs | null>(null);
+    const [dateInputValue, setDateInputValue] = useState('');
+    const [calendarOpen, setCalendarOpen] = useState(false);
+    const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLDivElement | null>(null);
+
 
     //Fetch questions from MongoDB
     const fetchQuestions = async () => {
@@ -66,12 +74,12 @@ export default function DatabaseActionPage() {
 
     //Creates a unique list of topics for the filter box
     useEffect(() => {
-    const uniqueTopics = Array.from(
-        new Set(questions.flatMap(quest => quest.topics))
-    ).map(topic => ({ value: topic, label: topic }));
+        const uniqueTopics = Array.from(
+            new Set(questions.flatMap(quest => quest.topics))
+        ).map(topic => ({ value: topic, label: topic }));
 
-    //Store the list of unique topics if any changes occur in questions
-    setTopics(uniqueTopics);
+        //Store the list of unique topics if any changes occur in questions
+        setTopics(uniqueTopics);
     }, [questions]);
 
     //Runs when the add question form closes to potentially grab new questions just added
@@ -86,12 +94,12 @@ export default function DatabaseActionPage() {
 
         return choices.map(choice => {
             if (choice.label && choice.text) {
-                if(choice.label == "True" || choice.label == "False"){
+                if (choice.label == "True" || choice.label == "False") {
                     return `${choice.label}`;
                 }
                 return `${choice.label}: ${choice.text}`;
             }
-            
+
             return JSON.stringify(choice);
         }).join(' ');
     };
@@ -117,7 +125,7 @@ export default function DatabaseActionPage() {
     // Helper function that adds blank line after question stem if it is FIB
     const formatQuestion = (question: Question): string => {
         const { stem, type } = question;
-        if(type == "FIB"){
+        if (type == "FIB") {
             return stem + " __";
         }
         return stem;
@@ -154,11 +162,11 @@ export default function DatabaseActionPage() {
             } else {
                 throw new Error(result.error || 'Failed to delete question');
             }
-            
+
         } catch (err) {
             console.error('Error deleting question:', err);
             toast.error(err instanceof Error ? err.message : 'Failed to delete question');
-        } 
+        }
         //Always runs to stop loading and close modal
         finally {
             setDeleteLoading(false);
@@ -187,7 +195,26 @@ export default function DatabaseActionPage() {
         setQuestionToEdit(null);
         fetchQuestions();
     };
-    
+
+    const handleDateInputChange = (inputValue: string) => {
+        setDateInputValue(inputValue);
+
+        //Try to parse it, but don't worry if it's invalid
+        const parsedDate = dayjs(inputValue, 'MM/DD/YYYY', true);
+        if (parsedDate.isValid()) {
+            setLastUsedDate(parsedDate);
+        } else {
+            setLastUsedDate(null);
+        }
+    };
+
+    //Update when calendar is used
+    const handleCalendarChange = (newValue: Dayjs | null) => {
+        setLastUsedDate(newValue);
+        setDateInputValue(newValue ? newValue.format('MM/DD/YYYY') : '');
+        setCalendarOpen(false);
+    };
+
     return (
         <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
             <header>
@@ -254,18 +281,58 @@ export default function DatabaseActionPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Last Used
                             </label>
-                            <div className="relative">
+                            <div className="relative" ref={setCalendarAnchorEl}>
                                 <input
                                     type="text"
                                     placeholder="Ex: 01/01/2025"
+                                    value={dateInputValue}
+                                    onChange={(e) => handleDateInputChange(e.target.value)}
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
                                 />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <button
+                                    type="button"
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                    onClick={() => setCalendarOpen(true)}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
                                     </svg>
-                                </div>
+                                </button>
                             </div>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    open={calendarOpen}
+                                    onClose={() => setCalendarOpen(false)}
+                                    value={lastUsedDate}
+                                    onChange={(newValue) => {
+                                        setLastUsedDate(newValue);
+                                        setCalendarOpen(false);
+                                        handleCalendarChange(newValue);
+                                    }}
+                                    slotProps={{
+                                        popper: {
+                                            anchorEl: calendarAnchorEl,
+                                            placement: 'bottom-start',
+                                            modifiers: [
+                                                {
+                                                    name: 'flip',
+                                                    enabled: false,
+                                                },
+                                                {
+                                                    name: 'preventOverflow',
+                                                    enabled: true,
+                                                    options: {
+                                                        boundary: 'viewport',
+                                                        altBoundary: true,
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    }}
+                                    slots={{
+                                        field: () => null,
+                                    }}
+                                />
+                            </LocalizationProvider>
                         </div>
                     </div>
 
@@ -412,7 +479,7 @@ export default function DatabaseActionPage() {
                 isLoading={deleteLoading}
                 type="question"
             />
-            
+
             {/* Edit Question Modal */}
             <EditQuestionModal
                 isOpen={editModalOpen}

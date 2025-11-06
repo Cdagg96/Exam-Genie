@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { GET } from "@/app/api/question_table/route";
+import { GET } from "@/app/api/questions/route";
 
 //Create a mock mongo db without actually using mongoDB
 const {
