@@ -3,6 +3,7 @@ import React from "react";
 import type { ExamDoc } from "@/components/examForm";
 
 
+
 export default function ExamPreviewModal({
   open, onClose, exam,
 }: { open: boolean; onClose: () => void; exam: ExamDoc | null }) {
@@ -20,6 +21,7 @@ export default function ExamPreviewModal({
         >
           &times;
         </button>
+        <div className="absolute left-6 top-6 text-sm text-gray-600 font-serif">Name: ________________ </div>
 
         {/* Header */}
         <header className="mb-6 border-b pb-4 text-center font-serif">
@@ -86,10 +88,14 @@ export default function ExamPreviewModal({
 
                     {q.type === "Essay" && (
                       <div className="mt-3 space-y-3">
-                        <div className="h-6 w-full border-b" />
-                        <div className="h-6 w-full border-b" />
-                        <div className="h-6 w-full border-b" />
-                        <div className="h-6 w-full border-b" />
+                        {Array.from({ length: q.snapshot?.blankLines ?? 4 }).map((_, idx) => (
+                        <div key={idx} className="h-6 w-full border-b" />
+                        ))}
+                      </div>
+                    )}
+
+                    {q.type === "Code" && (
+                      <div className="mt-3 mb-50 space-y-3">
                       </div>
                     )}
                   </li>
@@ -106,6 +112,20 @@ export default function ExamPreviewModal({
           >
             Print
           </button>
+          <button>
+            <svg
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            strokeWidth={1.5} 
+            stroke="currentColor" 
+            className="w-5 h-5">
+                <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+        </button>
         </div>
       </div>
     </div>

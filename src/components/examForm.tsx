@@ -10,7 +10,7 @@ export type QuestionType =
     | "TF"
     | "Essay"
     | "FIB"
-    | "Coding";
+    | "Code";
 
 
 const TYPES: { value: QuestionType; label: string }[] = [
@@ -18,7 +18,7 @@ const TYPES: { value: QuestionType; label: string }[] = [
     { value: "TF", label: "True/False" },
     { value: "Essay", label: "Short Answer" },
     { value: "FIB", label: "Fill in the Blank" },
-    { value: "Coding", label: "Coding" },
+    { value: "Code", label: "Code" },
 ];
 
 
@@ -66,7 +66,7 @@ export default function ExamForm() {
         TF: 0,
         Essay: 0,
         FIB: 0,
-        Coding: 0,
+        Code: 0,
     });
 
 
@@ -104,7 +104,7 @@ export default function ExamForm() {
                 toast.success("Exam Created!") // Notification that question was created
                 setPreviewExam(result.exam);
                 setPreviewOpen(true);
-            }
+            } 
             else if(result?.shortages?.length){
                 const msg = result.shortages.map((s: any) =>
                     `${s.type}: requested ${s.requested}, available ${s.available}`

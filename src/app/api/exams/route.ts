@@ -160,7 +160,8 @@ export async function POST(req:Request) {
                         stem: q.stem,
                         choices: q.choices,
                         answer: q.answer,
-                        difficulty: q.difficulty
+                        difficulty: q.difficulty,
+                        blankLines: q.lines
                     }
                 })
             }
@@ -170,6 +171,10 @@ export async function POST(req:Request) {
         const totalPoints = items.reduce((s, it) => s + it.points, 0);
 
         const lastUsed = body.lastUsed ?? null;
+
+        // Sort the order of types (MC, TF, FIB, Short Answer, Code)
+        const TYPE_ORDER = ["MC", "TF", "FIB", "Essay", "Code"];
+        items.sort((a, b) => TYPE_ORDER.indexOf(a.type) - TYPE_ORDER.indexOf(b.type));
 
         const exam_data = {
             title,
