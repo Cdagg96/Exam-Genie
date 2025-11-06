@@ -9,10 +9,20 @@
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import React from "react";
 
 import Home from "../app/page";
+
+// Mock the AuthContext
+vi.mock("@/components/AuthContext", () => ({
+  useAuth: () => ({
+    user: null,
+    login: vi.fn(),
+    logout: vi.fn(),
+    isAuthenticated: false
+  })
+}));
 
 describe("Home Page Info Icon Tests", () => {
     //1. Test for Create Test info icon to display the description only on hover

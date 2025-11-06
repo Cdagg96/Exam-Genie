@@ -10,6 +10,7 @@ import EditQuestionModal from "@/components/EditQuestionModal";
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+import { useAuth } from "@/components/AuthContext";
 
 interface Question {
     _id: string;
@@ -43,6 +44,12 @@ export default function DatabaseActionPage() {
     const [dateInputValue, setDateInputValue] = useState('');
     const [calendarOpen, setCalendarOpen] = useState(false);
     const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLDivElement | null>(null);
+    const { user } = useAuth();
+    // Filter questions by logged-in user
+    // If no user show all. Will proably need to be changed at somepoint 
+    const filteredQuestions = user? questions.filter(q => q.userID === user._id): questions;
+
+    
 
 
     //Fetch questions from MongoDB
@@ -412,7 +419,7 @@ export default function DatabaseActionPage() {
                                     </tr>
                                 ) : (
                                     //Questions data
-                                    questions.map((question, index) => (
+                                    filteredQuestions.map((question, index) => (
                                         <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                             <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
                                                 <div className="truncate" title={formatQuestion(question)}>

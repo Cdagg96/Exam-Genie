@@ -1,6 +1,7 @@
 "use client";
 import React, {useState} from "react";
 import toast from "react-hot-toast";
+import { useAuth } from "@/components/AuthContext";
 
 export default function BackgroundModal({
     isOpen,
@@ -23,6 +24,7 @@ export default function BackgroundModal({
     const [extendedAnswer, setExAnswer] = useState("");
     const [fibAnswer, setFIBAnswer] = useState("");
     const [blankLines, setBlankLines] = useState(1);
+    const { user } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,7 +33,8 @@ export default function BackgroundModal({
         const base_data = {
             stem, type, difficulty,
             topics: topics.split(",").map(t => t.trim()),
-            lastUsed: null 
+            lastUsed: null, 
+            userID: user?._id ?? "", //if user not logged in set id to ""
         };
 
         let data;
