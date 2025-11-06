@@ -1,15 +1,19 @@
 import { describe, it, expect, vi, beforeEach, test } from "vitest";
-import { GET, DELETE } from "@/app/api/exams/route";
+import { GET, DELETE, POST } from "@/app/api/exams/route";
 
 //Create a mock mongo db without actually using mongoDB
 const {
     findMock,
     toArrayMock,
     deleteOneMock,
+    insertOneMock,
+    questionsCountMock,
+    questionsAggregateMock,
     collectionMock,
     dbMock,
     clientMock,
 } = vi.hoisted(() => {
+    // Exams Collection
     const fakeExams = [
         {
         _id: "69094a2c5bd7abae970d1fb9",
@@ -30,14 +34,39 @@ const {
     const toArrayMock = vi.fn().mockResolvedValue(fakeExams);
     const findMock = vi.fn().mockReturnValue({ toArray: toArrayMock });
     const deleteOneMock = vi.fn().mockResolvedValue({ deletedCount: 1 });
-    const collectionMock = vi.fn().mockReturnValue({
+    const insertOneMock = vi.fn().mockResolvedValue({ insertedId: "69094a2c5bd7abae970d1fb9"});
+    const examsCol = {
         find: findMock,
         deleteOne: deleteOneMock,
+        insertOne: insertOneMock
+    };
+
+    // Questions collection
+    const questionsCountMock = vi.fn(async (_match?: any) => 10);
+    const questionsAggregateMock = vi.fn((_pipeline?: any[]) => ({
+        toArray: async () => [
+        { _id: "q1", type: "TF", difficulty: 1, stem: "Sun rises in the East?" },
+        { _id: "q2", type: "TF", difficulty: 2, stem: "2 + 2 = 4?" },
+        // add more if you request more than 2
+        ],
+    }));
+
+    const questionsCol = {
+        countDocuments: questionsCountMock,
+        aggregate: questionsAggregateMock,
+    };
+
+    const collectionMock = vi.fn((name: string) => {
+        if(name === "exams") return examsCol;
+        if(name === "questions") return questionsCol;
+        throw new Error(`Unkown collection: ${name}`);
     });
+
+
     const dbMock = { collection: collectionMock };
     const clientMock = { db: vi.fn().mockReturnValue(dbMock) };
 
-    return { findMock, toArrayMock, deleteOneMock, collectionMock, dbMock, clientMock };
+    return { findMock, toArrayMock, deleteOneMock,insertOneMock, questionsCountMock, questionsAggregateMock, collectionMock, dbMock, clientMock };
 });
 
 // Mock mongo client
@@ -100,5 +129,31 @@ describe("DELETE /api/exams", () => {
         expect(data.ok).toBe(true);
         expect(data.message).toBe("Exam deleted successfully!");
         expect(deleteOneMock).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("POST /api/exams", () => {
+    // Successful fetch of exams
+    it("Stores exams successfully", async () => {
+        const req = new Request("http://localhost/api/exams", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+                title: "OK Exam",
+                timeLimit: 45,
+                difficulty: "mixed",
+                typeCounts: { TF: 2 }
+            }),
+        });
+
+        const res = await POST(req);
+        const data = await res.json();
+
+        // Confirm all the fields are collected properly
+        expect(res.status).toBe(201);
+        expect(data.ok).toBe(true);
+        
+        expect(collectionMock).toHaveBeenCalledWith("exams");
+        expect(insertOneMock).toHaveBeenCalledTimes(1);
     });
 });

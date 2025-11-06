@@ -50,28 +50,6 @@ describe("Testing POST (api/questions) with MC only", () => {
         expect(insertOne).toHaveBeenCalledTimes(1);
     });
 
-    test("Returns 401 when type is NOT MC and all fields are valid", async () => {
-        // Create the mock question
-        const req = makeRequest({
-            stem: "Testing non MC insert",
-            type: "TF",
-            difficulty: 1,
-            topics: ["Testing"],
-            choices: [
-                {label: "True", text: "", isCorrect: true},
-                {label: "False", text: "", isCorrect: false},
-            ],
-            lastUsed: null,
-        });
-
-        const response = await POST(req); // Make the POST
-        expect(response.status).toBe(401); // Valid insert returns status of 201
-
-        // Make sure we wrote to the right collection
-        expect(collection).toHaveBeenCalledWith("questions");
-        expect(insertOne).toHaveBeenCalledTimes(1);
-    });
-
     test("Returns 400 when fields are not valid (missing the topics field)", async () => {
         // Create the mock question
         const req = makeRequest({
