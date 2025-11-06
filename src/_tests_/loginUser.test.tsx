@@ -6,27 +6,37 @@ import LoginModal from "@/components/LoginModal";
 // Mock fetch globally
 global.fetch = vi.fn();
 
+const mockLogin = vi.fn();
+
+// Mock the AuthContext
+vi.mock("@/components/AuthContext", () => ({
+  useAuth: () => ({
+    login: mockLogin
+  })
+}));
+
 describe("User Login", () => {
   const mockOnClose = vi.fn();
-  const mockSetLoggedIn = vi.fn();
+  
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(global.fetch).mockReset();
+    mockLogin.mockClear();
   });
 
   it("logs in successfully and shows success alert", async () => {
+    const mockUser = { id: 1, email: "test@example.com", role: "teacher" };
+
     // Mock successful backend login response
     vi.mocked(global.fetch).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ message: "Login successful!" }),
+      json: async () => ({ user: mockUser }),
     } as Response);
 
     render(
       <LoginModal
         isOpen={true}
-        LoggedIn={false}
-        setLoggedIn={mockSetLoggedIn}
         onClose={mockOnClose}
       />
     );
@@ -49,8 +59,8 @@ describe("User Login", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("Success! Login successful!");
     });
 
-    // Verify that setLoggedIn and onClose were called
-    expect(mockSetLoggedIn).toHaveBeenCalledWith(true);
+    
+    expect(mockLogin).toHaveBeenCalledWith(mockUser);
     expect(mockOnClose).toHaveBeenCalled();
 
     // Verify fetch was called correctly
@@ -74,8 +84,6 @@ describe("User Login", () => {
     render(
       <LoginModal
         isOpen={true}
-        LoggedIn={false}
-        setLoggedIn={mockSetLoggedIn}
         onClose={mockOnClose}
       />
     );
@@ -98,7 +106,7 @@ describe("User Login", () => {
     });
 
     // Verify setLoggedIn and onClose are NOT called
-    expect(mockSetLoggedIn).not.toHaveBeenCalled();
+    expect(mockLogin).not.toHaveBeenCalled();
     expect(mockOnClose).not.toHaveBeenCalled();
   });
 });

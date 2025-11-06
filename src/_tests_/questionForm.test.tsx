@@ -23,6 +23,7 @@ vi.mock("react-hot-toast", () => {
 
 // Import after the mock
 import QuestionForm from "../components/QuestionForm";
+import { AuthProvider } from "../components/AuthContext"; 
 
 // Mock fetch
 beforeEach(() => {
@@ -30,9 +31,15 @@ beforeEach(() => {
   global.fetch = vi.fn();
 });
 
+const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
+  return <AuthProvider>{children}</AuthProvider>;
+};
+
 function openModal() {
   const onClose = vi.fn();
-  render(<QuestionForm isOpen={true} onClose={onClose} />);
+  render(<QuestionForm isOpen={true} onClose={onClose} />, {
+    wrapper: AuthWrapper 
+  });
   return onClose;
 }
 

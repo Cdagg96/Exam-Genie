@@ -1,15 +1,12 @@
 "use client";
 import React, { useState } from "react";
+import { useAuth } from "@/components/AuthContext";
 
 export default function LoginModal({
   isOpen,
   onClose,
-  setLoggedIn,
-  LoggedIn,
 }: {
   isOpen: boolean;
-  LoggedIn: boolean;
-  setLoggedIn: (value: boolean) => void;
   onClose: () => void;
 }) {
 
@@ -25,6 +22,9 @@ export default function LoginModal({
     email: "",
     password: ""
   });
+
+  //gets the users log in information
+  const { login } = useAuth();
 
   //Alert states
   const [loginAlert, setLoginAlert] = useState<{ type: "success" | "error" | null; message: string }>({ type: null, message: "" });
@@ -72,8 +72,7 @@ export default function LoginModal({
         setLoginAlert({ type: "error", message: data.message || "Login failed." });
       } else {
         setLoginAlert({ type: "success", message: "Login successful!" });
-        setLoginData({ email: "", password: "" }); // clear inputs
-        setLoggedIn(true);
+        login(data.user);
         onClose();
       }
     } catch (err) {

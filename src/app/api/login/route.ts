@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import clientPromise from "@/libs/mongo";
 
 export async function POST(req:Request) {
@@ -31,9 +31,15 @@ export async function POST(req:Request) {
             );
         }
 
+        const userData = {
+            _id: user._id.toString(),
+            email: user.email,
+            role: user.role,
+        };
+
         // if both email and password match, return success
         return NextResponse.json(
-            {ok: true, message: "Login successful", userId: user._id},
+            {ok: true, message: "Login successful", user},
             {status: 200}
         );
     } catch (error) {

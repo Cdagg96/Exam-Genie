@@ -6,6 +6,13 @@ import LoginModal from "@/components/LoginModal";
 //Mock fetch globally
 global.fetch = vi.fn();
 
+// Mock the AuthContext
+vi.mock("@/components/AuthContext", () => ({
+  useAuth: () => ({
+    login: vi.fn()
+  })
+}));
+
 describe("LoginModal Alerts", () => {
   const mockOnClose = vi.fn();
   const mockSetLoggedIn = vi.fn();
@@ -19,8 +26,6 @@ describe("LoginModal Alerts", () => {
     render(
       <LoginModal
         isOpen={true}
-        LoggedIn={false}
-        setLoggedIn={vi.fn()}
         onClose={vi.fn()}
       />
     );
@@ -41,8 +46,6 @@ describe("LoginModal Alerts", () => {
     render(
       <LoginModal
         isOpen={true}
-        LoggedIn={false}
-        setLoggedIn={mockSetLoggedIn}
         onClose={mockOnClose}
       />
     );
@@ -74,8 +77,6 @@ describe("LoginModal Alerts", () => {
     render(
       <LoginModal
         isOpen={true}
-        LoggedIn={false}
-        setLoggedIn={mockSetLoggedIn}
         onClose={mockOnClose}
       />
     );
@@ -108,8 +109,6 @@ describe("LoginModal Alerts", () => {
     render(
       <LoginModal
         isOpen={true}
-        LoggedIn={false}
-        setLoggedIn={mockSetLoggedIn}
         onClose={mockOnClose}
       />
     );
