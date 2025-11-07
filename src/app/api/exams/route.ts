@@ -2,12 +2,40 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/libs/mongo";
 import { ObjectId } from "mongodb";
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+
         const client = await clientPromise;
         const database = client.db(process.env.MONGODB_DB);
         const collection = database.collection('exams');
 
+        // If ID exists, fetch specific exam
+        if(id) {
+            // Validate the ID
+            if(!ObjectId.isValid(id)) {
+                return NextResponse.json(
+                    { ok: false, error: 'Invalid exam ID' },
+                    { status: 400 }
+                );
+            }
+
+            const exam = await collection.findOne({ _id: new ObjectId(id) }); // Fetch by the ID
+
+            // If no exam found with that ID
+            if(!exam) {
+                return NextResponse.json(
+                    { ok: false, error: 'Exam not found' },
+                    { status: 404 }
+                );
+            }
+
+            const serializedExam = {...exam, _id: exam._id.toString() }; // Convert ObjectId to string
+            return NextResponse.json(serializedExam);
+        }
+
+        // If no ID exists, fetch all exams
         const exams = await collection.find({}).toArray();
 
         // Convert MongoDB ObjectId to string for serialization
