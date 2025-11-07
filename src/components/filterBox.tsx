@@ -76,7 +76,7 @@ export default function FilterBox({
           onChange={inputChange}
           onFocus={inputFocus}
           placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-text"
+          className="w-full px-4 py-3 border border-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-text"
         />
         
         {/* Dropdown arrow */}

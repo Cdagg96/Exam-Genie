@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import NavBar from "@/components/navbar";
 import QuestionForm from "@/components/QuestionForm";
 import FilterBox from "@/components/filterBox";
+import SelectBox from "@/components/SelectBox";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import toast from "react-hot-toast";
 import EditQuestionModal from "@/components/EditQuestionModal";
@@ -250,35 +251,32 @@ export default function DatabaseActionPage() {
                         />
 
                         {/* Difficulty Filter */}
-                        <div className="text-left">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Difficulty
-                            </label>
-                            <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                <option value="">All Difficulties</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                            </select>
-                        </div>
-
-
+                        <SelectBox
+                            label="Difficulty"
+                            placeholder="All Difficulties"
+                            options={[
+                                { value: '', label: 'All Difficulties' },
+                                { value: '1', label: '1' },
+                                { value: '2', label: '2' },
+                                { value: '3', label: '3' },
+                                { value: '4', label: '4' },
+                                { value: '5', label: '5' },
+                            ]}
+                        />
+                        
                         {/* Type Filter */}
-                        <div className="text-left">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Type
-                            </label>
-                            <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                <option value="">All Types</option>
-                                <option value="Multiple Choice">Multiple Choice</option>
-                                <option value="Essay">Essay</option>
-                                <option value="FIB">Fill In The Blank</option>
-                                <option value="True/False">True/False</option>
-                                <option value="Coding">Coding</option>
-                            </select>
-                        </div>
+                        <SelectBox
+                            label="Type"
+                            placeholder="All Types"
+                            options={[
+                                { value: '', label: 'All Types' },
+                                { value: 'Multiple Choice', label: 'Multiple Choice' },
+                                { value: 'Essay', label: 'Essay' },
+                                { value: 'FIB', label: 'Fill In The Blank' },
+                                { value: 'True/False', label: 'True/False' },
+                                { value: 'Coding', label: 'Coding' },
+                            ]}
+                        />
                     </div>
 
 

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import SelectBox from "@/components/SelectBox";
 
 interface Question {
     _id: string;
@@ -197,21 +198,19 @@ export default function EditQuestionModal({
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Question Type
                         </label>
-                        <select
-                            id="typeSelect"
-                            aria-label="Type"
-                            className="border p-2 w-full rounded"
-                            value={type}
-                            onChange={(e) => setType(e.target.value)}
-                            required
-                            disabled={loading}
-                        >
-                            <option value="MC">Multiple Choice</option>
-                            <option value="TF">True/False</option>
-                            <option value="FIB">Fill in the Blank</option>
-                            <option value="Essay">Essay</option>
-                            <option value="Code">Code</option>
-                        </select>
+                        <SelectBox
+                            label=""
+                            placeholder="Select a type"
+                            options={[
+                                { value: "MC", label: "Multiple Choice" },
+                                { value: "TF", label: "True/False" },
+                                { value: "FIB", label: "Fill in the Blank" },
+                                { value: "Essay", label: "Essay" },
+                                { value: "Code", label: "Code" },
+                            ]}
+                            defaultValue={type}
+                            onSelect={(value) => setType(value)}
+                        />
                     </div>
 
                     {/* Question difficulty */}
