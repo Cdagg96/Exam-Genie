@@ -1,3 +1,5 @@
+import React from "react";
+
 export function DarkBackground({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen overflow-hidden text-white">
