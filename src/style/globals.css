@@ -23,4 +23,34 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased; /* for better font rendering */
+}
+
+/* Make scrollbar space to stop layout from shifting or clipping */
+html {
+  scrollbar-gutter: stable;
+  box-sizing: border-box;
+}
+
+/* Keep sizing consistent across all elements */
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* Mac-style overlay scrollbar that works identically in Windows */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Scrollbar is always visible but very subtle */
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 9999px;
+  transition: background 0.3s ease;
+}
+
+/* Make the scrollbar black on hover for better visibility */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
 }

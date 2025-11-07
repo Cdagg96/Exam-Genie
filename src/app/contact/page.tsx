@@ -3,6 +3,7 @@
 import NavBar from "@/components/navbar";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import SelectBox from "@/components/SelectBox";
 
 export default function ContactPage() {
   //States for form fields
@@ -77,13 +78,17 @@ export default function ContactPage() {
                 </svg>
                 Issue Type
               </label>
-              <select className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none bg-gray-50" value={issueType} onChange={(e) => setIssueType(e.target.value)} required>
-                <option disabled value="">Select issue type</option>
-                <option>Functional Bug</option>
-                <option>UI/UX Issue</option>
-                <option>Performance Problem</option>
-                <option>Other</option>
-              </select>
+              <SelectBox
+                label=""
+                placeholder="Select issue type"
+                options={[
+                  { value: "Functional Bug", label: "Functional Bug" },
+                  { value: "UI/UX Issue", label: "UI/UX Issue" },
+                  { value: "Performance Problem", label: "Performance Problem" },
+                  { value: "Other", label: "Other" },
+                ]}
+                onSelect={(value) => setIssueType(value)}
+              />
             </div>
 
             {/* Message Field */}

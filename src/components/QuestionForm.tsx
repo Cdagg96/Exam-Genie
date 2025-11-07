@@ -2,6 +2,7 @@
 import React, {useState} from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthContext";
+import SelectBox from "@/components/SelectBox";
 
 export default function BackgroundModal({
     isOpen,
@@ -131,20 +132,18 @@ export default function BackgroundModal({
                     />
 
                     {/* Question Type */}
-                    <select
-                        id="typeSelect"
-                        aria-label="Type"
-                        className="border p-2 w-full rounded"
-                        value={type}
-                        onChange={(e) => setType(e.target.value)}
-                        required
-                    >
-                        <option value="MC">Multiple Choice</option>
-                        <option value="TF">True/False</option>
-                        <option value="FIB">Fill in the Blank</option>
-                        <option value="Essay">Essay</option>
-                        <option value="Code">Code</option>
-                    </select>
+                    <SelectBox
+                        label=""
+                        placeholder="Select Question Type"
+                        options={[
+                            {value: "MC", label: "Multiple Choice"},
+                            {value: "TF", label: "True/False"},
+                            {value: "FIB", label: "Fill in the Blank"},
+                            {value: "Essay", label: "Essay"},
+                            {value: "Code", label: "Code"},
+                        ]}
+                        onSelect={(value) => setType(value)}
+                    />
 
                     {/* Question difficulty */}
                     <input
@@ -171,21 +170,21 @@ export default function BackgroundModal({
                     {type === "MC" && (
                     <div className="flex gap-2">
                         <input 
-                            className="border p-2 flex-1 rounded" 
+                            className="border p-2 flex-1 min-w-0 rounded" 
                             placeholder="Choice A" 
                             value={choiceA} 
                             onChange={(e) => setChoiceA(e.target.value)}
                             required />
                 
                         <input 
-                            className="border p-2 flex-1 rounded" 
+                            className="border p-2 flex-1 min-w-0 rounded" 
                             placeholder="Choice B"
                             value={choiceB}
                             onChange={(e) => setChoiceB(e.target.value)}
                             required />
                             
                         <input 
-                            className="border p-2 flex-1 rounded" 
+                            className="border p-2 flex-1 min-w-0 rounded" 
                             placeholder="Choice C" 
                             value={choiceC} 
                             onChange={(e) => setChoiceC(e.target.value)}
