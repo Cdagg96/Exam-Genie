@@ -90,7 +90,7 @@ export default function Home() {
               )}
             </div>
 
-            <Link href="../data_view/" className="bt btn-primary-blue w-110 h-15 text-xl rounded-2xl flex items-center justify-center">
+            <Link href="../data_view/" className="bt btn-ghost w-110 h-15 text-xl rounded-2xl flex items-center justify-center">
               View Your Questions
             </Link>
           </div>

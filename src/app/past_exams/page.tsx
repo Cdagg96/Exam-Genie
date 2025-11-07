@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { LightBackground } from "@/components/BackgroundModal";
+import SelectBox from "@/components/SelectBox";
 
 // Follow the exam structure in the database
 interface Exam {
@@ -121,6 +122,90 @@ export default function PastExams() {
                     <p className="text-gray-600 mb-8 text-lg max-w-2xl">
                         Manage and view all your previously generated exams.
                     </p>
+                    {/* Filtering Section */}
+                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
+                        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
+                            Filter Exams
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Exam Name Filter */}
+                            <SelectBox
+                                label="Exam Name"
+                                placeholder="All Exams"
+                                options={[
+                                    { value: '', label: 'All Exams' },
+                                    { value: 'Midterm 1', label: 'Midterm 1' },
+                                    { value: 'Midterm 2', label: 'Midterm 2' },
+                                    { value: 'Midterm 3', label: 'Midterm 3' },
+                                    { value: 'Midterm 4', label: 'Midterm 4' },
+                                    { value: 'Midterm 5', label: 'Midterm 5' },
+                                ]}
+                            />
+
+
+                            {/* Difficulty Filter */}
+                            <SelectBox
+                                label="Difficulty"
+                                placeholder="All Difficulties"
+                                options={[
+                                    { value: '', label: 'All Difficulties' },
+                                    { value: 'easy', label: 'Easy' },
+                                    { value: 'medium', label: 'Medium' },
+                                    { value: 'hard', label: 'Hard' },
+                                ]}
+                            />
+
+                            {/* Total Points Filter */}
+                            <SelectBox
+                                label="Total Points"
+                                placeholder="Total Points"
+                                options={[
+                                    { value: '', label: 'All Points' },
+                                    { value: '1-5', label: '1-5' },
+                                    { value: '6-10', label: '6-10' },
+                                    { value: '11-15', label: '11-15' },
+                                    { value: '16-20', label: '16-20' },
+                                    { value: '25+', label: '25+' },
+                                ]}
+                            />
+                        </div>
+
+
+                        {/* Last Used Filter */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-md">
+                            <div className="text-left">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Last Used
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: 01/01/2025"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        {/* Filter Actions */}
+                        <div className="flex justify-end space-x-4 mt-8">
+                            <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                                Clear Filters
+                            </button>
+                            <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                                Apply Filters
+                            </button>
+                        </div>
+                    </div>
 
                     {/* Exams Table */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">

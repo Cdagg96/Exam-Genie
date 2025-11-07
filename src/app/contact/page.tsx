@@ -62,7 +62,7 @@ export default function ContactPage() {
         <div className="max-w-4xl mx-auto">
           {/* Prompt */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 pt-8">Report a issue</h1>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent mb-4 pt-8">Report a issue</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Want to report a issue? Please do not hesitate to contact us directly. Thank you for helping make Exam Genie better.
             </p>
