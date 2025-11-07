@@ -50,6 +50,7 @@ html {
   transition: background 0.3s ease;
 }
 
+/* Make the scrollbar black on hover for better visibility */
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.4);
 }
