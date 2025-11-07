@@ -13,13 +13,16 @@ export default function Home() {
   return (
     // Centers content and applies background gradient
     <LightBackground>
-      <div className="items-center justify-items-center min-h-screen p-8">
+      <div className="items-center justify-items-center min-h-screen p-4">
         <NavBar />
 
         {/* Home page title */}
         <h1 className="text-7xl text-center pt-40 font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
           Exam Genie
         </h1>
+        <p className="mt-3 text-center text-slate-600">
+          Build, preview, and print professional exams in minutes.
+        </p>
 
         {/* Position buttons/info icons */}
         <div className="space-y-10 mt-20 w-fit">

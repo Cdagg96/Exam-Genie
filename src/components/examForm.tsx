@@ -219,11 +219,11 @@ export default function ExamForm() {
                                 setAllowedTypes(["MC", "TF", "Essay"]);
                                 setSections([{ ...DEFAULT_SECTION }]);
                             }}
-                            className="rounded-xl border px-4 py-2 hover:bg-gray-50"
+                            className="rounded-xl border px-4 py-2 btn btn-ghost"
                         >
                             Reset
                         </button>
-                        <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
+                        <button type="submit" className="btn btn-primary-blue rounded-xl px-5 py-2">
                             Generate
                         </button>
                     </div>

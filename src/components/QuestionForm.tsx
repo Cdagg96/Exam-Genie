@@ -124,7 +124,7 @@ export default function BackgroundModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Question Stem */}
                     <input
-                        className="border p-2 w-full rounded"
+                        className="border px-4 py-3 w-full rounded-xl"
                         placeholder="Question"
                         value={stem}
                         onChange={(e) => setStem(e.target.value)}
@@ -147,7 +147,7 @@ export default function BackgroundModal({
 
                     {/* Question difficulty */}
                     <input
-                        className="border p-2 w-full rounded"
+                        className="border px-4 py-3 w-full rounded-xl"
                         type="number"
                         placeholder="Difficulty (1-5)"
                         value={difficulty}
@@ -159,7 +159,7 @@ export default function BackgroundModal({
 
                     {/* Question topic(s) */}
                     <input
-                        className="border p-2 w-full rounded"
+                        className="border px-4 py-3 w-full rounded-xl"
                         placeholder="Topic(s) (comma separated)"
                         value={topics}
                         onChange={(e) => setTopics(e.target.value)}
@@ -170,21 +170,21 @@ export default function BackgroundModal({
                     {type === "MC" && (
                     <div className="flex gap-2">
                         <input 
-                            className="border p-2 flex-1 min-w-0 rounded" 
+                            className="border px-4 py-3 w-full rounded-xl" 
                             placeholder="Choice A" 
                             value={choiceA} 
                             onChange={(e) => setChoiceA(e.target.value)}
                             required />
                 
                         <input 
-                            className="border p-2 flex-1 min-w-0 rounded" 
+                            className="border px-4 py-3 w-full rounded-xl" 
                             placeholder="Choice B"
                             value={choiceB}
                             onChange={(e) => setChoiceB(e.target.value)}
                             required />
                             
                         <input 
-                            className="border p-2 flex-1 min-w-0 rounded" 
+                            className="border px-4 py-3 w-full rounded-xl" 
                             placeholder="Choice C" 
                             value={choiceC} 
                             onChange={(e) => setChoiceC(e.target.value)}
@@ -203,7 +203,7 @@ export default function BackgroundModal({
                                 <button 
                                     type="button"
                                     onClick={() => setCorrect("True")}
-                                    className={`border p-2 flex-1 rounded text-center transition-all
+                                    className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
                                     ${correctAnswer === "True" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
                                 >
                                 True
@@ -211,7 +211,7 @@ export default function BackgroundModal({
                                 <button 
                                     type="button"
                                     onClick={() => setCorrect("False")}
-                                    className={`border p-2 flex-1 rounded text-center transition-all
+                                    className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
                                     ${correctAnswer === "False" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
                                 >
                                 False
@@ -226,8 +226,9 @@ export default function BackgroundModal({
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Correct answer
                             </label>
-                            <input
-                                className="border p-2 w-full rounded"
+                            <textarea
+                                className="border h-50 px-4 py-3 w-full rounded-xl"
+                                placeholder="Type your answer here..."
                                 value={extendedAnswer}
                                 onChange={(e) => setExAnswer(e.target.value)}
                                 required
@@ -237,7 +238,7 @@ export default function BackgroundModal({
                             </label>
                             <input
                                 type="number"
-                                className="border p-2 w-full rounded"
+                                className="border px-4 py-3 w-full rounded-xl"
                                 value={blankLines}
                                 onChange={(e) => setBlankLines(Number(e.target.value))}
                                 required
@@ -252,7 +253,7 @@ export default function BackgroundModal({
                                 Correct answer
                             </label>
                             <input
-                                className="border p-2 w-full rounded"
+                                className="border px-4 py-3 w-full rounded-xl"
                                 value={fibAnswer}
                                 onChange={(e) => setFIBAnswer(e.target.value)}
                                 required
@@ -281,7 +282,7 @@ export default function BackgroundModal({
                     <div className="flex justify-center">
                         <button
                         type="submit"
-                        className="bg-black text-white px-6 py-2 rounded hover:bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 transition-all"
+                        className="px-6 py-3 text-sm font-medium btn btn-primary-dark-blue"
                         >
                         Add Question
                         </button>

@@ -12,6 +12,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { useAuth } from "@/components/AuthContext";
+import {LightBackground} from "@/components/BackgroundModal";
 
 interface Question {
     _id: string;
@@ -224,275 +225,277 @@ export default function DatabaseActionPage() {
     };
 
     return (
-        <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
-            <header>
-                <NavBar />
-            </header>
-            <main className="flex flex-col items-center justify-center pt-8">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    Question Bank
-                </h1>
-                <p className="text-gray-600 mb-8 text-lg max-w-2xl">
-                    Manage and view all questions in the database. Filter by topic, difficulty, or type to find specific questions.
-                </p>
+        <LightBackground>
+            <div className="flex flex-col justify-between min-h-screen p-4 text-center">
+                <header>
+                    <NavBar />
+                </header>
+                <main className="flex flex-col items-center justify-center pt-8">
+                    <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
+                        Question Bank
+                    </h1>
+                    <p className="text-gray-600 mb-8 text-lg max-w-2xl">
+                        Manage and view all questions in the database. Filter by topic, difficulty, or type to find specific questions.
+                    </p>
 
 
-                {/* Filtering Section */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
-                        Filter Questions
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Topic Filter Box */}
-                        <FilterBox
-                            options={topics}
-                            label="Topic"
-                            placeholder="Search a topic"
-                        />
+                    {/* Filtering Section */}
+                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
+                        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
+                            Filter Questions
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Topic Filter Box */}
+                            <FilterBox
+                                options={topics}
+                                label="Topic"
+                                placeholder="Search a topic"
+                            />
 
-                        {/* Difficulty Filter */}
-                        <SelectBox
-                            label="Difficulty"
-                            placeholder="All Difficulties"
-                            options={[
-                                { value: '', label: 'All Difficulties' },
-                                { value: '1', label: '1' },
-                                { value: '2', label: '2' },
-                                { value: '3', label: '3' },
-                                { value: '4', label: '4' },
-                                { value: '5', label: '5' },
-                            ]}
-                        />
-                        
-                        {/* Type Filter */}
-                        <SelectBox
-                            label="Type"
-                            placeholder="All Types"
-                            options={[
-                                { value: '', label: 'All Types' },
-                                { value: 'Multiple Choice', label: 'Multiple Choice' },
-                                { value: 'Essay', label: 'Essay' },
-                                { value: 'FIB', label: 'Fill In The Blank' },
-                                { value: 'True/False', label: 'True/False' },
-                                { value: 'Coding', label: 'Coding' },
-                            ]}
-                        />
-                    </div>
+                            {/* Difficulty Filter */}
+                            <SelectBox
+                                label="Difficulty"
+                                placeholder="All Difficulties"
+                                options={[
+                                    { value: '', label: 'All Difficulties' },
+                                    { value: '1', label: '1' },
+                                    { value: '2', label: '2' },
+                                    { value: '3', label: '3' },
+                                    { value: '4', label: '4' },
+                                    { value: '5', label: '5' },
+                                ]}
+                            />
+                            
+                            {/* Type Filter */}
+                            <SelectBox
+                                label="Type"
+                                placeholder="All Types"
+                                options={[
+                                    { value: '', label: 'All Types' },
+                                    { value: 'Multiple Choice', label: 'Multiple Choice' },
+                                    { value: 'Essay', label: 'Essay' },
+                                    { value: 'FIB', label: 'Fill In The Blank' },
+                                    { value: 'True/False', label: 'True/False' },
+                                    { value: 'Coding', label: 'Coding' },
+                                ]}
+                            />
+                        </div>
 
 
-                    {/* Last Used Filter */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-md">
-                        <div className="text-left">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Last Used
-                            </label>
-                            <div className="relative" ref={setCalendarAnchorEl}>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: 01/01/2025"
-                                    value={dateInputValue}
-                                    onChange={(e) => handleDateInputChange(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
-                                />
-                                <button
-                                    type="button"
-                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                    onClick={() => setCalendarOpen(true)}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DatePicker
-                                    open={calendarOpen}
-                                    onClose={() => setCalendarOpen(false)}
-                                    value={lastUsedDate}
-                                    onChange={(newValue) => {
-                                        setLastUsedDate(newValue);
-                                        setCalendarOpen(false);
-                                        handleCalendarChange(newValue);
-                                    }}
-                                    slotProps={{
-                                        popper: {
-                                            anchorEl: calendarAnchorEl,
-                                            placement: 'bottom-start',
-                                            modifiers: [
-                                                {
-                                                    name: 'flip',
-                                                    enabled: false,
-                                                },
-                                                {
-                                                    name: 'preventOverflow',
-                                                    enabled: true,
-                                                    options: {
-                                                        boundary: 'viewport',
-                                                        altBoundary: true,
+                        {/* Last Used Filter */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-md">
+                            <div className="text-left">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Last Used
+                                </label>
+                                <div className="relative" ref={setCalendarAnchorEl}>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: 01/01/2025"
+                                        value={dateInputValue}
+                                        onChange={(e) => handleDateInputChange(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                        onClick={() => setCalendarOpen(true)}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DatePicker
+                                        open={calendarOpen}
+                                        onClose={() => setCalendarOpen(false)}
+                                        value={lastUsedDate}
+                                        onChange={(newValue) => {
+                                            setLastUsedDate(newValue);
+                                            setCalendarOpen(false);
+                                            handleCalendarChange(newValue);
+                                        }}
+                                        slotProps={{
+                                            popper: {
+                                                anchorEl: calendarAnchorEl,
+                                                placement: 'bottom-start',
+                                                modifiers: [
+                                                    {
+                                                        name: 'flip',
+                                                        enabled: false,
                                                     },
-                                                },
-                                            ],
-                                        },
-                                    }}
-                                    slots={{
-                                        field: () => null,
-                                    }}
-                                />
-                            </LocalizationProvider>
+                                                    {
+                                                        name: 'preventOverflow',
+                                                        enabled: true,
+                                                        options: {
+                                                            boundary: 'viewport',
+                                                            altBoundary: true,
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        }}
+                                        slots={{
+                                            field: () => null,
+                                        }}
+                                    />
+                                </LocalizationProvider>
+                            </div>
+                        </div>
+
+
+                        {/* Filter Actions */}
+                        <div className="flex justify-end space-x-4 mt-8">
+                            <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                                Clear Filters
+                            </button>
+                            <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                                Apply Filters
+                            </button>
                         </div>
                     </div>
 
 
-                    {/* Filter Actions */}
-                    <div className="flex justify-end space-x-4 mt-8">
-                        <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
-                            Clear Filters
-                        </button>
-                        <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
-                            Apply Filters
-                        </button>
-                    </div>
-                </div>
-
-
-                {/* Questions Table */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
-                    <div className="overflow-x-auto w-full max-w-full max-h-90 overflow-y-auto">
-                        <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
-                            <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 sticky top-0">
-                                <tr>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
-                                        Question
-                                    </th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
-                                        Type
-                                    </th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
-                                        Difficulty
-                                    </th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
-                                        Topic
-                                    </th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
-                                        Choices
-                                    </th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
-                                        Answer
-                                    </th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
-                                        Last Used
-                                    </th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    //Questions Loading
+                    {/* Questions Table */}
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
+                        <div className="overflow-x-auto w-full max-w-full max-h-90 overflow-y-auto">
+                            <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
+                                <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 sticky top-0">
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                            <div className="text-gray-400 text-lg">Loading questions</div>
-                                        </td>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Question
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Type
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Difficulty
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Topic
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Choices
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Answer
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Last Used
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                            Actions
+                                        </th>
                                     </tr>
-                                ) : error ? (
-                                    //Error while loading questions
-                                    <tr>
-                                        <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                            <div className="text-gray-400 text-lg">Error Loading questions</div>
-                                            <div className="text-red-400 text-sm mt-2">{error}</div>
-                                            <button
-                                                onClick={fetchQuestions}
-                                                className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
-                                                Retry
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ) : questions.length == 0 ? (
-                                    //No questions
-                                    <tr>
-                                        <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                            <div className="text-gray-400 text-lg">No questions found</div>
-                                            <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    //Questions data
-                                    filteredQuestions.map((question, index) => (
-                                        <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                            <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
-                                                <div className="truncate" title={formatQuestion(question)}>
-                                                    {formatQuestion(question)}
-                                                </div>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        //Questions Loading
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="text-gray-400 text-lg">Loading questions</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                                {question.type}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                                {question.difficulty}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                                {formatTopics(question.topics)}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
-                                                <div className="truncate" title={formatChoices(question.choices)}>
-                                                    {formatChoices(question.choices)}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                                <div className="truncate" title={formatAnswers(question)}>
-                                                    {formatAnswers(question)}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                                {question.lastUsed || 'Never'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => handleEditClick(question)}>
-                                                    Edit
-                                                </button>
-                                                <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(question._id, formatQuestion(question))}>
-                                                    Delete
+                                        </tr>
+                                    ) : error ? (
+                                        //Error while loading questions
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="text-gray-400 text-lg">Error Loading questions</div>
+                                                <div className="text-red-400 text-sm mt-2">{error}</div>
+                                                <button
+                                                    onClick={fetchQuestions}
+                                                    className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
+                                                    Retry
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : questions.length == 0 ? (
+                                        //No questions
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="text-gray-400 text-lg">No questions found</div>
+                                                <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        //Questions data
+                                        filteredQuestions.map((question, index) => (
+                                            <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                    <div className="truncate" title={formatQuestion(question)}>
+                                                        {formatQuestion(question)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                    {question.type}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                    {question.difficulty}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                    {formatTopics(question.topics)}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                    <div className="truncate" title={formatChoices(question.choices)}>
+                                                        {formatChoices(question.choices)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                    <div className="truncate" title={formatAnswers(question)}>
+                                                        {formatAnswers(question)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                    {question.lastUsed || 'Never'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => handleEditClick(question)}>
+                                                        Edit
+                                                    </button>
+                                                    <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(question._id, formatQuestion(question))}>
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
 
-                {/* Add Question Button */}
-                <div className="mt-12 flex justify-center">
-                    <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        Add New Question to Database
-                    </button>
-                </div>
-            </main>
-            <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} />
+                    {/* Add Question Button */}
+                    <div className="mt-12 flex justify-center">
+                        <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            Add New Question to Database
+                        </button>
+                    </div>
+                </main>
+                <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} />
 
-            {/* Delete Confirmation Modal */}
-            <ConfirmationModal
-                isOpen={deleteModalOpen}
-                onClose={handleCancelDelete}
-                onConfirm={handleConfirmDelete}
-                text={questionTextToDelete}
-                isLoading={deleteLoading}
-                type="question"
-            />
+                {/* Delete Confirmation Modal */}
+                <ConfirmationModal
+                    isOpen={deleteModalOpen}
+                    onClose={handleCancelDelete}
+                    onConfirm={handleConfirmDelete}
+                    text={questionTextToDelete}
+                    isLoading={deleteLoading}
+                    type="question"
+                />
 
-            {/* Edit Question Modal */}
-            <EditQuestionModal
-                isOpen={editModalOpen}
-                onClose={() => setEditModalOpen(false)}
-                question={questionToEdit}
-                onQuestionUpdated={handleEditComplete}
-            />
-        </div>
+                {/* Edit Question Modal */}
+                <EditQuestionModal
+                    isOpen={editModalOpen}
+                    onClose={() => setEditModalOpen(false)}
+                    question={questionToEdit}
+                    onQuestionUpdated={handleEditComplete}
+                />
+            </div>
+        </LightBackground>
 
     );
 }

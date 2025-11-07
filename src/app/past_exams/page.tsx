@@ -109,7 +109,7 @@ export default function PastExams() {
 
     return (
         <LightBackground>
-            <div className="flex flex-col justify-between min-h-screen p-8 text-center">
+            <div className="flex flex-col justify-between min-h-screen p-4 text-center">
                 <header>
                     <NavBar />
                 </header>

@@ -64,6 +64,12 @@ body {
            hover:shadow-[0_0_25px_rgba(56,189,248,0.25)]
            transition-all duration-200;
   }
+  
+  .btn-primary-dark-blue {
+    @apply  text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all 
+           duration-200 hover:shadow-lg transform hover:-translate-y-0.5
+  }
+
 }
 /* Make scrollbar space to stop layout from shifting or clipping */
 html {

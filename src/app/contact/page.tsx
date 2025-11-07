@@ -53,7 +53,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="flex flex-col justify-between min-h-screen p-8 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
+    <div className="flex flex-col justify-between min-h-screen p-4 text-center bg-gradient-to-b from-[#EFF6FF] to-white">
       <header>
         <NavBar />
       </header>

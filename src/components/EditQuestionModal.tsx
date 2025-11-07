@@ -184,7 +184,7 @@ export default function EditQuestionModal({
                             Question Stem
                         </label>
                         <input
-                            className="border p-2 w-full rounded"
+                            className="border px-4 py-3 w-full rounded-xl"
                             placeholder="Question"
                             value={stem}
                             onChange={(e) => setStem(e.target.value)}
@@ -219,7 +219,7 @@ export default function EditQuestionModal({
                             Difficulty
                         </label>
                         <input
-                            className="border p-2 w-full rounded"
+                            className="border px-4 py-3 w-full rounded-xl"
                             type="number"
                             placeholder="Difficulty (1-5)"
                             value={difficulty}
@@ -237,7 +237,7 @@ export default function EditQuestionModal({
                             Topics (comma separated)
                         </label>
                         <input
-                            className="border p-2 w-full rounded"
+                            className="border px-4 py-3 w-full rounded-xl"
                             placeholder="Topic(s) (comma separated)"
                             value={topics}
                             onChange={(e) => setTopics(e.target.value)}
@@ -254,7 +254,7 @@ export default function EditQuestionModal({
                         </label>
                         <div className="flex gap-2">
                             <input 
-                                className="border p-2 flex-1 rounded" 
+                                className="border px-4 py-3 w-full rounded-xl" 
                                 placeholder="Choice A" 
                                 value={choiceA} 
                                 onChange={(e) => setChoiceA(e.target.value)}
@@ -264,7 +264,7 @@ export default function EditQuestionModal({
                         </div>
                         <div className="flex gap-2">
                             <input 
-                                className="border p-2 flex-1 rounded" 
+                                className="border px-4 py-3 w-full rounded-xl" 
                                 placeholder="Choice B"
                                 value={choiceB}
                                 onChange={(e) => setChoiceB(e.target.value)}
@@ -274,7 +274,7 @@ export default function EditQuestionModal({
                         </div>
                         <div className="flex gap-2">
                             <input 
-                                className="border p-2 flex-1 rounded" 
+                                className="border px-4 py-3 w-full rounded-xl" 
                                 placeholder="Choice C" 
                                 value={choiceC} 
                                 onChange={(e) => setChoiceC(e.target.value)}
@@ -296,7 +296,7 @@ export default function EditQuestionModal({
                                     type="button"
                                     onClick={() => setCorrect("True")}
                                     disabled={loading}
-                                    className={`border p-2 flex-1 rounded text-center transition-all
+                                    className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
                                     ${correctAnswer === "True" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"} 
                                     ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                                 >
@@ -306,7 +306,7 @@ export default function EditQuestionModal({
                                     type="button"
                                     onClick={() => setCorrect("False")}
                                     disabled={loading}
-                                    className={`border p-2 flex-1 rounded text-center transition-all
+                                    className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
                                     ${correctAnswer === "False" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"} 
                                     ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                                 >
@@ -323,7 +323,7 @@ export default function EditQuestionModal({
                                 Correct answer
                             </label>
                             <textarea
-                                className="border p-2 w-full rounded"
+                                className="border px-4 py-3 w-full rounded-xl"
                                 value={extendedAnswer}
                                 onChange={(e) => setExAnswer(e.target.value)}
                                 required
@@ -335,7 +335,7 @@ export default function EditQuestionModal({
                             </label>
                             <input
                                 type="number"
-                                className="border p-2 w-full rounded"
+                                className="border px-4 py-3 w-full rounded-xl"
                                 value={blankLines}
                                 onChange={(e) => setBlankLines(Number(e.target.value))}
                                 required
@@ -351,7 +351,7 @@ export default function EditQuestionModal({
                                 Correct answer
                             </label>
                             <input
-                                className="border p-2 w-full rounded"
+                                className="border px-4 py-3 w-full rounded-xl"
                                 value={fibAnswer}
                                 onChange={(e) => setFIBAnswer(e.target.value)}
                                 required
@@ -367,7 +367,7 @@ export default function EditQuestionModal({
                             Correct answer:
                         </label>
                         <select
-                            className="border p-2 w-full rounded"
+                            className="border px-4 py-3 w-full rounded-xl"
                             value={correctAnswer}
                             onChange={(e) => setCorrect(e.target.value)}
                             required

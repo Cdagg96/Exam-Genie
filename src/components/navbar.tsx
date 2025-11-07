@@ -19,8 +19,8 @@ export default function Navbar() {
             className="rounded-full"
             src="/logo.png"
             alt="Logo"
-            width={75}
-            height={75}
+            width={80}
+            height={80}
           />
         </Link>
         <div className="flex space-x-8">
