@@ -24,3 +24,43 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ---- BUTTONS ---- */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-2
+           text-sm font-medium transition-all focus:outline-none
+           focus:ring-2 focus:ring-offset-0;
+  }
+
+  .btn-primary-pink {
+    /* only the variant styles, no @apply btn here */
+    @apply text-white shadow
+           border border-fuchsia-400/40
+           bg-gradient-to-r from-indigo-600/60 via-fuchsia-600/60 to-purple-600/60
+           hover:scale-[1.03] hover:shadow-[0_0_40px_rgba(217,70,239,0.35)];
+  }
+
+  /* Cool Blue/Cyan Gradient (New) */
+  .btn-primary-blue {
+    @apply text-white shadow
+           border border-cyan-400/40
+           bg-gradient-to-r from-sky-500/60 via-cyan-500/60 to-blue-600/60
+           hover:scale-[1.03] hover:shadow-[0_0_40px_rgba(56,189,248,0.35)];
+  }
+
+  .btn-ghost {
+    @apply text-cyan-100 border border-cyan-300/30
+           bg-gradient-to-r from-slate-800/60 to-slate-900/60
+           backdrop-blur hover:scale-[1.03]
+           hover:border-cyan-300/60 hover:shadow-[0_0_30px_rgba(34,211,238,0.25)];
+  }
+
+  .btn-ghost-inverted {
+    @apply text-slate-900 border border-cyan-400/40
+           bg-gradient-to-r from-cyan-50 to-sky-100
+           hover:scale-[1.03] hover:border-cyan-400/60
+           hover:shadow-[0_0_25px_rgba(56,189,248,0.25)]
+           transition-all duration-200;
+  }
+}

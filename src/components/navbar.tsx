@@ -32,13 +32,13 @@ export default function Navbar() {
           {!user ? (
             <button
               onClick={() => setIsLoginOpen(true)}
-              className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center -mt-1">
+              className="w-25 h-8 btn btn-ghost text-sm rounded-2xl shadow hover:bg-blue-400 flex items-center justify-center -mt-1">
               Sign in
             </button>
            ) : (
             <button
               onClick={logout}
-              className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center -mt-1">
+              className="w-25 h-8 btn btn-ghost-inverted text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center -mt-1">
               Sign Out
             </button>
           )}
