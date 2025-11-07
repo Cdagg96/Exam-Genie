@@ -82,7 +82,9 @@ beforeEach(() => {
 describe("GET /api/exams", () => {
     // Successful fetch of exams
     it("Returns exams successfully", async () => {
-        const res = await GET();
+        const req = new Request("http://localhost/api/exams", { method: "GET" });
+        
+        const res = await GET(req);
         const data = await res.json();
 
         // Confirm all the fields are collected properly
