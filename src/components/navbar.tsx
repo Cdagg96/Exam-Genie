@@ -19,8 +19,8 @@ export default function Navbar() {
             className="rounded-full"
             src="/logo.png"
             alt="Logo"
-            width={75}
-            height={75}
+            width={80}
+            height={80}
           />
         </Link>
         <div className="flex space-x-8">
@@ -32,13 +32,13 @@ export default function Navbar() {
           {!user ? (
             <button
               onClick={() => setIsLoginOpen(true)}
-              className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center -mt-1">
+              className="w-25 h-8 btn btn-ghost text-sm rounded-2xl shadow hover:bg-blue-400 flex items-center justify-center -mt-1">
               Sign in
             </button>
            ) : (
             <button
               onClick={logout}
-              className="w-20 h-8 bg-stone-800 text-white text-sm rounded-2xl shadow hover:bg-black flex items-center justify-center -mt-1">
+              className="w-25 h-8 text-white bg-gray-800 hover:bg-gray-900 text-sm rounded-2xl shadow flex items-center justify-center -mt-1">
               Sign Out
             </button>
           )}

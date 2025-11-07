@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import ExamPreviewModel from "@/components/examPreview";
+import SelectBox from "@/components/SelectBox";
 
 
 export type QuestionType =
@@ -140,15 +141,15 @@ export default function ExamForm() {
     }
 
     return (
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto w-full">
             <form onSubmit={handleSubmit} className="space-y-6">
-                <section className="rounded-2xl border p-4 shadow-sm">
+                <section className="bg-white rounded-2xl p-4 shadow-sm">
                     <h2 className="mb-3 text-lg font-semibold">General</h2>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-2">
                         <label className="flex flex-col gap-1">
                             <span className="text-sm font-medium">Title</span>
                             <input
-                                className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
+                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
                                 placeholder="Midterm – Algorithms"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
@@ -160,7 +161,7 @@ export default function ExamForm() {
                             <input
                                 type="number"
                                 min={0}
-                                className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
+                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
                                 value={timeLimit}
                                 onChange={(e) => setTimeLimit(Number(e.target.value))}
                                 required
@@ -169,7 +170,7 @@ export default function ExamForm() {
                         <label className="flex flex-col gap-1">
                             <span className="text-sm font-medium">Difficulty</span>
                             <select
-                                className="rounded-xl border px-3 py-2.5 focus:outline-none focus:ring-2"
+                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
                                 value={difficulty}
                                 onChange={(e) => setDifficulty(e.target.value)}
                                 required
@@ -181,16 +182,14 @@ export default function ExamForm() {
                             </select>
                         </label>
                     </div>
-                </section>
-                {/* Allowed Types */}
-                <section className="rounded-2xl border p-4 shadow-sm">
-                    <h2 className="mb-3 text-lg font-semibold">Allowed Question Types</h2>
+                    <h2 className="mb-3 mt-8 text-lg font-semibold">Allowed Question Types</h2>
                     <p className="mb-3 text-sm text-gray-600">
                         Set how many questions of each type you want. Use 0 to exclude a type.
                     </p>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
                         {TYPES.map((t) => (
-                            <label key={t.value} className="inline-flex items-center gap-2">
+                            <label key={t.value} className="flex flex-col gap-2">
+                                <span className="text-sm font-medium">{t.label}</span>
                                 <input
                                     type="number"
                                     min={0}
@@ -198,11 +197,13 @@ export default function ExamForm() {
                                     value={typeCounts[t.value]}
                                     onChange={e => setTypeCounts(prev => ({ ...prev, [t.value]: Number(e.target.value) }))}
                                 />
-                                <span>{t.label}</span>
+                                
                             </label>
                         ))}
                     </div>
                 </section>
+                {/* Allowed Types */}
+                
                 <div className="flex items-center justify-between">
                     <div className="flex gap-3">
                         
@@ -219,11 +220,11 @@ export default function ExamForm() {
                                 setAllowedTypes(["MC", "TF", "Essay"]);
                                 setSections([{ ...DEFAULT_SECTION }]);
                             }}
-                            className="rounded-xl border px-4 py-2 hover:bg-gray-50"
+                            className="rounded-xl border px-4 py-2 btn btn-ghost"
                         >
                             Reset
                         </button>
-                        <button type="submit" className="rounded-xl bg-black px-5 py-2 text-white shadow hover:opacity-90">
+                        <button type="submit" className="btn btn-primary-blue rounded-xl px-5 py-2">
                             Generate
                         </button>
                     </div>

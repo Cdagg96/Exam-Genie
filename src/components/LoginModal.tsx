@@ -163,7 +163,7 @@ export default function LoginModal({
 
         {/* Login Section */}
         <div className="flex-1 flex flex-col justify-center items-center space-y-4 px-10">
-          <h2 className="text-3xl font-semibold mb-2">Login</h2>
+          <h2 className="text-3xl font-semibold mb-15">Login</h2>
 
           {/* Login Alert */}
           {renderAlert(loginAlert.type, loginAlert.message)}
@@ -174,7 +174,7 @@ export default function LoginModal({
             placeholder="Email"
             value={loginData.email}
             onChange={handleLoginChange}
-            className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
+            className="w-90 rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
           />
           <input
             type="password"
@@ -182,9 +182,9 @@ export default function LoginModal({
             placeholder="Password"
             value={loginData.password}
             onChange={handleLoginChange}
-            className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
+            className="w-90 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
           />
-          <button onClick={handleLogin} className="w-3/4 p-3 bg-stone-600 text-white rounded-lg hover:bg-stone-900 transition">
+          <button onClick={handleLogin} className="w-3/4 p-3 btn btn-primary-dark-blue">
             Sign In
           </button>
         </div>
@@ -194,7 +194,7 @@ export default function LoginModal({
 
         {/* Register Section */}
         <div className="flex-1 flex flex-col justify-center items-center space-y-4 px-10">
-          <h2 className="text-3xl font-semibold mb-2">Register</h2>
+          <h2 className="text-3xl font-semibold mb-4">Register</h2>
 
           {/* Register Alert */}
           {renderAlert(registerAlert.type, registerAlert.message)}
@@ -203,9 +203,9 @@ export default function LoginModal({
             <button
               type="button"
               onClick={() => setRegisterData(prev => ({ ...prev, role: "teacher" }))}
-              className={`px-4 py-2 rounded-lg border transition ${registerData.role === "teacher"
-                  ? "bg-stone-900 text-white border-stone-900"
-                  : "bg-stone-700 text-white border-stone-700 hover:bg-stone-800"
+              className={`px-4 py-2 rounded-xl ${registerData.role === "teacher"
+                  ? "btn btn-primary-dark-blue"
+                  : "btn btn-ghost"
                 }`}
             >
               Teacher
@@ -214,9 +214,9 @@ export default function LoginModal({
             <button
               type="button"
               onClick={() => setRegisterData(prev => ({ ...prev, role: "student" }))}
-              className={`px-4 py-2 rounded-lg border transition ${registerData.role === "student"
-                  ? "bg-stone-900 text-white border-stone-900"
-                  : "bg-stone-700 text-white border-stone-700 hover:bg-stone-800"
+              className={`px-4 py-2 rounded-xl border transition ${registerData.role === "student"
+                  ? "btn btn-primary-dark-blue"
+                  : "btn btn-ghost"
                 }`}
             >
               Student
@@ -230,7 +230,7 @@ export default function LoginModal({
             placeholder="Email"
             value={registerData.email}
             onChange={handleRegisterChange}
-            className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
+            className="w-90 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
           />
           <input
             type="password"
@@ -238,9 +238,9 @@ export default function LoginModal({
             placeholder="Password"
             value={registerData.password}
             onChange={handleRegisterChange}
-            className="w-3/4 p-3 rounded-lg bg-stone-900 text-white placeholder-stone-400 focus:outline-none"
+            className="w-90 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
           />
-          <button onClick={handleRegister} className="w-3/4 p-3 bg-stone-600 text-white rounded-lg hover:bg-stone-900 transition">
+          <button onClick={handleRegister} className="w-3/4 p-3 btn btn-primary-dark-blue">
             Register
           </button>
         </div>

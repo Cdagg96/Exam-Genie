@@ -275,7 +275,7 @@ export default function ExamPreviewModal({
             {/* Footer actions */}
             <div className="mt-8 flex justify-end gap-2 print:hidden">
               <button
-                className="rounded-lg border px-3 py-1.5"
+                className="rounded-lg border px-3 py-1.5 hover:bg-black hover:text-white"
                 onClick={() => window.print()}
               >
                 Print
@@ -287,7 +287,7 @@ export default function ExamPreviewModal({
                 viewBox="0 0 24 24" 
                 strokeWidth={1.5} 
                 stroke="currentColor" 
-                className="w-5 h-5">
+                className="w-5 h-5 hover:-translate-y-0.5">
                     <path 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
