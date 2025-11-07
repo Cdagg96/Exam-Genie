@@ -53,7 +53,7 @@ export default function Home() {
               )}
             </div>
             {/* Button style */}
-            <Link href="../exam_gen/" className="btn btn-primary-pink w-110 h-15 text-xl rounded-2xl flex items-center justify-center">
+            <Link href="../exam_gen/" className="btn btn-ghost w-110 h-15 text-xl rounded-2xl flex items-center justify-center">
               Create Test
             </Link>
           </div>

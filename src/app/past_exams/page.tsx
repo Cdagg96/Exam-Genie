@@ -114,7 +114,7 @@ export default function PastExams() {
                     <NavBar />
                 </header>
 
-                <main className="flex flex-col items-center justify-center pt-8 pb-12">
+                <main className="flex flex-col items-center justify-center pt-8">
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent mb-4">
                         Generated Exams
                     </h1>
