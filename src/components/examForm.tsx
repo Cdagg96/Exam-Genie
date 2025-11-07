@@ -145,7 +145,7 @@ export default function ExamForm() {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <section className="bg-white rounded-2xl p-4 shadow-sm">
                     <h2 className="mb-3 text-lg font-semibold">General</h2>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-2">
                         <label className="flex flex-col gap-1">
                             <span className="text-sm font-medium">Title</span>
                             <input
@@ -182,13 +182,14 @@ export default function ExamForm() {
                             </select>
                         </label>
                     </div>
-                    <h2 className="mb-3 mt-5 text-lg font-semibold">Allowed Question Types</h2>
+                    <h2 className="mb-3 mt-8 text-lg font-semibold">Allowed Question Types</h2>
                     <p className="mb-3 text-sm text-gray-600">
                         Set how many questions of each type you want. Use 0 to exclude a type.
                     </p>
-                    <div className="pl-65 grid gap-4 sm:grid-cols-2">
+                    <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
                         {TYPES.map((t) => (
-                            <label key={t.value} className="inline-flex items-center gap-2">
+                            <label key={t.value} className="flex flex-col gap-2">
+                                <span className="text-sm font-medium">{t.label}</span>
                                 <input
                                     type="number"
                                     min={0}
@@ -196,7 +197,7 @@ export default function ExamForm() {
                                     value={typeCounts[t.value]}
                                     onChange={e => setTypeCounts(prev => ({ ...prev, [t.value]: Number(e.target.value) }))}
                                 />
-                                <span>{t.label}</span>
+                                
                             </label>
                         ))}
                     </div>
