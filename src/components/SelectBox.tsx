@@ -9,6 +9,7 @@ interface SelectBoxProps {
   placeholder?: string;
   onSelect?: (value: string) => void;
   defaultValue?: string;
+  value?: string;
 }
 
 //Make a select box component that allows users to select from a list of options
@@ -18,16 +19,26 @@ export default function SelectBox({
   placeholder = 'Select an option',
   onSelect,
   defaultValue = '',
+  value = ''
 }: SelectBoxProps) { //All the work is done inside this component once user interacts with it
   //Set up the selection and dropdown states
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<string>(() => {
     //Initialize the selected label based on the default value
-    const defaultOption = options.find((opt) => opt.value === defaultValue);
-    return defaultOption ? defaultOption.label : '';
+    //Use value if provided, otherwise use defaultValue
+    const currentValue = value !== undefined && value !== '' ? value : defaultValue;
+    const option = options.find((opt) => opt.value === currentValue);
+    return option ? option.label : '';
   });
 
   const selectBoxRef = useRef<HTMLDivElement>(null); //Reference for the select box so it can be closed when clicking outside
+
+  //Update selected label when value prop changes
+  useEffect(() => {
+    const currentValue = value !== undefined && value !== '' ? value : defaultValue;
+    const option = options.find((opt) => opt.value === currentValue);
+    setSelectedLabel(option ? option.label : '');
+  }, [value, defaultValue, options]);
 
   //Effect to handle clicks outside the select box to close the dropdown
   useEffect(() => {

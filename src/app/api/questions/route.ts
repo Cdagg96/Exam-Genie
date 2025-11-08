@@ -87,14 +87,64 @@ export async function DELETE(req: Request) {
     }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const topic = searchParams.get('topic');
+    const difficulty = searchParams.get('difficulty');
+    const type = searchParams.get('type');
+    const lastUsed = searchParams.get('lastUsed');
+    
     const client = await clientPromise;
     const database = client.db(process.env.MONGODB_DB);
     const collection = database.collection('questions');
 
-    const questions = await collection.find({}).toArray();
+    // Build filter object based on provided parameters
+    const filter: any = {};
     
+    if (topic) {
+      filter.topics = { $in: [topic] };
+    }
+    
+    if (difficulty) {
+      filter.difficulty = parseInt(difficulty);
+    }
+    
+    if (type) {
+      //Map the display types to your database types if needed
+      const typeMap: { [key: string]: string } = {
+        'Multiple Choice': 'MC',
+        'True/False': 'TF',
+        'Fill In The Blank': 'FIB',
+        'Essay': 'Essay',
+        'Coding': 'Code'
+      };
+      filter.type = typeMap[type] || type;
+    }
+    
+    if (lastUsed) {
+      try {
+        //Parse the MM-DD-YYYY format from the frontend
+        const [month, day, year] = lastUsed.split('-').map(Number);
+        const lastUsedDate = new Date(year, month - 1, day); 
+        
+        //Set the date range for the entire day
+        const startOfDay = new Date(lastUsedDate);
+        const endOfDay = new Date(lastUsedDate);
+        endOfDay.setDate(endOfDay.getDate() + 1);
+        
+        filter.lastUsed = {
+          $gte: startOfDay.toISOString(),
+          $lt: endOfDay.toISOString()
+        };
+      } catch (error) {
+        console.error('Error parsing lastUsed date:', error);
+        //If date parsing fails, don't apply the filter rather than throwing error
+      }
+    }
+
+    const questions = await collection.find(filter).toArray();
+
     //Convert MongoDB ObjectId to string for serialization
     const serializedQuestions = questions.map(question => ({
       ...question,
