@@ -9,6 +9,7 @@ interface FilterBoxProps {
   label?: string;
   placeholder?: string;
   onSelect?: (value: string) => void; 
+  value?: string;
 }
 
 //Make a filter box component that allows users to filter through a list of options
@@ -16,14 +17,20 @@ export default function FilterBox({
   options, 
   label = "Topic",
   placeholder = "All Topics",
-  onSelect 
+  onSelect,
+  value = ''
 }: FilterBoxProps) { //All the work is done inside this component once user interacts with it
   //Set up the selection and input states
   const [isOpen, setIsOpen] = useState(false);
-  const [inputValue, setInputValue] = useState('');
-
-
+  const [inputValue, setInputValue] = useState(value);
+  const [lastSelectedValue, setLastSelectedValue] = useState(value);
   const filterBoxRef = useRef<HTMLDivElement>(null); //Reference for the filter box so it can be closed when clicking outside
+
+  //Keep the input value in sync with the value prop
+  useEffect(() => {
+    setInputValue(value);
+    setLastSelectedValue(value);
+  }, [value]);
 
   //Compares the input value to the options and filters them accordingly disregarding case sensitivity
   const filteredOptions = options.filter(option =>
@@ -46,19 +53,53 @@ export default function FilterBox({
   //Selects an option from the dropdown and updates the input value accordingly
   const select = (option: { value: string; label: string }) => {
     setInputValue(option.value === '' ? '' : option.label); //Update the input value
+    setLastSelectedValue(option.value);
     setIsOpen(false); //Close the dropdown since an option has been made
     onSelect?.(option.value);
   };
 
   //Handles changes to the input field
   const inputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    setIsOpen(true);
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    
+    //Open the dropdown when typing
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+
+    //If the input clears, clear the selection
+    if (newValue === '') {
+      setLastSelectedValue('');
+      onSelect?.('');
+    }
+    else {
+      //If we are typing and had a previous selection clear it
+      if (lastSelectedValue && newValue != options.find(opt => opt.value === lastSelectedValue)?.label) {
+        setLastSelectedValue('');
+        onSelect?.('');
+      }
+    }
   };
 
   //Handles focus on the input field
   const inputFocus = () => {
     setIsOpen(true);
+  };
+
+  //Handle blur on the input field
+  const inputBlur = () => {
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 200);
+  };
+
+  //Clear button 
+  const handleClear = () => {
+    setInputValue('');
+    setLastSelectedValue('');
+    onSelect?.('');
+    setIsOpen(false);
   };
 
   return (
@@ -75,10 +116,24 @@ export default function FilterBox({
           value={inputValue}
           onChange={inputChange}
           onFocus={inputFocus}
+          onBlur={inputBlur}
           placeholder={placeholder}
           className="w-full px-4 py-3 border border-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-text"
         />
         
+        {/* Clear button (X) when there's text */}
+        {inputValue && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute inset-y-0 right-6 flex items-center pr-1 text-gray-400 hover:text-gray-600"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
         {/* Dropdown arrow */}
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
           <svg 

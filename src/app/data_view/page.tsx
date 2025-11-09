@@ -12,7 +12,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { useAuth } from "@/components/AuthContext";
-import {LightBackground} from "@/components/BackgroundModal";
+import { LightBackground } from "@/components/BackgroundModal";
 
 interface Question {
     _id: string;
@@ -49,10 +49,64 @@ export default function DatabaseActionPage() {
     const { user } = useAuth();
     // Filter questions by logged-in user
     // If no user show all. Will proably need to be changed at somepoint 
-    const filteredQuestions = user? questions.filter(q => q.userID === user._id): questions;
+    const filteredQuestions = user ? questions.filter(q => q.userID === user._id) : questions;
 
-    
+    //Filtering states
+    const [selectedTopic, setSelectedTopic] = useState<string>('');
+    const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
+    const [selectedType, setSelectedType] = useState<string>('');
+    const [filtersApplied, setFiltersApplied] = useState(false);
 
+    //Fetch questions with filters
+    const fetchQuestionsWithFilters = async () => {
+        try {
+            setLoading(true);
+
+            //Build query parameters
+            const params = new URLSearchParams();
+
+            if (selectedTopic) params.append('topic', selectedTopic);
+            if (selectedDifficulty) params.append('difficulty', selectedDifficulty);
+            if (selectedType) params.append('type', selectedType);
+            if (lastUsedDate) params.append('lastUsed', lastUsedDate.format('MM-DD-YYYY'));
+
+            const queryString = params.toString();
+            const url = queryString ? `../api/questions?${queryString}` : '../api/questions';
+
+            const response = await fetch(url, {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch questions');
+            }
+
+            const data = await response.json();
+            setQuestions(data);
+            setFiltersApplied(queryString.length > 0);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+            console.error('Error fetching questions:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    //Apply filters
+    const handleApplyFilters = () => {
+        fetchQuestionsWithFilters();
+    }
+
+    //Clear filters
+    const handleClearFilters = () => {
+        setSelectedTopic('');
+        setSelectedDifficulty('');
+        setSelectedType('');
+        setLastUsedDate(null);
+        setDateInputValue('');
+        setFiltersApplied(false);
+        fetchQuestions();
+    }
 
     //Fetch questions from MongoDB
     const fetchQuestions = async () => {
@@ -68,6 +122,7 @@ export default function DatabaseActionPage() {
 
             const data = await response.json();
             setQuestions(data);
+            setFiltersApplied(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
             console.error('Error fetching questions:', err);
@@ -250,6 +305,8 @@ export default function DatabaseActionPage() {
                                 options={topics}
                                 label="Topic"
                                 placeholder="Search a topic"
+                                onSelect={setSelectedTopic}
+                                value={selectedTopic}
                             />
 
                             {/* Difficulty Filter */}
@@ -264,8 +321,10 @@ export default function DatabaseActionPage() {
                                     { value: '4', label: '4' },
                                     { value: '5', label: '5' },
                                 ]}
+                                onSelect={setSelectedDifficulty}
+                                value={selectedDifficulty}
                             />
-                            
+
                             {/* Type Filter */}
                             <SelectBox
                                 label="Type"
@@ -276,8 +335,10 @@ export default function DatabaseActionPage() {
                                     { value: 'Essay', label: 'Essay' },
                                     { value: 'FIB', label: 'Fill In The Blank' },
                                     { value: 'True/False', label: 'True/False' },
-                                    { value: 'Coding', label: 'Coding' },
+                                    { value: 'Code', label: 'Code' },
                                 ]}
+                                onSelect={setSelectedType}
+                                value={selectedType}
                             />
                         </div>
 
@@ -346,10 +407,10 @@ export default function DatabaseActionPage() {
 
                         {/* Filter Actions */}
                         <div className="flex justify-end space-x-4 mt-8">
-                            <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                            <button onClick={handleClearFilters} className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
                                 Clear Filters
                             </button>
-                            <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                            <button onClick={handleApplyFilters} className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
                                 Apply Filters
                             </button>
                         </div>
