@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { ExamDoc } from "@/components/examForm";
 import QuestionForm from "@/components/QuestionForm";
+import EditQuestionModal from "@/components/EditQuestionModal";
 
 export default function EditExamPage() {
   const { id } = useParams();
@@ -12,12 +13,20 @@ export default function EditExamPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
+  const [isEditQuestionFormOpen, setIsEditQuestionFormOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
 
 
   //this is for the question form popup
   const handleFormClose = () => {
     setIsQuestionFormOpen(false);
+  };
+
+  //this is for the edit question form popup
+  const handleEditFormClose = () => {
+    setIsEditQuestionFormOpen(false);
+    setEditingQuestion(null);
   };
 
   // Fetch this specific exam
@@ -49,6 +58,50 @@ export default function EditExamPage() {
       ...exam, // spread previous exam
       questions: [...(exam.questions ?? []), newQuestion], // append at the end
     });
+  };
+
+  // this will delete the question 
+  // it will not save it if the exam is exited without saving 
+  const handleDeleteQuestion = (questionId: string) => {
+    if (!exam) return;
+    
+    setExam({
+      ...exam,
+      questions: exam.questions.filter(q => q.questionId !== questionId)
+    });
+  };
+
+
+   // this will open the edit modal for a question
+  const handleEditQuestion = (question: any) => {
+    setEditingQuestion(question);
+    setIsEditQuestionFormOpen(true);
+  };
+
+    // this will update the question in the local exam state
+  const handleQuestionUpdated = (updatedQuestionData: any) => {
+    if (!exam || !editingQuestion) return;
+
+    setExam({
+      ...exam,
+      questions: exam.questions.map(q => 
+        q.questionId === editingQuestion.questionId 
+          ? {
+              ...q,
+              points: updatedQuestionData.points || q.points,
+              snapshot: {
+                ...q.snapshot,
+                stem: updatedQuestionData.stem,
+                choices: updatedQuestionData.choices || q.snapshot?.choices,
+                answer: updatedQuestionData.answer || q.snapshot?.answer,
+                blankLines: updatedQuestionData.blankLines || q.snapshot?.blankLines,
+              }
+            }
+          : q
+      )
+    });
+    
+    handleEditFormClose();
   };
 
   //Saveing edits to exam
@@ -181,12 +234,12 @@ export default function EditExamPage() {
                       <span className="rounded border px-2 py-0.5 text-xs text-gray-700">
                         {points} pt{points !== 1 ? "s" : ""} {/* Make points plural if needed */}
                       </span>
-                      <button
+                      <button  onClick={() => handleEditQuestion(q)}
                         className="rounded border border-blue-300 text-blue-600 px-2 py-0.5 text-xs hover:bg-blue-50 transition"
                       >
                         Edit
                       </button>
-                      <button
+                      <button onClick={() => handleDeleteQuestion(q.questionId)}
                         className="rounded border border-red-300 text-red-600 px-2 py-0.5 text-xs hover:bg-red-50 transition"
                       >
                         Delete
@@ -257,6 +310,7 @@ export default function EditExamPage() {
         </div>
       </div>
       <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
+      <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
     </div>
   );
 }
