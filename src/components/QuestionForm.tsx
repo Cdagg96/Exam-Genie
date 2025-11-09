@@ -156,6 +156,7 @@ export default function BackgroundModal({
                             { value: "Essay", label: "Essay" },
                             { value: "Code", label: "Code" },
                         ]}
+                        value={type}
                         onSelect={(value) => setType(value)}
                     />
 
