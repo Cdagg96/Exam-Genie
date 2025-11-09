@@ -7,7 +7,7 @@ import FilterBox from "@/components/filterBox";
 import SelectBox from "@/components/SelectBox";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import toast from "react-hot-toast";
-import EditQuestionModal from "@/components/EditQuestionModal";
+import EditQuestionDatabaseModal from "@/components/EditQuestionDatabaseModal";
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
@@ -435,10 +435,10 @@ export default function DatabaseActionPage() {
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Topic
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200 max-w-72">
                                             Choices
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200 max-w-72">
                                             Answer
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
@@ -496,12 +496,12 @@ export default function DatabaseActionPage() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                                     {formatTopics(question.topics)}
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200 max-w-72">
                                                     <div className="truncate" title={formatChoices(question.choices)}>
                                                         {formatChoices(question.choices)}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 max-w-72">
                                                     <div className="truncate" title={formatAnswers(question)}>
                                                         {formatAnswers(question)}
                                                     </div>
@@ -549,7 +549,7 @@ export default function DatabaseActionPage() {
                 />
 
                 {/* Edit Question Modal */}
-                <EditQuestionModal
+                <EditQuestionDatabaseModal
                     isOpen={editModalOpen}
                     onClose={() => setEditModalOpen(false)}
                     question={questionToEdit}
