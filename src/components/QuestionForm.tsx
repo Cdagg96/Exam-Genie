@@ -1,5 +1,5 @@
 "use client";
-import React, {useState} from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthContext";
 import SelectBox from "@/components/SelectBox";
@@ -7,9 +7,11 @@ import SelectBox from "@/components/SelectBox";
 export default function BackgroundModal({
     isOpen,
     onClose,
+    onQuestionAdded,
 }: {
     isOpen: boolean;
     onClose: () => void;
+    onQuestionAdded?: (newQuestion: any) => void;
 }) {
     if (!isOpen) return null;
 
@@ -34,21 +36,22 @@ export default function BackgroundModal({
         const base_data = {
             stem, type, difficulty,
             topics: topics.split(",").map(t => t.trim()),
-            lastUsed: null, 
+            lastUsed: null,
             userID: user?._id ?? "", //if user not logged in set id to ""
+            points: 1,
         };
 
-        let data;
+        let data: any = { ...base_data };
 
         // Change the answer portion based on what type of question it is
-        switch(type){
+        switch (type) {
             case "MC":
                 data = {
                     ...base_data,
                     choices: [
-                        {label:"A", text:choiceA, isCorrect: correctAnswer === "A"},
-                        {label:"B", text:choiceB, isCorrect: correctAnswer === "B"},
-                        {label:"C", text:choiceC, isCorrect: correctAnswer === "C"}
+                        { label: "A", text: choiceA, isCorrect: correctAnswer === "A" },
+                        { label: "B", text: choiceB, isCorrect: correctAnswer === "B" },
+                        { label: "C", text: choiceC, isCorrect: correctAnswer === "C" }
                     ],
                 };
                 break;
@@ -56,8 +59,8 @@ export default function BackgroundModal({
                 data = {
                     ...base_data,
                     choices: [
-                        {label:"True", text:"True", isCorrect: correctAnswer === "True"},
-                        {label:"False", text:"False", isCorrect: correctAnswer === "False"},
+                        { label: "True", text: "True", isCorrect: correctAnswer === "True" },
+                        { label: "False", text: "False", isCorrect: correctAnswer === "False" },
                     ],
                 };
                 break;
@@ -88,15 +91,26 @@ export default function BackgroundModal({
 
             const result = await res.json();
 
-            if(res.ok){
+            if (res.ok) {
                 toast.success("Question Created!") // Notification that question was created
+                const newQuestionForExam = {
+                    questionId: result._id || result.id || `temp-${Date.now()}`,
+                    type: type,
+                    points: data.points || 1,
+                    snapshot: {
+                        stem: stem, // Use local state, not API response
+                        choices: data.choices || [],
+                        blankLines: data.blankLines || blankLines || 4,
+                    },
+                };
+                onQuestionAdded?.(newQuestionForExam);
                 onClose(); // Close the popup
             }
-            else if(res.status === 401){
+            else if (res.status === 401) {
                 // temporary notification until other types are implemented
                 toast.error("Please choose multiple choice type")
             }
-            else{
+            else {
                 console.error(result);
                 toast.error("Failed to create question");
             }
@@ -120,7 +134,7 @@ export default function BackgroundModal({
 
                 <h1 className="text-2xl font-bold mb-4 text-center">Add a Question</h1>
 
-                
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Question Stem */}
                     <input
@@ -136,11 +150,11 @@ export default function BackgroundModal({
                         label=""
                         placeholder="Select Question Type"
                         options={[
-                            {value: "MC", label: "Multiple Choice"},
-                            {value: "TF", label: "True/False"},
-                            {value: "FIB", label: "Fill in the Blank"},
-                            {value: "Essay", label: "Essay"},
-                            {value: "Code", label: "Code"},
+                            { value: "MC", label: "Multiple Choice" },
+                            { value: "TF", label: "True/False" },
+                            { value: "FIB", label: "Fill in the Blank" },
+                            { value: "Essay", label: "Essay" },
+                            { value: "Code", label: "Code" },
                         ]}
                         onSelect={(value) => setType(value)}
                     />
@@ -168,29 +182,29 @@ export default function BackgroundModal({
 
                     {/* MC options */}
                     {type === "MC" && (
-                    <div className="flex gap-2">
-                        <input 
-                            className="border px-4 py-3 w-full rounded-xl" 
-                            placeholder="Choice A" 
-                            value={choiceA} 
-                            onChange={(e) => setChoiceA(e.target.value)}
-                            required />
-                
-                        <input 
-                            className="border px-4 py-3 w-full rounded-xl" 
-                            placeholder="Choice B"
-                            value={choiceB}
-                            onChange={(e) => setChoiceB(e.target.value)}
-                            required />
-                            
-                        <input 
-                            className="border px-4 py-3 w-full rounded-xl" 
-                            placeholder="Choice C" 
-                            value={choiceC} 
-                            onChange={(e) => setChoiceC(e.target.value)}
-                            required />
-                            
-                    </div>
+                        <div className="flex gap-2">
+                            <input
+                                className="border px-4 py-3 w-full rounded-xl"
+                                placeholder="Choice A"
+                                value={choiceA}
+                                onChange={(e) => setChoiceA(e.target.value)}
+                                required />
+
+                            <input
+                                className="border px-4 py-3 w-full rounded-xl"
+                                placeholder="Choice B"
+                                value={choiceB}
+                                onChange={(e) => setChoiceB(e.target.value)}
+                                required />
+
+                            <input
+                                className="border px-4 py-3 w-full rounded-xl"
+                                placeholder="Choice C"
+                                value={choiceC}
+                                onChange={(e) => setChoiceC(e.target.value)}
+                                required />
+
+                        </div>
                     )}
 
                     {/* True/False options */}
@@ -200,21 +214,21 @@ export default function BackgroundModal({
                                 Correct answer
                             </label>
                             <div className="flex gap-2">
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setCorrect("True")}
                                     className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
                                     ${correctAnswer === "True" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
                                 >
-                                True
+                                    True
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setCorrect("False")}
                                     className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
                                     ${correctAnswer === "False" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
                                 >
-                                False
+                                    False
                                 </button>
                             </div>
                         </div>
@@ -263,28 +277,28 @@ export default function BackgroundModal({
 
                     {/* MC correct answer*/}
                     {type === "MC" && (
-                    <label className="block">
-                        Correct answer:
-                        <select
-                            className="border p-2 ml-2 rounded"
-                            value={correctAnswer}
-                            onChange={(e) => setCorrect(e.target.value)}
-                            required
-                        >
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        </select>
-                    </label>
+                        <label className="block">
+                            Correct answer:
+                            <select
+                                className="border p-2 ml-2 rounded"
+                                value={correctAnswer}
+                                onChange={(e) => setCorrect(e.target.value)}
+                                required
+                            >
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                            </select>
+                        </label>
                     )}
 
 
                     <div className="flex justify-center">
                         <button
-                        type="submit"
-                        className="px-6 py-3 text-sm font-medium btn btn-primary-dark-blue"
+                            type="submit"
+                            className="px-6 py-3 text-sm font-medium btn btn-primary-dark-blue"
                         >
-                        Add Question
+                            Add Question
                         </button>
                     </div>
                 </form>
