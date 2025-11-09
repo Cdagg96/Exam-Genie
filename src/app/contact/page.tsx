@@ -82,13 +82,13 @@ export default function ContactPage() {
                 </label>
                 <SelectBox
                   label=""
-                  placeholder="Select issue type"
                   options={[
                     { value: "Functional Bug", label: "Functional Bug" },
                     { value: "UI/UX Issue", label: "UI/UX Issue" },
                     { value: "Performance Problem", label: "Performance Problem" },
                     { value: "Other", label: "Other" },
                   ]}
+                  placeholder="Select issue type"
                   onSelect={(value) => setIssueType(value)}
                 />
               </div>
