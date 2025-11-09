@@ -89,6 +89,7 @@ export default function ContactPage() {
                     { value: "Other", label: "Other" },
                   ]}
                   placeholder="Select issue type"
+                  value ={issueType}
                   onSelect={(value) => setIssueType(value)}
                 />
               </div>
