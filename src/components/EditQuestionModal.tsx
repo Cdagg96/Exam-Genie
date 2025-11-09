@@ -3,27 +3,17 @@ import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import SelectBox from "@/components/SelectBox";
 
-interface Question {
-    _id: string;
-    stem: string;
-    type: string;
-    difficulty: string;
-    topics: string[];
-    choices: {
-        label: string;
-        text: string;
-        isCorrect: boolean;
-    }[];
-    answer: string;
-    lastUsed: string | null;
-    userID: string;
+interface Choice {
+    label: string;
+    text: string;
+    isCorrect: boolean;
 }
 
 interface EditQuestionModalProps {
     isOpen: boolean;
     onClose: () => void;
-    question: Question | null;
-    onQuestionUpdated: () => void;
+    question: any;
+    onQuestionUpdated: (updatedQuestion: any) => void;
 }
 
 export default function EditQuestionModal({
@@ -46,33 +36,63 @@ export default function EditQuestionModal({
     const [blankLines, setBlankLines] = useState(1);
     const [loading, setLoading] = useState(false);
 
+    // Helper function to get question data from exam snapshot
+    const getQuestionData = (q: any) => {
+        // Exam questions have data in snapshot
+        if (q.snapshot) {
+            return {
+                stem: q.snapshot.stem || "",
+                type: q.type || q.snapshot.type || "MC",
+                difficulty: q.snapshot.difficulty || 1,
+                topics: q.snapshot.topics || [],
+                choices: q.snapshot.choices || [],
+                answer: q.snapshot.answer || "",
+                blankLines: q.snapshot.blankLines || q.snapshot.lines || 1,
+            };
+        }
+        // Fallback for direct question data
+        return {
+            stem: q.stem || "",
+            type: q.type || "MC",
+            difficulty: q.difficulty || 1,
+            topics: q.topics || [],
+            choices: q.choices || [],
+            answer: q.answer || "",
+            blankLines: q.blankLines || q.lines || 1,
+        };
+    };
+
     //Initialize form with question data when modal opens or question changes
     useEffect(() => {
         if (question) {
-            setStem(question.stem);
-            setType(question.type);
-            setDifficulty(Number(question.difficulty));
-            setTopics(question.topics.join(", "));
+            const questionData = getQuestionData(question);
+            console.log("Loading question data:", questionData); 
+            
+            setStem(questionData.stem);
+            setType(questionData.type);
+            setDifficulty(Number(questionData.difficulty));
+            setTopics(questionData.topics?.join(", ") || "");
+            setBlankLines(questionData.blankLines || 1);
             
             //Initialize answers based on question type
-            if (question.type === "MC" || question.type === "TF") {
-                const correctChoice = question.choices.find(choice => choice.isCorrect);
+            if (questionData.type === "MC" || questionData.type === "TF") {
+                const correctChoice = questionData.choices?.find((choice: Choice) => choice.isCorrect);
                 if (correctChoice) {
                     setCorrect(correctChoice.label);
                 }
                 
                 //For MC questions, populate choices
-                if (question.type === "MC" && question.choices) {
-                    question.choices.forEach(choice => {
+                if (questionData.type === "MC" && questionData.choices) {
+                    questionData.choices.forEach((choice: Choice) => {
                         if (choice.label === "A") setChoiceA(choice.text);
                         if (choice.label === "B") setChoiceB(choice.text);
                         if (choice.label === "C") setChoiceC(choice.text);
                     });
                 }
-            } else if (question.type === "FIB") {
-                setFIBAnswer(question.answer || "");
+            } else if (questionData.type === "FIB") {
+                setFIBAnswer(questionData.answer || "");
             } else {
-                setExAnswer(question.answer || "");
+                setExAnswer(questionData.answer || "");
             }
         }
     }, [question]);
@@ -83,19 +103,17 @@ export default function EditQuestionModal({
         e.preventDefault();
         setLoading(true);
 
-        //Set the base data structure
+        // Build the updated question data structure for the exam
         const base_data = {
             stem, 
             type, 
             difficulty: difficulty,
-            topics: topics.split(",").map(t => t.trim()),
-            lastUsed: question.lastUsed,
-            userID: question.userID
+            topics: topics.split(",").map(t => t.trim()).filter(t => t !== ""), // Filter empty topics
         };
 
         let data;
 
-        //Change the answer portion based on what type of question it is
+        // Build the answer portion based on question type
         switch(type){
             case "MC":
                 data = {
@@ -129,7 +147,7 @@ export default function EditQuestionModal({
                 data = {
                     ...base_data,
                     answer: extendedAnswer || "",
-                    lines: blankLines,
+                    blankLines: blankLines,
                 };
                 break;
             default:
@@ -137,25 +155,12 @@ export default function EditQuestionModal({
         }
 
         try {
-            const res = await fetch(`/api/questions?id=${question._id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
-
-            const result = await res.json();
-
-            if(res.ok){
-                toast.success("Question updated successfully!");
-                onQuestionUpdated();
-                onClose();
-            } else {
-                console.error(result);
-                toast.error(result.error || "Failed to update question");
-            }
+            // For exam editing: just update local state, NO API call
+            console.log("Updating question in exam with data:", data);
+            onQuestionUpdated(data);
+            onClose();
         } catch (error) {
             console.error(error);
-            toast.error("Network/Server error");
         } finally {
             setLoading(false);
         }
@@ -174,7 +179,7 @@ export default function EditQuestionModal({
                     &times;
                 </button>
 
-                <h1 className="text-2xl font-bold mb-4 text-center">Edit Question</h1>
+                <h1 className="text-2xl font-bold mb-4 text-center">Edit Question in Exam</h1>
 
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -241,7 +246,6 @@ export default function EditQuestionModal({
                             placeholder="Topic(s) (comma separated)"
                             value={topics}
                             onChange={(e) => setTopics(e.target.value)}
-                            required
                             disabled={loading}
                         />
                     </div>
