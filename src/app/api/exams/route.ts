@@ -230,3 +230,88 @@ export async function POST(req:Request) {
         );
     } 
 }
+
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    console.log('PUT /api/exams received:', body);
+
+    const { id, title, timeLimitMin, totalPoints, questions } = body;
+
+    // Validate required fields
+    if (!id) {
+      return NextResponse.json(
+        { ok: false, error: 'Exam ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate the ID
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { ok: false, error: 'Invalid exam ID' },
+        { status: 400 }
+      );
+    }
+
+    const client = await clientPromise;
+    const database = client.db(process.env.MONGODB_DB);
+    const collection = database.collection('exams');
+
+    // Check if exam exists
+    const existingExam = await collection.findOne({ _id: new ObjectId(id) });
+    if (!existingExam) {
+      return NextResponse.json(
+        { ok: false, error: 'Exam not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update the exam
+    const updateData = {
+      title,
+      timeLimitMin,
+      totalPoints,
+      questions,
+      updatedAt: new Date()
+    };
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+
+    if (result.modifiedCount === 0) {
+      return NextResponse.json(
+        { ok: false, error: 'No changes made to exam' },
+        { status: 400 }
+      );
+    }
+
+    // Return the updated exam 
+    const updatedExam = await collection.findOne({ _id: new ObjectId(id) });
+    
+    // Check if updatedExam exists 
+    if (!updatedExam) {
+      return NextResponse.json(
+        { ok: false, error: 'Exam not found after update' },
+        { status: 404 }
+      );
+    }
+
+    const serializedExam = { ...updatedExam, _id: updatedExam._id.toString() };
+
+    return NextResponse.json({
+      ok: true,
+      message: 'Exam updated successfully',
+      exam: serializedExam
+    });
+
+  } catch (error) {
+    console.error('Error updating exam:', error);
+    return NextResponse.json(
+      { ok: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { ExamDoc } from "@/components/examForm";
+import QuestionForm from "@/components/QuestionForm";
 
 export default function EditExamPage() {
   const { id } = useParams();
@@ -10,6 +11,14 @@ export default function EditExamPage() {
   const [exam, setExam] = useState<ExamDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+
+  //this is for the question form popup
+  const handleFormClose = () => {
+    setIsQuestionFormOpen(false);
+  };
 
   // Fetch this specific exam
   useEffect(() => {
@@ -17,10 +26,10 @@ export default function EditExamPage() {
       try {
         setLoading(true);
         const res = await fetch(`/api/exams?id=${id}`);
-        if(!res.ok) throw new Error("Failed to fetch exam");
+        if (!res.ok) throw new Error("Failed to fetch exam");
         const data = await res.json();
         setExam(data);
-      } catch(err) {
+      } catch (err) {
         console.error("Error fetching exam:", err);
         setError(err instanceof Error ? err.message : "Error loading exam");
       } finally {
@@ -32,16 +41,69 @@ export default function EditExamPage() {
 
   const handleClose = () => router.push("/past_exams"); // Go back to past exams
 
+  // this will add the question to the bottom of current exam
+  // it will not save it if the exam is exited without saving 
+  const handleQuestionAdded = (newQuestion: any) => {
+    if (!exam) return;
+    setExam({
+      ...exam, // spread previous exam
+      questions: [...(exam.questions ?? []), newQuestion], // append at the end
+    });
+  };
+
+  //Saveing edits to exam
+  const handleSaveExam = async () => {
+    if (!exam) return;
+
+    try {
+      setIsSaving(true);
+      console.log("Saving exam:", exam); 
+
+
+      const res = await fetch("/api/exams", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: exam._id,
+          title: exam.title,
+          timeLimitMin: exam.timeLimitMin,
+          totalPoints: exam.totalPoints,
+          questions: exam.questions,
+        }),
+      });
+
+      const result = await res.json();
+
+      //if save workis 
+      if (res.ok) {
+        const refreshRes = await fetch(`/api/exams?id=${id}`);
+        if (refreshRes.ok) {
+          const updatedExam = await refreshRes.json();
+          setExam(updatedExam);
+        }
+      } else {
+        console.error("Save failed:", result);
+      }
+    }
+    catch (error) {
+      console.error("Error saving exam:", error);
+      } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Display loading state
-  if(loading)
+  if (loading)
     return (
       <div className="flex justify-center items-center min-h-screen text-gray-500">
         Loading exam...
       </div>
     );
-  
+
   // Display error state
-  if(error)
+  if (error)
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center">
         <p className="text-red-600 font-medium">{error}</p>
@@ -55,13 +117,13 @@ export default function EditExamPage() {
     );
 
   // Display no exam found state
-  if(!exam)
+  if (!exam)
     return (
       <div className="flex justify-center items-center min-h-screen text-gray-500">
         No exam found.
       </div>
     );
-  
+
   // Otherwise, display the exam editing interface
   return (
     <div className="min-h-screen w-full bg-[#F8FAFC] flex flex-col items-center py-10 px-4 font-serif">
@@ -173,12 +235,12 @@ export default function EditExamPage() {
         {/* Bottom Buttons */}
         <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 font-serif">
           <div className="flex gap-3">
-            <button className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
+            <button onClick={() => setIsQuestionFormOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
               + Add New Question
             </button>
-            <button className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
+            {/* <button className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
               + Add Existing Question
-            </button>
+            </button> */}
           </div>
 
           <div className="flex gap-3">
@@ -188,12 +250,13 @@ export default function EditExamPage() {
             >
               Cancel
             </button>
-            <button className="rounded-lg bg-stone-800 px-5 py-2 text-sm text-white shadow hover:opacity-90">
-              Save Exam
+            <button onClick={handleSaveExam} disabled={isSaving} className="rounded-lg bg-stone-800 px-5 py-2 text-sm text-white shadow hover:opacity-90">
+              {isSaving ? "Saving..." : "Save Exam"}
             </button>
           </div>
         </div>
       </div>
+      <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
     </div>
   );
 }

@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach, test } from "vitest";
-import { GET, DELETE, POST } from "@/app/api/exams/route";
+import { GET, DELETE, POST, PUT } from "@/app/api/exams/route";
 
 //Create a mock mongo db without actually using mongoDB
 const {
     findMock,
+    findOneMock,
     toArrayMock,
     deleteOneMock,
     insertOneMock,
+    updateOneMock,
     questionsCountMock,
     questionsAggregateMock,
     collectionMock,
@@ -33,12 +35,16 @@ const {
 
     const toArrayMock = vi.fn().mockResolvedValue(fakeExams);
     const findMock = vi.fn().mockReturnValue({ toArray: toArrayMock });
+    const findOneMock = vi.fn().mockResolvedValue(fakeExams[0]);
     const deleteOneMock = vi.fn().mockResolvedValue({ deletedCount: 1 });
     const insertOneMock = vi.fn().mockResolvedValue({ insertedId: "69094a2c5bd7abae970d1fb9"});
+    const updateOneMock = vi.fn().mockResolvedValue({ modifiedCount: 1 });
     const examsCol = {
         find: findMock,
+        findOne: findOneMock,
         deleteOne: deleteOneMock,
-        insertOne: insertOneMock
+        insertOne: insertOneMock,
+        updateOne: updateOneMock
     };
 
     // Questions collection
@@ -47,7 +53,6 @@ const {
         toArray: async () => [
         { _id: "q1", type: "TF", difficulty: 1, stem: "Sun rises in the East?" },
         { _id: "q2", type: "TF", difficulty: 2, stem: "2 + 2 = 4?" },
-        // add more if you request more than 2
         ],
     }));
 
@@ -66,7 +71,7 @@ const {
     const dbMock = { collection: collectionMock };
     const clientMock = { db: vi.fn().mockReturnValue(dbMock) };
 
-    return { findMock, toArrayMock, deleteOneMock,insertOneMock, questionsCountMock, questionsAggregateMock, collectionMock, dbMock, clientMock };
+    return { findMock,findOneMock, toArrayMock, deleteOneMock,insertOneMock,updateOneMock, questionsCountMock, questionsAggregateMock, collectionMock, dbMock, clientMock };
 });
 
 // Mock mongo client
@@ -157,5 +162,57 @@ describe("POST /api/exams", () => {
         
         expect(collectionMock).toHaveBeenCalledWith("exams");
         expect(insertOneMock).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("PUT /api/exams", () => {
+    // Successful update
+    it("Updates exam successfully", async () => {
+        const updatedExamData = {
+            id: "69094a2c5bd7abae970d1fb9",
+            title: "Updated Exam Title",
+            timeLimitMin: 90,
+            totalPoints: 5,
+            questions: [
+                { 
+                    questionId: "68f39166f8b09cb6a1df1afe", 
+                    type: "MC", 
+                    points: 3,
+                    snapshot: {
+                        stem: "Updated question stem",
+                        choices: [{ label: "A", text: "Choice A" }],
+                        blankLines: 4
+                    }
+                }
+            ]
+        };
+
+        const req = new Request("http://localhost/api/exams", {
+            method: "PUT",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(updatedExamData),
+        });
+
+        const res = await PUT(req);
+        const data = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(data.ok).toBe(true);
+        expect(data.message).toBe("Exam updated successfully");
+        
+        // Verify the update was called with correct data
+        expect(updateOneMock).toHaveBeenCalledTimes(1);
+        expect(updateOneMock).toHaveBeenCalledWith(
+            { _id: expect.any(Object) }, // ObjectId instance
+            { 
+                $set: {
+                    title: "Updated Exam Title",
+                    timeLimitMin: 90,
+                    totalPoints: 5,
+                    questions: updatedExamData.questions,
+                    updatedAt: expect.any(Date)
+                }
+            }
+        );
     });
 });
