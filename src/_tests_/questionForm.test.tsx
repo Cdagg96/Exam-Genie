@@ -98,7 +98,7 @@ test("TF: true/false buttons should appear and submitting should return 401 with
   const onClose = openModal();
 
   // Set type to TF
-  const typeCombo = screen.getByText(/select question type/i);
+  const typeCombo = screen.getByText(/multiple choice/i);
   await user.click(typeCombo);
   await user.click(screen.getByText("True/False"));
   // True/False buttons should appear
