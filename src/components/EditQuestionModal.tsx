@@ -186,7 +186,7 @@ export default function EditQuestionModal({
                     {/* Question Stem */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Question Stem
+                            Question
                         </label>
                         <input
                             className="border px-4 py-3 w-full rounded-xl"
@@ -227,7 +227,7 @@ export default function EditQuestionModal({
                             className="border px-4 py-3 w-full rounded-xl"
                             type="number"
                             placeholder="Difficulty (1-5)"
-                            value={difficulty}
+                            value={difficulty || ""}
                             min={1}
                             max={5}
                             onChange={(e) => setDifficulty(Number(e.target.value))}
