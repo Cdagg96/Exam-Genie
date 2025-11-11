@@ -36,7 +36,7 @@ export type ExamQuestionItem = {
     type: QuestionType;
     points: number;
     order?: number;
-    snapshot?:any; // Snapshot of question
+    snapshot?: any; // Snapshot of question
 }
 
 // What consists of a whole exam
@@ -82,9 +82,9 @@ export default function ExamForm() {
         e.preventDefault();
 
         const data = {
-            title, 
-            timeLimit, 
-            difficulty, 
+            title,
+            timeLimit,
+            difficulty,
             allowedTypes,
             typeCounts,
             totalQuestions,
@@ -101,18 +101,18 @@ export default function ExamForm() {
 
             const result = await res.json();
 
-            if(res.ok){
+            if (res.ok) {
                 toast.success("Exam Created!") // Notification that question was created
                 setPreviewExam(result.exam);
                 setPreviewOpen(true);
-            } 
-            else if(result?.shortages?.length){
+            }
+            else if (result?.shortages?.length) {
                 const msg = result.shortages.map((s: any) =>
                     `${s.type}: requested ${s.requested}, available ${s.available}`
                 ).join("\n");
-                toast.error(`Not enough questions\n--------------\n ${msg}`, {duration: 10000});
+                toast.error(`Not enough questions\n--------------\n ${msg}`, { duration: 10000 });
             }
-            else{
+            else {
                 console.error(result);
                 toast.error("Failed to create exam");
             }
@@ -162,7 +162,8 @@ export default function ExamForm() {
                                 type="number"
                                 min={0}
                                 className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
-                                value={timeLimit}
+                                placeholder="60"
+                                value={timeLimit || ""}
                                 onChange={(e) => setTimeLimit(Number(e.target.value))}
                                 required
                             />
@@ -198,16 +199,16 @@ export default function ExamForm() {
                                     value={typeCounts[t.value] || ""}
                                     onChange={e => setTypeCounts(prev => ({ ...prev, [t.value]: Number(e.target.value) }))}
                                 />
-                                
+
                             </label>
                         ))}
                     </div>
                 </section>
                 {/* Allowed Types */}
-                
+
                 <div className="flex items-center justify-between">
                     <div className="flex gap-3">
-                        
+
                     </div>
                     <div className="flex gap-3">
                         <button
@@ -220,6 +221,13 @@ export default function ExamForm() {
                                 setRandomize(true);
                                 setAllowedTypes(["MC", "TF", "Essay"]);
                                 setSections([{ ...DEFAULT_SECTION }]);
+                                setTypeCounts({
+                                    MC: 0,
+                                    TF: 0,
+                                    Essay: 0,
+                                    FIB: 0,
+                                    Code: 0,
+                                });
                             }}
                             className="rounded-xl border px-4 py-2 btn btn-ghost"
                         >
