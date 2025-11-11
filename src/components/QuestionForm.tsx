@@ -165,7 +165,7 @@ export default function BackgroundModal({
                         className="border px-4 py-3 w-full rounded-xl"
                         type="number"
                         placeholder="Difficulty (1-5)"
-                        value={difficulty}
+                        value={difficulty || ""}
                         min={1}
                         max={5}
                         onChange={(e) => setDifficulty(Number(e.target.value))}

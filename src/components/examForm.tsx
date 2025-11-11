@@ -171,7 +171,7 @@ export default function ExamForm() {
                             <span className="text-sm font-medium">Difficulty</span>
                             <select
                                 className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
-                                value={difficulty}
+                                value={difficulty || ""}
                                 onChange={(e) => setDifficulty(e.target.value)}
                                 required
                             >
@@ -193,8 +193,9 @@ export default function ExamForm() {
                                 <input
                                     type="number"
                                     min={0}
+                                    placeholder="0"
                                     className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
-                                    value={typeCounts[t.value]}
+                                    value={typeCounts[t.value] || ""}
                                     onChange={e => setTypeCounts(prev => ({ ...prev, [t.value]: Number(e.target.value) }))}
                                 />
                                 
