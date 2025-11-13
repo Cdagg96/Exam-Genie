@@ -16,7 +16,63 @@ export default function EditExamPage() {
   const [isEditQuestionFormOpen, setIsEditQuestionFormOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [draggedQuestion, setDraggedQuestion] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<number | null>(null);
 
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, questionId: string) => {
+    e.dataTransfer.setData("text/plain", questionId);
+    setDraggedQuestion(questionId);
+    e.currentTarget.classList.add("opacity-50");
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    e.currentTarget.classList.remove("opacity-50");
+    setDraggedQuestion(null);
+    setDropTarget(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDropTarget(index);
+  };
+
+  const handleDragLeave = () => {
+    setDropTarget(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    const draggedQuestionId = e.dataTransfer.getData("text/plain");
+
+    if (!exam) return;
+
+    const questions = [...exam.questions];
+    const draggedIndex = questions.findIndex(q => q.questionId === draggedQuestionId);
+
+    if (draggedIndex === -1) return;
+
+    // If same position, do nothing
+    if (draggedIndex === targetIndex || draggedIndex === targetIndex - 1) {
+      setDropTarget(null);
+      return;
+    }
+
+    // Reorder questions
+    const [movedQuestion] = questions.splice(draggedIndex, 1);
+
+    // Adjust target index if dragging from above the insertion point
+    const adjustedTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    questions.splice(adjustedTargetIndex, 0, movedQuestion);
+
+    setExam({
+      ...exam,
+      questions
+    });
+
+    setDropTarget(null);
+  };
 
   //this is for the question form popup
   const handleFormClose = () => {
@@ -55,8 +111,8 @@ export default function EditExamPage() {
   const handleQuestionAdded = (newQuestion: any) => {
     if (!exam) return;
     setExam({
-      ...exam, // spread previous exam
-      questions: [...(exam.questions ?? []), newQuestion], // append at the end
+      ...exam,
+      questions: [...(exam.questions ?? []), newQuestion],
     });
   };
 
@@ -64,7 +120,7 @@ export default function EditExamPage() {
   // it will not save it if the exam is exited without saving 
   const handleDeleteQuestion = (questionId: string) => {
     if (!exam) return;
-    
+
     setExam({
       ...exam,
       questions: exam.questions.filter(q => q.questionId !== questionId)
@@ -72,35 +128,35 @@ export default function EditExamPage() {
   };
 
 
-   // this will open the edit modal for a question
+  // this will open the edit modal for a question
   const handleEditQuestion = (question: any) => {
     setEditingQuestion(question);
     setIsEditQuestionFormOpen(true);
   };
 
-    // this will update the question in the local exam state
+  // this will update the question in the local exam state
   const handleQuestionUpdated = (updatedQuestionData: any) => {
     if (!exam || !editingQuestion) return;
 
     setExam({
       ...exam,
-      questions: exam.questions.map(q => 
-        q.questionId === editingQuestion.questionId 
+      questions: exam.questions.map(q =>
+        q.questionId === editingQuestion.questionId
           ? {
-              ...q,
-              points: updatedQuestionData.points || q.points,
-              snapshot: {
-                ...q.snapshot,
-                stem: updatedQuestionData.stem,
-                choices: updatedQuestionData.choices || q.snapshot?.choices,
-                answer: updatedQuestionData.answer || q.snapshot?.answer,
-                blankLines: updatedQuestionData.blankLines || q.snapshot?.blankLines,
-              }
+            ...q,
+            points: updatedQuestionData.points || q.points,
+            snapshot: {
+              ...q.snapshot,
+              stem: updatedQuestionData.stem,
+              choices: updatedQuestionData.choices || q.snapshot?.choices,
+              answer: updatedQuestionData.answer || q.snapshot?.answer,
+              blankLines: updatedQuestionData.blankLines || q.snapshot?.blankLines,
             }
+          }
           : q
       )
     });
-    
+
     handleEditFormClose();
   };
 
@@ -110,8 +166,7 @@ export default function EditExamPage() {
 
     try {
       setIsSaving(true);
-      console.log("Saving exam:", exam); 
-
+      console.log("Saving exam:", exam);
 
       const res = await fetch("/api/exams", {
         method: "PUT",
@@ -139,10 +194,9 @@ export default function EditExamPage() {
       } else {
         console.error("Save failed:", result);
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error saving exam:", error);
-      } finally {
+    } finally {
       setIsSaving(false);
     }
   };
@@ -215,74 +269,156 @@ export default function EditExamPage() {
           </ul>
         </section>
 
+        {/* Drag and Drop Instructions */}
+        <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800 print:hidden text-center">
+          <p>Drag questions using the handle (☰) to reorder them. A blue box shows where the question will be placed. You can add questions in between, above, or below existing ones. Remember to click "Save Exam" to keep your changes.</p>
+        </div>
+
         {/* Questions */}
         <main className="font-serif">
-          <ol className="list-decimal space-y-6 pl-6">
+          <div className="space-y-6">
+            {/* Top drop zone - before first question */}
+            <div
+              onDragOver={(e) => handleDragOver(e, 0)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, 0)}
+              className={`h-5 mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === 0
+                  ? 'bg-blue-100 border-blue-500'
+                  : 'border-transparent'
+                }`}
+            />
             {/* Render each question */}
-            {exam.questions?.map((q) => {
-              const points = q.points ?? 1; // Default to 1 point if points not specified
+            {exam.questions?.map((q, index) => {
+              const points = q.points ?? 1;
+              const isBeingDragged = draggedQuestion === q.questionId;
+
               return (
                 // For each question
-                <li key={q.questionId} className="relative group">
-                  <div className="mb-2 flex items-start justify-between gap-4">
-                    <div className="font-medium leading-relaxed">
-                      {q.snapshot?.stem ?? "(Question text)"}
-                    </div>
+                <div key={q.questionId} className="relative group">
+                  {/* Question item */}
+                  <div className={`relative transition-all duration-200 rounded-lg ${isBeingDragged ? 'opacity-50' : 'bg-white'
+                    }`}>
+                    <div className="flex items-start gap-3">
+                      {/* Drag Handle - Only this part is draggable */}
+                      <div
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, q.questionId)}
+                        onDragEnd={handleDragEnd}
+                        className="cursor-move p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors mt-1"
+                        title="Drag to reorder"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="size-6"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"
+                          />
+                        </svg>
+                      </div>
 
-                    {/* Righthand side: points, edit, delete */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="rounded border px-2 py-0.5 text-xs text-gray-700">
-                        {points} pt{points !== 1 ? "s" : ""} {/* Make points plural if needed */}
-                      </span>
-                      <button  onClick={() => handleEditQuestion(q)}
-                        className="rounded border border-blue-300 text-blue-600 px-2 py-0.5 text-xs hover:bg-blue-50 transition"
-                      >
-                        Edit
-                      </button>
-                      <button onClick={() => handleDeleteQuestion(q.questionId)}
-                        className="rounded border border-red-300 text-red-600 px-2 py-0.5 text-xs hover:bg-red-50 transition"
-                      >
-                        Delete
-                      </button>
+                      {/* Question Number and Content */}
+                      <div className="flex-1 flex items-start gap-3">
+                        {/* Question Number */}
+                        <span className="font-medium text-gray-700 mt-1">
+                          {index + 1}.
+                        </span>
+
+                        {/* Question Content */}
+                        <div className="flex-1">
+                          <div className="mb-2 flex items-start justify-between gap-4">
+                            <div className="font-medium leading-relaxed">
+                              {q.snapshot?.stem ?? "(Question text)"}
+                            </div>
+
+                            {/* Righthand side: points, edit, delete */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="rounded border px-2 py-0.5 text-xs text-gray-700">
+                                {points} pt{points !== 1 ? "s" : ""} {/* Make points plural if needed */}
+                              </span>
+                              <button onClick={() => handleEditQuestion(q)}
+                                className="rounded border border-blue-300 text-blue-600 px-2 py-0.5 text-xs hover:bg-blue-50 transition"
+                              >
+                                Edit
+                              </button>
+                              <button onClick={() => handleDeleteQuestion(q.questionId)}
+                                className="rounded border border-red-300 text-red-600 px-2 py-0.5 text-xs hover:bg-red-50 transition"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Type-specific */}
+                          {q.type === "MC" && (
+                            <ul className="ml-4 list-[upper-alpha] space-y-1 pl-4">
+                              {(q.snapshot?.choices ?? []).map((c: any, idx: number) => (
+                                <li key={idx} className="leading-7 text-[15px]">
+                                  {c.text ?? c.label}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+
+                          {q.type === "TF" && (
+                            <div className="ml-1 text-[15px]">
+                              <span className="mr-4">Circle one:</span>
+                              <span className="inline-block px-2 py-0.5 mr-2">True</span>
+                              <span className="inline-block px-2 py-0.5">False</span>
+                            </div>
+                          )}
+
+                          {q.type === "Essay" && (
+                            <div className="mt-3 space-y-3">
+                              {Array.from({ length: q.snapshot?.blankLines ?? 4 }).map((_, idx) => (
+                                <div key={idx} className="h-6 w-full border-b" />
+                              ))}
+                            </div>
+                          )}
+
+                          {q.type === "Code" && (
+                            <div className="mt-3 border border-gray-300 bg-gray-50 rounded-md">
+                              <div className="h-40" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Type-specific */}
-                  {q.type === "MC" && (
-                    <ul className="ml-4 list-[upper-alpha] space-y-1 pl-4">
-                      {(q.snapshot?.choices ?? []).map((c: any, idx: number) => (
-                        <li key={idx} className="leading-7 text-[15px]">
-                          {c.text ?? c.label}
-                        </li>
-                      ))}
-                    </ul>
+                  {/* Drop zone between questions */}
+                  {index < exam.questions.length - 1 && (
+                    <div
+                      onDragOver={(e) => handleDragOver(e, index + 1)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, index + 1)}
+                      className={`h-5 mt-3 -mb-2 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === index + 1
+                          ? 'bg-blue-100 border-blue-500'
+                          : 'border-transparent'
+                        }`}
+                    />
                   )}
-
-                  {q.type === "TF" && (
-                    <div className="ml-1 text-[15px]">
-                      <span className="mr-4">Circle one:</span>
-                      <span className="inline-block px-2 py-0.5 mr-2">True</span>
-                      <span className="inline-block px-2 py-0.5">False</span>
-                    </div>
-                  )}
-
-                  {q.type === "Essay" && (
-                    <div className="mt-3 space-y-3">
-                      {Array.from({ length: q.snapshot?.blankLines ?? 4 }).map((_, idx) => (
-                        <div key={idx} className="h-6 w-full border-b" />
-                      ))}
-                    </div>
-                  )}
-
-                  {q.type === "Code" && (
-                    <div className="mt-3 border border-gray-300 bg-gray-50 rounded-md">
-                      <div className="h-40" />
-                    </div>
-                  )}
-                </li>
+                </div>
               );
             })}
-          </ol>
+
+            {/* Bottom drop zone - after last question */}
+            <div
+              onDragOver={(e) => handleDragOver(e, exam.questions.length)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, exam.questions.length)}
+              className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === exam.questions.length
+                  ? 'bg-blue-100 border-blue-500'
+                  : 'border-transparent'
+                }`}
+            />
+          </div>
         </main>
 
         {/* Bottom Buttons */}
