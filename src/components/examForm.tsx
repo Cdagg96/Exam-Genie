@@ -44,6 +44,7 @@ export type ExamQuestionItem = {
 export type ExamDoc = {
     _id: string;
     title: string;
+    subject: string;
     timeLimitMin: number;
     difficulty: string;
     totalPoints: number;
