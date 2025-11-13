@@ -93,6 +93,7 @@ export async function GET(req: Request) {
     const topic = searchParams.get('topic');
     const difficulty = searchParams.get('difficulty');
     const type = searchParams.get('type');
+    const subject = searchParams.get('subject');
     const lastUsed = searchParams.get('lastUsed');
     
     const client = await clientPromise;
@@ -111,7 +112,7 @@ export async function GET(req: Request) {
     }
     
     if (type) {
-      //Map the display types to your database types if needed
+      //Map the display types to database types
       const typeMap: { [key: string]: string } = {
         'Multiple Choice': 'MC',
         'True/False': 'TF',
@@ -120,6 +121,10 @@ export async function GET(req: Request) {
         'Coding': 'Code'
       };
       filter.type = typeMap[type] || type;
+    }
+
+    if(subject){
+        filter.subject = subject;
     }
     
     if (lastUsed) {

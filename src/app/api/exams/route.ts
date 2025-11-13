@@ -108,6 +108,7 @@ export async function POST(req:Request) {
         
         const {
             title,
+            subject,
             timeLimit,
             difficulty = "mixed",
             randomize = true,
@@ -206,6 +207,7 @@ export async function POST(req:Request) {
 
         const exam_data = {
             title,
+            subject,
             timeLimitMin: timeLimit,
             difficulty,
             totalPoints,

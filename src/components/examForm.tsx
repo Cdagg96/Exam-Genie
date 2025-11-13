@@ -25,6 +25,7 @@ const TYPES: { value: QuestionType; label: string }[] = [
 
 const DEFAULT_SECTION = {
     topic: "",
+    subject: "",
     count: 5,
     type: "multiple_choice" as QuestionType,
     difficulty: "mixed",
@@ -53,6 +54,7 @@ export type ExamDoc = {
 export default function ExamForm() {
     // Core fields (minimal state)
     const [title, setTitle] = useState("");
+    const [subject, setSubject] = useState("");
     const [totalQuestions, setTotalQuestions] = useState(25);
     const [difficulty, setDifficulty] = useState("mixed");
     const [timeLimit, setTimeLimit] = useState(60);
@@ -83,6 +85,7 @@ export default function ExamForm() {
 
         const data = {
             title,
+            subject,
             timeLimit,
             difficulty,
             allowedTypes,
@@ -153,6 +156,16 @@ export default function ExamForm() {
                                 placeholder="Midterm – Algorithms"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
+                                required
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">Subject</span>
+                            <input
+                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
+                                placeholder="ex: Computer Science"
+                                value={subject}
+                                onChange={(e) => setSubject(e.target.value)}
                                 required
                             />
                         </label>

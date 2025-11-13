@@ -8,11 +8,13 @@ import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { LightBackground } from "@/components/BackgroundModal";
 import SelectBox from "@/components/SelectBox";
+import FilterBox from "@/components/filterBox";
 
 // Follow the exam structure in the database
 interface Exam {
     _id: string;
     title: string;
+    subject: string;
     timeLimitMins: number;
     difficulty: string;
     totalPoints: number;
@@ -34,6 +36,10 @@ export default function PastExams() {
     const [examToDelete, setExamToDelete] = useState<string | null>(null);
     const [examTitleToDelete, setExamTitleToDelete] = useState<string>("");
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
+
+    // Filtering states
+    const [selectedSubject, setSelectedSubject] = useState<string>('');
 
     // Fetch exams from MongoDB
     const fetchExams = async () => {
@@ -61,6 +67,16 @@ export default function PastExams() {
     useEffect(() => {
         fetchExams();
     }, []);
+
+    //Creates a unique list of subjects for the filter box
+    useEffect(() => {
+        const uniqueSubjects = Array.from(
+            new Set(exams.map(e => e.subject?.trim()).filter((s): s is string => !!s))
+        ).map(subject => ({ value: subject, label: subject }));
+
+        //Store the list of unique topics if any changes occur in questions
+        setSubjects(uniqueSubjects);
+    }, [exams]);
 
     // Delete exam handler
     const handleDeleteClick = (examId: string, examTitle: string) => {
@@ -172,7 +188,15 @@ export default function PastExams() {
 
 
                         {/* Last Used Filter */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-md">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                            {/* Subject Filter Box */}
+                            <FilterBox
+                                options={subjects}
+                                label="Subject"
+                                placeholder="Search a subject"
+                                onSelect={setSelectedSubject}
+                                value={selectedSubject}
+                            />
                             <div className="text-left">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Last Used
@@ -215,6 +239,9 @@ export default function PastExams() {
                                     <tr>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Exam Title
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Subject
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Difficulty
@@ -269,6 +296,11 @@ export default function PastExams() {
                                                 <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
                                                     <div className="truncate" title={exam.title}>
                                                         {exam.title}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                    <div className="truncate" title={exam.title}>
+                                                        {exam.subject ?? "N/A"}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
