@@ -300,7 +300,7 @@ export default function PastExams() {
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
                                                     <div className="truncate" title={exam.title}>
-                                                        {exam.subject ?? "N/A"}
+                                                        {exam.subject ? exam.subject : "N/A"}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
