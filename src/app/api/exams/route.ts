@@ -113,6 +113,7 @@ export async function POST(req:Request) {
             randomize = true,
             totalQuestions,
             typeCounts,
+            userID,
         } = body;
 
         // create the connection
@@ -148,6 +149,7 @@ export async function POST(req:Request) {
         for(const {type, requested} of pairs){
             const match: any = {type};
             if(diffFilter) match.difficulty = diffFilter;
+            match.userID = userID;
 
             const available = await questionsdb.countDocuments(match);
             if(available < requested){
@@ -171,6 +173,7 @@ export async function POST(req:Request) {
         for(const {type, requested} of pairs){
             const match: any = {type};
             if(diffFilter) match.difficulty = diffFilter;
+            match.userID = userID;
 
             // Randomly sample questions for current type
             const sample = await questionsdb.aggregate([
