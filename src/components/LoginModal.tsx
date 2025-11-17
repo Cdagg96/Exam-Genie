@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthContext";
 
 export default function LoginModal({
@@ -9,6 +10,9 @@ export default function LoginModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+
+  //State to switch between login and register modals (default to login)
+  const [currentModal, setCurrentModal] = useState<"login" | "register">("login");
 
   //Login states
   const [loginData, setLoginData] = useState({
@@ -26,10 +30,6 @@ export default function LoginModal({
   //gets the users log in information
   const { login } = useAuth();
 
-  //Alert states
-  const [loginAlert, setLoginAlert] = useState<{ type: "success" | "error" | null; message: string }>({ type: null, message: "" });
-  const [registerAlert, setRegisterAlert] = useState<{ type: "success" | "error" | null; message: string }>({ type: null, message: "" });
-
   // Don’t render anything if not open
   if (!isOpen) return null;
 
@@ -39,23 +39,16 @@ export default function LoginModal({
     setLoginData(prev => ({ ...prev, [name]: value }));
   };
 
-  //Handle register input changes
+  //When the user types into one of the register input fields, update the corresponding state
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setRegisterData(prev => ({ ...prev, [name]: value }));
+      const { name, value } = e.target;
+      setRegisterData(prev => ({ ...prev, [name]: value }));
   };
 
   //Handle login submission
   const handleLogin = async () => {
     if (!loginData.email || !loginData.password) {
-      setLoginAlert({
-        type: "error",
-        message: "Not all login fields are filled out."
-      });
-      //Clear Alert 3 seconds
-      setTimeout(() => {
-        setLoginAlert({ type: null, message: "" });
-      }, 3000);
+      toast.error("Not all login fields are filled out.");
       return;
     } 
 
@@ -69,180 +62,201 @@ export default function LoginModal({
       const data = await res.json();
 
       if (!res.ok) {
-        setLoginAlert({ type: "error", message: data.message || "Login failed." });
+        toast.error(data.message || "Login failed.");
       } else {
-        setLoginAlert({ type: "success", message: "Login successful!" });
-        login(data.user);
-        onClose();
+        //Successful login alert
+        toast.success("Login successful!");
+        login(data.user); //Update auth context
+        setLoginData({ email: "", password: "" }); //Clear the form
+        onClose(); //Close the modal
       }
     } catch (err) {
       console.error(err);
-      setLoginAlert({ type: "error", message: "Server error. Try again later." });
+      toast.error("Server error. Try again later.");
     }
-
-    setTimeout(() => {
-      setLoginAlert({ type: null, message: "" });
-    }, 3000);
   };
+
 
   //Handle register submission
   const handleRegister = async () => {
     if (!registerData.role || !registerData.email || !registerData.password) {
-      setRegisterAlert({
-        type: "error",
-        message: "Not all register fields are filled out."
-      });
-      //Clear Alert 3 seconds
-      setTimeout(() => {
-        setRegisterAlert({ type: null, message: "" });
-      }, 3000);
+      //Show error if not all fields are filled out
+      toast.error("Not all registration fields are filled out.");
     } else {
       try {
-        const res = await fetch("/api/user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        //Send registration data to the server
+        const res = await fetch('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(registerData),
         });
 
+        //Turn the response into a JavaScript object
         const data = await res.json();
-
         if (!res.ok) {
-          setRegisterAlert({ type: "error", message: data.message || "Registration failed." });
+          toast.error(data.message || "Registration failed.");
         } else {
-          setRegisterAlert({ type: "success", message: "User registered successfully!" });
-          setRegisterData({ role: "", email: "", password: "" }); // clear inputs
+          toast.success("Registration successful!");
+          setRegisterData({ role: "", email: "", password: "" }); //Clear the form
+          onClose(); //Immeditately close the modal when user registers successfully
         }
       } catch (err) {
         console.error(err);
-        setRegisterAlert({ type: "error", message: "Server error. Try again later." });
+        toast.error("Server error. Try again later.");
       }
-
-      //Clear Alert 3 seconds
-      setTimeout(() => {
-        setRegisterAlert({ type: null, message: "" });
-      }, 3000);
     }
-  };
-
-  //Alert component based on type
-  const renderAlert = (type: "success" | "error" | null, message: string) => {
-    if (!type || !message) return null;
-
-    const alertConfig = {
-      success: {
-        className: "text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400",
-        text: "Success!"
-      },
-      error: {
-        className: "text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400",
-        text: "Error!"
-      }
-    };
-
-    const config = alertConfig[type]
-
-    return (
-      <div className={`w-3/4 p-4 mb-4 text-sm rounded-lg ${config.className}`} role="alert">
-        <span className="font-medium">{config.text}</span> {message}
-      </div>
-    );
-  };
-
+  }
+  
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-white text-black rounded-2xl shadow-2xl w-[70rem] h-[30rem] flex relative">
+      <div className="bg-white text-black rounded-2xl shadow-2xl w-[40rem] h-[30rem] flex relative">
 
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={() => {
+            setRegisterData({ role: "", email: "", password: "" });
+            setLoginData({ email: "", password: "" });
+            onClose();
+            setCurrentModal("login"); //Reset to login modal on close
+          }}
           className="absolute top-4 right-4 text-black hover:text-gray-500 text-2xl"
         >
-          {/*means the x*/}
           &times;
         </button>
 
-        {/* Login Section */}
-        <div className="flex-1 flex flex-col justify-center items-center space-y-4 px-10">
-          <h2 className="text-3xl font-semibold mb-15">Login</h2>
+        <div className="flex-1 flex flex-col justify-start items-center pt-16 space-y-5 px-10">
+          {/* If current modal is login, show Login Modal */}
+          {currentModal === "login" ? (
+            <>
+              <h2 className="text-4xl font-semibold mb-15 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">Login</h2>
 
-          {/* Login Alert */}
-          {renderAlert(loginAlert.type, loginAlert.message)}
+              {/* Email Box */}
+              <input
+                type="text"
+                name="email"
+                placeholder="Email"
+                value={loginData.email}
+                onChange={handleLoginChange}
+                className="w-3/4 rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
+              />
 
-          <input
-            type="text"
-            name="email"
-            placeholder="Email"
-            value={loginData.email}
-            onChange={handleLoginChange}
-            className="w-90 rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={loginData.password}
-            onChange={handleLoginChange}
-            className="w-90 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
-          />
-          <button onClick={handleLogin} className="w-3/4 p-3 btn btn-primary-dark-blue">
-            Sign In
-          </button>
-        </div>
+              {/* Password Box */}
+              <div className="w-3/4 flex flex-col">
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={loginData.password}
+                  onChange={handleLoginChange}
+                  className="w-full rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
+                />
 
-        {/* Divider */}
-        <div className="w-[2px] bg-stone-900 my-16"></div>
+                {/* Forgot Password link -- Not currently implemented */}
+                <button
+                  type="button"
+                  className="self-end mt-1 text-sm text-blue-500 hover:text-blue-800 py-1"
+                >
+                  Forgot password?
+                </button>
+              </div>
 
-        {/* Register Section */}
-        <div className="flex-1 flex flex-col justify-center items-center space-y-4 px-10">
-          <h2 className="text-3xl font-semibold mb-4">Register</h2>
+              {/* Sign In Button */}
+              <button
+                onClick={handleLogin}
+                className="btn btn-primary-dark-blue w-3/4 mt-4 py-2 rounded-xl text-lg font-medium"
+              >
+                Sign In
+              </button>
 
-          {/* Register Alert */}
-          {renderAlert(registerAlert.type, registerAlert.message)}
+              {/* Sign Up */}
+              <div className="mt-4 text-sm text-gray-600">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegisterData({ role: "", email: "", password: "" });
+                    setLoginData({ email: "", password: "" });
+                    setCurrentModal("register");
+                  }}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Sign up
+                </button>
+              </div>
+            </>
+          //If current modal is register, show Register Modal
+          ) : (
+            <>
+              <h2 className="text-4xl font-semibold mb-15 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">Register</h2>
+              <div className="flex justify-center gap-4 mb-4">
+                {/* Role selection radio buttons */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="teacher"
+                    checked={registerData.role === "teacher"}
+                    onChange={(e) => 
+                      setRegisterData(prev => ({ ...prev, role: e.target.value }))
+                    }
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  Teacher
+                </label>
+                  
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="student"
+                    checked={registerData.role === "student"}
+                    onChange={(e) => 
+                      setRegisterData(prev => ({ ...prev, role: e.target.value }))
+                    }
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  Student
+                </label>
+              </div>
 
-          <div className="flex justify-center gap-4 mb-2">
-            <button
-              type="button"
-              onClick={() => setRegisterData(prev => ({ ...prev, role: "teacher" }))}
-              className={`px-4 py-2 rounded-xl ${registerData.role === "teacher"
-                  ? "btn btn-primary-dark-blue"
-                  : "btn btn-ghost"
-                }`}
-            >
-              Teacher
-            </button>
 
-            <button
-              type="button"
-              onClick={() => setRegisterData(prev => ({ ...prev, role: "student" }))}
-              className={`px-4 py-2 rounded-xl border transition ${registerData.role === "student"
-                  ? "btn btn-primary-dark-blue"
-                  : "btn btn-ghost"
-                }`}
-            >
-              Student
-            </button>
-          </div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={registerData.email}
+                onChange={handleRegisterChange}
+                className="w-3/4 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={registerData.password}
+                onChange={handleRegisterChange}
+                className="w-3/4 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
+              />
+              <button onClick={handleRegister} className="btn btn-primary-dark-blue w-3/4 mt-4 py-2 rounded-xl text-lg font-medium">
+                Register
+              </button>
 
-
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={registerData.email}
-            onChange={handleRegisterChange}
-            className="w-90 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={registerData.password}
-            onChange={handleRegisterChange}
-            className="w-90 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
-          />
-          <button onClick={handleRegister} className="w-3/4 p-3 btn btn-primary-dark-blue">
-            Register
-          </button>
+              {/* Sign In */}
+              <div className="mt-4 text-sm text-gray-600">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegisterData({ role: "", email: "", password: "" });
+                    setLoginData({ email: "", password: "" });
+                    setCurrentModal("login");
+                  }}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Sign in
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

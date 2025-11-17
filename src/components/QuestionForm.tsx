@@ -20,6 +20,7 @@ export default function BackgroundModal({
     const [type, setType] = useState("MC");
     const [difficulty, setDifficulty] = useState(1);
     const [topics, setTopics] = useState("");
+    const [subject, setSubject] = useState("");
     const [choiceA, setChoiceA] = useState("");
     const [choiceB, setChoiceB] = useState("");
     const [choiceC, setChoiceC] = useState("");
@@ -36,6 +37,7 @@ export default function BackgroundModal({
         const base_data = {
             stem, type, difficulty,
             topics: topics.split(",").map(t => t.trim()),
+            subject,
             lastUsed: null,
             userID: user?._id ?? "", //if user not logged in set id to ""
             points: 1,
@@ -178,6 +180,15 @@ export default function BackgroundModal({
                         placeholder="Topic(s) (comma separated)"
                         value={topics}
                         onChange={(e) => setTopics(e.target.value)}
+                        required
+                    />
+
+                    {/* Question subject */}
+                    <input
+                        className="border px-4 py-3 w-full rounded-xl"
+                        placeholder="Subject"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
                         required
                     />
 

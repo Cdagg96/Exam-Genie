@@ -1,6 +1,6 @@
 "use client";
 import jsPDF from "jspdf";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import ExamPreviewModel from "@/components/examPreview";
 import SelectBox from "@/components/SelectBox";
@@ -25,6 +25,7 @@ const TYPES: { value: QuestionType; label: string }[] = [
 
 const DEFAULT_SECTION = {
     topic: "",
+    subject: "",
     count: 5,
     type: "multiple_choice" as QuestionType,
     difficulty: "mixed",
@@ -34,6 +35,7 @@ const DEFAULT_SECTION = {
 export type ExamQuestionItem = {
     questionId: string;
     type: QuestionType;
+    subject: string;
     points: number;
     order?: number;
     snapshot?: any; // Snapshot of question
@@ -43,6 +45,7 @@ export type ExamQuestionItem = {
 export type ExamDoc = {
     _id: string;
     title: string;
+    subject: string;
     timeLimitMin: number;
     difficulty: string;
     totalPoints: number;
@@ -54,6 +57,7 @@ export default function ExamForm() {
     // Core fields (minimal state)
     const { user } = useAuth(); 
     const [title, setTitle] = useState("");
+    const [subject, setSubject] = useState("");
     const [totalQuestions, setTotalQuestions] = useState(25);
     const [difficulty, setDifficulty] = useState("mixed");
     const [timeLimit, setTimeLimit] = useState(60);
@@ -71,6 +75,8 @@ export default function ExamForm() {
         Code: 0,
     });
 
+    // For select dropdown
+    const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
 
     // Simple optional sections (can remove if you want ultra-minimal)
     const [sections, setSections] = useState([{ ...DEFAULT_SECTION }]);
@@ -78,6 +84,36 @@ export default function ExamForm() {
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewExam, setPreviewExam] = useState<ExamDoc | null>(null);
     const [generating, setGenerating] = useState(false);
+
+    //Runs when page opens to get subjects
+    useEffect(() => {
+        async function loadSubjects(){
+            try {
+                const response = await fetch("/api/subjects");
+                const data = await response.json();
+
+                if(!response.ok || !data.ok){
+                    console.log("Failed to load subjects: ", data);
+                    return
+                }
+
+                const options = data.subjects.map((s: string) => ({
+                    value: s,
+                    label: s
+                }))
+
+                setSubjects([
+                    { value: '', label: 'All Subjects' },
+                    ...options
+                ]);
+            } catch (error) {
+                console.error("Error fetching subjects");
+                
+            }
+        }
+
+        loadSubjects();
+    }, []);
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -93,6 +129,7 @@ export default function ExamForm() {
 
         const data = {
             title,
+            subject,
             timeLimit,
             difficulty,
             allowedTypes,
@@ -170,6 +207,17 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">Subject</span>
+                            <SelectBox
+                                label=""
+                                options={subjects}
+                                placeholder="All Subjects"
+                                onSelect={setSubject}
+                                defaultValue=""
+                                value={subject}
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1">
                             <span className="text-sm font-medium">Time Limit</span>
                             <input
                                 type="number"
@@ -183,17 +231,20 @@ export default function ExamForm() {
                         </label>
                         <label className="flex flex-col gap-1">
                             <span className="text-sm font-medium">Difficulty</span>
-                            <select
-                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
-                                value={difficulty || ""}
-                                onChange={(e) => setDifficulty(e.target.value)}
-                                required
-                            >
-                                <option value="easy">Easy</option>
-                                <option value="medium">Medium</option>
-                                <option value="hard">Hard</option>
-                                <option value="mixed">Mixed</option>
-                            </select>
+                            {/* Difficulty Filter */}
+                            <SelectBox
+                                label=""
+                                options={[
+                                    { value: '', label: 'All Difficulties' },
+                                    { value: 'easy', label: 'Easy' },
+                                    { value: 'medium', label: 'Medium' },
+                                    { value: 'hard', label: 'Hard' },
+                                    { value: 'mixed', label: 'Mixed' },
+                                ]}
+                                onSelect={setDifficulty}
+                                defaultValue="mixed"
+                                value={difficulty}
+                            />
                         </label>
                     </div>
                     <h2 className="mb-3 mt-8 text-lg font-semibold">Allowed Question Types</h2>
