@@ -9,27 +9,11 @@ import Link from "next/link";
 import { LightBackground } from "@/components/BackgroundModal";
 import SelectBox from "@/components/SelectBox";
 import FilterBox from "@/components/filterBox";
-
-// Follow the exam structure in the database
-interface Exam {
-    _id: string;
-    title: string;
-    subject: string;
-    timeLimitMins: number;
-    difficulty: string;
-    totalPoints: number;
-    questions: {
-        questionId: string;
-        typle: string;
-        points: number;
-    }[];
-    lastUsed: string;
-    createdAt: string;
-    updatedAt: string;
-}
+import generateExamPDF from "@/components/ExamPDF"
+import type { ExamWithMeta } from "@/types/exam";
 
 export default function PastExams() {
-    const [exams, setExams] = useState<Exam[]>([]);
+    const [exams, setExams] = useState<ExamWithMeta[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -123,6 +107,10 @@ export default function PastExams() {
         setExamToDelete(null);
         setExamTitleToDelete("");
     };
+
+    const handleDownloadPDF = (exam: ExamWithMeta) => {
+        generateExamPDF(exam);
+    }
 
     return (
         <LightBackground>
@@ -331,14 +319,14 @@ export default function PastExams() {
                                                         <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(exam._id, exam.title)}>
                                                             Delete
                                                         </button>
-                                                        <button>
+                                                        <button onClick={() => handleDownloadPDF(exam)}>
                                                             <svg
                                                             xmlns="http://www.w3.org/2000/svg" 
                                                             fill="none" 
                                                             viewBox="0 0 24 24" 
                                                             strokeWidth={1.5} 
                                                             stroke="currentColor" 
-                                                            className="w-5 h-5">
+                                                            className="w-5 h-5 hover:-translate-y-0.5">
                                                                 <path 
                                                                 strokeLinecap="round" 
                                                                 strokeLinejoin="round" 
