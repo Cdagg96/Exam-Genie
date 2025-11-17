@@ -9,6 +9,7 @@ interface Question {
     type: string;
     difficulty: string;
     topics: string[];
+    subject: string;
     choices: {
         label: string;
         text: string;
@@ -37,6 +38,7 @@ export default function EditQuestionModal({
     const [type, setType] = useState("MC");
     const [difficulty, setDifficulty] = useState(1);
     const [topics, setTopics] = useState("");
+    const [subject, setSubject] = useState("");
     const [choiceA, setChoiceA] = useState("");
     const [choiceB, setChoiceB] = useState("");
     const [choiceC, setChoiceC] = useState("");
@@ -53,6 +55,7 @@ export default function EditQuestionModal({
             setType(question.type);
             setDifficulty(Number(question.difficulty));
             setTopics(question.topics.join(", "));
+            setSubject(question.subject);
 
             //Initialize answers based on question type
             if (question.type === "MC" || question.type === "TF") {
@@ -90,6 +93,7 @@ export default function EditQuestionModal({
             type,
             difficulty: difficulty,
             topics: topics.split(",").map(t => t.trim()),
+            subject,
             lastUsed: question.lastUsed,
             userID: question.userID
         };
@@ -242,6 +246,20 @@ export default function EditQuestionModal({
                             onChange={(e) => setTopics(e.target.value)}
                             required
                             disabled={loading}
+                        />
+                    </div>
+
+                    {/* Question subject */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Subject
+                        </label>
+                        <input
+                            className="border px-4 py-3 w-full rounded-xl"
+                            placeholder="Subject"
+                            value={subject ?? ""}
+                            onChange={(e) => setSubject(e.target.value)}
+                            required
                         />
                     </div>
 

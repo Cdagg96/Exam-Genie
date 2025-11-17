@@ -20,6 +20,7 @@ interface Question {
     type: string;
     difficulty: string;
     topics: string[];
+    subject: string;
     choices: {
         label: string;
         text: string;
@@ -36,6 +37,7 @@ export default function DatabaseActionPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
+    const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
     const [questionTextToDelete, setQuestionTextToDelete] = useState<string>("");
@@ -55,6 +57,7 @@ export default function DatabaseActionPage() {
     const [selectedTopic, setSelectedTopic] = useState<string>('');
     const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
     const [selectedType, setSelectedType] = useState<string>('');
+    const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [filtersApplied, setFiltersApplied] = useState(false);
 
     //Fetch questions with filters
@@ -68,6 +71,7 @@ export default function DatabaseActionPage() {
             if (selectedTopic) params.append('topic', selectedTopic);
             if (selectedDifficulty) params.append('difficulty', selectedDifficulty);
             if (selectedType) params.append('type', selectedType);
+            if (selectedSubject) params.append('subject', selectedSubject);
             if (lastUsedDate) params.append('lastUsed', lastUsedDate.format('MM-DD-YYYY'));
 
             const queryString = params.toString();
@@ -102,6 +106,7 @@ export default function DatabaseActionPage() {
         setSelectedTopic('');
         setSelectedDifficulty('');
         setSelectedType('');
+        setSelectedSubject('');
         setLastUsedDate(null);
         setDateInputValue('');
         setFiltersApplied(false);
@@ -144,6 +149,16 @@ export default function DatabaseActionPage() {
 
         //Store the list of unique topics if any changes occur in questions
         setTopics(uniqueTopics);
+    }, [questions]);
+
+     //Creates a unique list of subjects for the filter box
+    useEffect(() => {
+        const uniqueSubjects = Array.from(
+            new Set(questions.map(quest => quest.subject?.trim()).filter((s): s is string => !!s))
+        ).map(subject => ({ value: subject, label: subject }));
+
+        //Store the list of unique topics if any changes occur in questions
+        setSubjects(uniqueSubjects);
     }, [questions]);
 
     //Runs when the add question form closes to potentially grab new questions just added
@@ -344,7 +359,16 @@ export default function DatabaseActionPage() {
 
 
                         {/* Last Used Filter */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-md">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                            {/* Subject Filter Box */}
+                            <FilterBox
+                                options={subjects}
+                                label="Subject"
+                                placeholder="Search a subject"
+                                onSelect={setSelectedSubject}
+                                value={selectedSubject}
+                            />
+
                             <div className="text-left">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Last Used
@@ -419,7 +443,7 @@ export default function DatabaseActionPage() {
 
                     {/* Questions Table */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
-                        <div className="overflow-x-auto w-full max-w-full max-h-90 overflow-y-auto">
+                        <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
                                 <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 sticky top-0">
                                     <tr>
@@ -434,6 +458,9 @@ export default function DatabaseActionPage() {
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Topic
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Subject
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200 max-w-72">
                                             Choices
@@ -470,7 +497,7 @@ export default function DatabaseActionPage() {
                                                 </button>
                                             </td>
                                         </tr>
-                                    ) : questions.length == 0 ? (
+                                    ) : filteredQuestions.length == 0 ? (
                                         //No questions
                                         <tr>
                                             <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
@@ -495,6 +522,9 @@ export default function DatabaseActionPage() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                                     {formatTopics(question.topics)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                    {question.subject || 'N/A'}
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200 max-w-72">
                                                     <div className="truncate" title={formatChoices(question.choices)}>

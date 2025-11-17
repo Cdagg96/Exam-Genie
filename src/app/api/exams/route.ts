@@ -108,6 +108,7 @@ export async function POST(req:Request) {
         
         const {
             title,
+            subject,
             timeLimit,
             difficulty = "mixed",
             randomize = true,
@@ -138,9 +139,12 @@ export async function POST(req:Request) {
                 requested: Number(n) || 0,
         })).filter(p => p.requested > 0);
 
-        // Check to see the difficulty annd what questions we should match to
+        // Check to see the difficulty and what questions we should match to
         const band = DIFF_MAP[difficulty];
         const diffFilter = band ? {$in: band} : undefined;
+
+        // If a subject is given, filter on subject as well
+        const subjectFilter = subject && subject.trim() !== "";
 
         // Check availability for each type in the DB
         const shortages: Array<{type: string; requested: number; available: number}> = [];
@@ -148,6 +152,7 @@ export async function POST(req:Request) {
         for(const {type, requested} of pairs){
             const match: any = {type};
             if(diffFilter) match.difficulty = diffFilter;
+            if(subjectFilter) match.subject = subject;
 
             const available = await questionsdb.countDocuments(match);
             if(available < requested){
@@ -171,6 +176,7 @@ export async function POST(req:Request) {
         for(const {type, requested} of pairs){
             const match: any = {type};
             if(diffFilter) match.difficulty = diffFilter;
+            if(subjectFilter) match.subject = subject;
 
             // Randomly sample questions for current type
             const sample = await questionsdb.aggregate([
@@ -183,6 +189,7 @@ export async function POST(req:Request) {
                 items.push({
                     questionId: q._id,
                     type: q.type,
+                    subject: q.subject,
                     points: 1,
                     snapshot: {
                         stem: q.stem,
@@ -206,6 +213,7 @@ export async function POST(req:Request) {
 
         const exam_data = {
             title,
+            subject,
             timeLimitMin: timeLimit,
             difficulty,
             totalPoints,

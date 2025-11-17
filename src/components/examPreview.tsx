@@ -21,7 +21,7 @@ function generateExamPDF(exam: ExamDoc) {
   //Header
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
-  doc.text("Department of Computer Science", pageWidth / 2, y, { align: "center" });
+  doc.text(`Department of ${exam.subject}` || "No Department", pageWidth / 2, y, { align: "center" });
   y += 8;
 
   doc.setFont("helvetica", "bold");
@@ -193,7 +193,7 @@ export default function ExamPreviewModal({
 
             {/* Header */}
             <header className="mb-6 border-b pb-4 text-center font-serif">
-              <div className="text-sm text-gray-600">Department of Computer Science</div>
+              <div className="text-sm text-gray-600">Department of {exam.subject}</div>
               <h1 className="mt-1 text-2xl font-bold">{exam.title}</h1>
               <div className="mt-2 text-[13px] text-gray-600">
                 Time: {exam.timeLimitMin} minutes&nbsp;&nbsp;•&nbsp;&nbsp;Total Points: {exam.totalPoints}

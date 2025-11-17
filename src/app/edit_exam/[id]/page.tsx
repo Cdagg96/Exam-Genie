@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import type { ExamDoc } from "@/components/examForm";
 import QuestionForm from "@/components/QuestionForm";
 import EditQuestionModal from "@/components/EditQuestionModal";
+import toast from "react-hot-toast";
 
 export default function EditExamPage() {
   const { id } = useParams();
@@ -190,6 +191,7 @@ export default function EditExamPage() {
         if (refreshRes.ok) {
           const updatedExam = await refreshRes.json();
           setExam(updatedExam);
+          toast.success("Changes Saved!")
         }
       } else {
         console.error("Save failed:", result);
@@ -252,7 +254,7 @@ export default function EditExamPage() {
 
         {/* Header (always displayed currently) */}
         <header className="mb-6 border-b pb-4 text-center">
-          <div className="text-sm text-gray-600">Department of Computer Science</div>
+          <div className="text-sm text-gray-600">Department of {exam.subject}</div>
           <h1 className="mt-1 text-2xl font-bold">{exam.title}</h1>
           <div className="mt-2 text-[13px] text-gray-600">
             Time: {exam.timeLimitMin} minutes • Total Points: {exam.totalPoints}
