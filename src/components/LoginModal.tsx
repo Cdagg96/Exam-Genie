@@ -62,7 +62,7 @@ export default function LoginModal({
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.message || "Login failed.");
+        toast.error("Login failed.");
       } else {
         //Successful login alert
         toast.success("Login successful!");
@@ -93,11 +93,34 @@ export default function LoginModal({
 
         //Turn the response into a JavaScript object
         const data = await res.json();
+
         if (!res.ok) {
           toast.error(data.message || "Registration failed.");
         } else {
-          toast.success("Registration successful!");
-          setRegisterData({ role: "", email: "", password: "" }); //Clear the form
+          toast.success("Registration successful! Signing you in...");
+
+          const loginResult = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: registerData.email,
+              password: registerData.password
+            }),
+          });
+
+          const loginData = await loginResult.json();
+
+          //If login after registration fails, show error
+          if (!loginResult.ok) {
+            toast.error(loginData.message || "Login after registration failed.");
+          } else {
+            //Successful login after registration
+            login(loginData.user); //Update auth context
+          }
+
+          setRegisterData({ role: "", email: "", password: "" });
+          setLoginData({ email: "", password: "" });
+          setCurrentModal("login"); //Reset to login modal
           onClose(); //Immeditately close the modal when user registers successfully
         }
       } catch (err) {

@@ -2,6 +2,20 @@ import React from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import LoginModal from "@/components/LoginModal";
+import toast from "react-hot-toast";
+import { error } from "console";
+
+//Mock hot toast
+vi.mock("react-hot-toast", () => {
+  return {
+    default: {
+      error: vi.fn(),
+      success: vi.fn(),
+    },
+    error: vi.fn(),
+    success: vi.fn(),
+  };
+});
 
 //Mock fetch globally
 global.fetch = vi.fn();
@@ -15,7 +29,6 @@ vi.mock("@/components/AuthContext", () => ({
 
 describe("LoginModal Alerts", () => {
   const mockOnClose = vi.fn();
-  const mockSetLoggedIn = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,9 +49,7 @@ describe("LoginModal Alerts", () => {
 
     //Wait for the alert to appear
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Error! Not all login fields are filled out."
-      );
+      expect(toast.error).toHaveBeenCalledWith("Not all login fields are filled out.");
     });
   });
 
@@ -50,19 +61,17 @@ describe("LoginModal Alerts", () => {
       />
     );
 
-    //Click the "Register" button
-    const registerButtons = screen.getAllByRole("button", { name: /Register/i });
-    const registerButton = registerButtons[registerButtons.length - 1];
-    fireEvent.click(registerButton);
+    //Switch to register
+    const signUpLink = screen.getByRole("button", { name: /Sign up/i });
+    fireEvent.click(signUpLink);
 
-
+    //Click the "Register" button without filling anything
+    const registerButton = screen.getByRole("button", { name: /^Register$/i });
     fireEvent.click(registerButton);
 
     //Wait for the alert to appear
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Error! Not all register fields are filled out."
-      );
+      expect(toast.error).toHaveBeenCalledWith("Not all registration fields are filled out.");
     });
 
   });
@@ -81,10 +90,8 @@ describe("LoginModal Alerts", () => {
       />
     );
 
-    //Get login inputs (first two inputs are for login)
-    const inputs = screen.getAllByPlaceholderText(/Email|Password/);
-    const emailInput = inputs[0] as HTMLInputElement;
-    const passwordInput = inputs[1] as HTMLInputElement;
+    const emailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
+    const passwordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
 
     const signInButton = screen.getByText("Sign In");
 
@@ -94,8 +101,7 @@ describe("LoginModal Alerts", () => {
 
     //Check that the "Not all fields" alert is NOT shown
     await waitFor(() => {
-      const alert = screen.queryByText("Not all login fields are filled out.");
-      expect(alert).toBeNull();
+      expect(toast.error).not.toHaveBeenCalledWith("Not all login fields are filled out.");
     });
   });
 
@@ -113,28 +119,28 @@ describe("LoginModal Alerts", () => {
       />
     );
 
+    //Switch to register
+    const signUpLink = screen.getByRole("button", { name: /Sign up/i });
+    fireEvent.click(signUpLink);
+
     //Select role
-    const teacherButton = screen.getByText("Teacher");
+    const teacherButton = screen.getByLabelText("Teacher") as HTMLInputElement;
     fireEvent.click(teacherButton);
 
-    //Get register inputs (inputs[2] and inputs[3] are for register section)
-    const inputs = screen.getAllByPlaceholderText(/Email|Password/);
-    const registerEmailInput = inputs[2] as HTMLInputElement;
-    const registerPasswordInput = inputs[3] as HTMLInputElement;
+    //Get register inputs 
+    const registerEmailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
+    const registerPasswordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
 
     fireEvent.change(registerEmailInput, { target: { value: "teacher@example.com" } });
     fireEvent.change(registerPasswordInput, { target: { value: "password123" } });
 
     //Get the main register button
-    const registerButtons = screen.getAllByRole("button", { name: /Register/i });
-    const registerButton = registerButtons[registerButtons.length - 1];
-
+    const registerButton = screen.getByRole("button", { name: /Register/i });
     fireEvent.click(registerButton);
 
     //Check that alert does not show
     await waitFor(() => {
-      const alert = screen.queryByText("Not all register fields are filled out.");
-      expect(alert).toBeNull();
+      expect(toast.error).not.toHaveBeenCalledWith("Not all registration fields are filled out.");
     });
   });
 });

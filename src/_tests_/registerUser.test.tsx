@@ -2,6 +2,19 @@ import React from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import LoginModal from "@/components/LoginModal";
+import toast from "react-hot-toast";
+
+//Mock hot toast
+vi.mock("react-hot-toast", () => {
+  return {
+    default: {
+      error: vi.fn(),
+      success: vi.fn(),
+    },
+    error: vi.fn(),
+    success: vi.fn(),
+  };
+});
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -15,7 +28,6 @@ vi.mock("@/components/AuthContext", () => ({
 
 describe("User Registration", () => {
   const mockOnClose = vi.fn();
-  const mockSetLoggedIn = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,28 +48,26 @@ describe("User Registration", () => {
       />
     );
 
+    fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
+
     // Select "Teacher" role
-    const teacherButton = screen.getByRole("button", { name: /Teacher/i });
+    const teacherButton = screen.getByLabelText("Teacher") as HTMLInputElement;
     fireEvent.click(teacherButton);
 
     // Fill out registration inputs
-    const inputs = screen.getAllByPlaceholderText(/Email|Password/);
-    const registerEmailInput = inputs[2] as HTMLInputElement;
-    const registerPasswordInput = inputs[3] as HTMLInputElement;
-
+    const registerEmailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
+    const registerPasswordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
+    
     fireEvent.change(registerEmailInput, { target: { value: "teacher@example.com" } });
     fireEvent.change(registerPasswordInput, { target: { value: "password123" } });
 
     // Click the "Register" button
-    const registerButtons = screen.getAllByRole("button", { name: /Register/i });
-    const registerButton = registerButtons[registerButtons.length - 1];
+    const registerButton = screen.getByRole("button", { name: /Register/i });
     fireEvent.click(registerButton);
 
     // Wait for success alert to appear
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Success! User registered successfully!"
-      );
+      expect(toast.success).toHaveBeenCalledWith("Registration successful! Signing you in...");
     });
 
     // Verify that fetch was called correctly
@@ -86,28 +96,23 @@ describe("User Registration", () => {
       />
     );
 
+    fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
+
     // Select "Student" role
-    const studentButton = screen.getByRole("button", { name: /Student/i });
+    const studentButton = screen.getByLabelText("Student") as HTMLInputElement;
     fireEvent.click(studentButton);
 
     // Fill out registration inputs
-    const inputs = screen.getAllByPlaceholderText(/Email|Password/);
-    const registerEmailInput = inputs[2] as HTMLInputElement;
-    const registerPasswordInput = inputs[3] as HTMLInputElement;
-
-    fireEvent.change(registerEmailInput, { target: { value: "student@example.com" } });
-    fireEvent.change(registerPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(screen.getByPlaceholderText("Email"), { target: { value: "student@example.com" } });
+    fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "password123" } });
 
     // Click the "Register" button
-    const registerButtons = screen.getAllByRole("button", { name: /Register/i });
-    const registerButton = registerButtons[registerButtons.length - 1];
+    const registerButton = screen.getByRole("button", { name: /Register/i });
     fireEvent.click(registerButton);
 
     // Wait for error alert to appear
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Error! Registration failed."
-      );
+      expect(toast.error).toHaveBeenCalledWith("Registration failed.");
     });
   });
 });
