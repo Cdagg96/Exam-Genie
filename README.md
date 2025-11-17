@@ -37,6 +37,8 @@ User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/m
 
   - Testing- vitest
 
+  - Password Hashing- bcryptjs
+
 ## License (if any)
 No license asof now
 
