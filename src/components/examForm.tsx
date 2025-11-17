@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import ExamPreviewModel from "@/components/examPreview";
 import SelectBox from "@/components/SelectBox";
-
+import { useAuth } from "@/components/AuthContext";
 
 export type QuestionType =
     | "MC"
@@ -55,6 +55,7 @@ export type ExamDoc = {
 
 export default function ExamForm() {
     // Core fields (minimal state)
+    const { user } = useAuth(); 
     const [title, setTitle] = useState("");
     const [subject, setSubject] = useState("");
     const [totalQuestions, setTotalQuestions] = useState(25);
@@ -82,6 +83,7 @@ export default function ExamForm() {
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewExam, setPreviewExam] = useState<ExamDoc | null>(null);
+    const [generating, setGenerating] = useState(false);
 
     //Runs when page opens to get subjects
     useEffect(() => {
@@ -117,6 +119,14 @@ export default function ExamForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        //Check if user is logged in
+        if (!user) {
+            toast.error("You must be logged in to generate exams");
+            return;
+        }
+
+        setGenerating(true);
+
         const data = {
             title,
             subject,
@@ -126,7 +136,8 @@ export default function ExamForm() {
             typeCounts,
             totalQuestions,
             questions: [],
-            totalPoints: 0
+            totalPoints: 0,
+            userID: user._id
         }
 
         try {
@@ -156,6 +167,8 @@ export default function ExamForm() {
         } catch (error) {
             console.error(error);
             alert("Network/Server error");
+        } finally {
+            setGenerating(false);
         }
 
         const examSpec = { title, totalQuestions, difficulty, timeLimit, randomize, allowedTypes, sections };
@@ -284,8 +297,8 @@ export default function ExamForm() {
                         >
                             Reset
                         </button>
-                        <button type="submit" className="btn btn-primary-blue rounded-xl px-5 py-2">
-                            Generate
+                        <button type="submit" className="btn btn-primary-blue rounded-xl px-5 py-2" disabled={generating || !user}>
+                            {generating ? "Generating..." : "Generate Exam"}
                         </button>
                     </div>
                 </div>
