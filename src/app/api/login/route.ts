@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/libs/mongo";
+import bcrypt from "bcryptjs"; //for password hashing
 
 export async function POST(req:Request) {
     try {
@@ -24,7 +25,8 @@ export async function POST(req:Request) {
         }
 
         // if the password does not match, return incorrect password
-        if(user.password !== password) {
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if(!passwordMatch) {
             return NextResponse.json(
                 {ok: false, message: "Incorrect password"},
                 {status: 401}

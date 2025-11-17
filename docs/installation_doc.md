@@ -66,3 +66,9 @@ npm install @emotion/react @emotion/styled
 npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
 ```
 
+## Install for Password Hashing
+
+```bash
+npm install bcryptjs
+```
+
