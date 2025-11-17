@@ -2,6 +2,19 @@ import React from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import LoginModal from "@/components/LoginModal";
+import toast from "react-hot-toast";
+
+//Mock hot toast
+vi.mock("react-hot-toast", () => {
+  return {
+    default: {
+      error: vi.fn(),
+      success: vi.fn(),
+    },
+    error: vi.fn(),
+    success: vi.fn(),
+  };
+});
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -41,10 +54,9 @@ describe("User Login", () => {
       />
     );
 
-    // Get login inputs (first two are for login section)
-    const inputs = screen.getAllByPlaceholderText(/Email|Password/);
-    const loginEmailInput = inputs[0] as HTMLInputElement;
-    const loginPasswordInput = inputs[1] as HTMLInputElement;
+    // Get login inputs 
+    const loginEmailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
+    const loginPasswordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
 
     // Fill out login form
     fireEvent.change(loginEmailInput, { target: { value: "test@example.com" } });
@@ -56,7 +68,7 @@ describe("User Login", () => {
 
     // Wait for success alert to appear
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("Success! Login successful!");
+      expect(toast.success).toHaveBeenCalledWith("Login successful!");
     });
 
     
@@ -88,11 +100,11 @@ describe("User Login", () => {
       />
     );
 
-    // Fill login form
-    const inputs = screen.getAllByPlaceholderText(/Email|Password/);
-    const loginEmailInput = inputs[0] as HTMLInputElement;
-    const loginPasswordInput = inputs[1] as HTMLInputElement;
+    // Get login inputs
+    const loginEmailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
+    const loginPasswordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
 
+    // Fill login form
     fireEvent.change(loginEmailInput, { target: { value: "wrong@example.com" } });
     fireEvent.change(loginPasswordInput, { target: { value: "wrongpass" } });
 
@@ -102,7 +114,7 @@ describe("User Login", () => {
 
     // Wait for error alert
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("Error! Invalid credentials.");
+      expect(toast.error).toHaveBeenCalledWith("Login failed.");
     });
 
     // Verify setLoggedIn and onClose are NOT called
