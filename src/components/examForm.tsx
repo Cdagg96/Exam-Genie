@@ -5,13 +5,7 @@ import toast from "react-hot-toast";
 import ExamPreviewModel from "@/components/examPreview";
 import SelectBox from "@/components/SelectBox";
 import { useAuth } from "@/components/AuthContext";
-
-export type QuestionType =
-    | "MC"
-    | "TF"
-    | "Essay"
-    | "FIB"
-    | "Code";
+import { ExamDoc, ExamQuestionItem, QuestionType } from "@/types/exam";
 
 
 const TYPES: { value: QuestionType; label: string }[] = [
@@ -30,27 +24,6 @@ const DEFAULT_SECTION = {
     type: "multiple_choice" as QuestionType,
     difficulty: "mixed",
 };
-
-// What consists of an exam question
-export type ExamQuestionItem = {
-    questionId: string;
-    type: QuestionType;
-    subject: string;
-    points: number;
-    order?: number;
-    snapshot?: any; // Snapshot of question
-}
-
-// What consists of a whole exam
-export type ExamDoc = {
-    _id: string;
-    title: string;
-    subject: string;
-    timeLimitMin: number;
-    difficulty: string;
-    totalPoints: number;
-    questions: ExamQuestionItem[];
-}
 
 
 export default function ExamForm() {
@@ -310,44 +283,4 @@ export default function ExamForm() {
             />
         </div>
     );
-}
-
-
-
-function generateExamPDF(examSpec: any,
-    questions: { number: number; text: string; type: string }[]
-) {
-    const doc = new jsPDF();
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text(examSpec.title || "Untitled Exam", 10, 20);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    let y = 35;
-
-    const maxLabelIndex = examSpec.allowedTypes.length;
-
-    questions.forEach((q, idx) => {
-        if (y > 280) {
-            doc.addPage();
-            y = 20;
-        }
-
-        let questionText = `${q.number}.`;
-
-        if (idx < maxLabelIndex) {
-            if (q.type === "multiple_choice") questionText += " Example multiple choice";
-            else if (q.type === "true_false") questionText += " Example true/false";
-            else questionText += ` Example ${q.type.replace("_", " ")}`;
-        }
-
-        doc.text(questionText, 10, y);
-        y += 8;
-    });
-
-
-
-    doc.save(`${examSpec.title || "exam"}.pdf`);
 }
