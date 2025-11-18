@@ -26,6 +26,11 @@ export default function LoginModal({
     email: "",
     password: ""
   });
+  //makes sure that the email comes in valid format
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
 
   //gets the users log in information
   const { login } = useAuth();
@@ -41,8 +46,8 @@ export default function LoginModal({
 
   //When the user types into one of the register input fields, update the corresponding state
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setRegisterData(prev => ({ ...prev, [name]: value }));
+    const { name, value } = e.target;
+    setRegisterData(prev => ({ ...prev, [name]: value }));
   };
 
   //Handle login submission
@@ -50,7 +55,11 @@ export default function LoginModal({
     if (!loginData.email || !loginData.password) {
       toast.error("Not all login fields are filled out.");
       return;
-    } 
+    }
+    if (!isValidEmail(loginData.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
 
     try {
       const res = await fetch("/api/login", {
@@ -79,6 +88,10 @@ export default function LoginModal({
 
   //Handle register submission
   const handleRegister = async () => {
+    if (!isValidEmail(registerData.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
     if (!registerData.role || !registerData.email || !registerData.password) {
       //Show error if not all fields are filled out
       toast.error("Not all registration fields are filled out.");
@@ -129,7 +142,7 @@ export default function LoginModal({
       }
     }
   }
-  
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
       <div className="bg-white text-black rounded-2xl shadow-2xl w-[40rem] h-[30rem] flex relative">
@@ -207,7 +220,7 @@ export default function LoginModal({
                 </button>
               </div>
             </>
-          //If current modal is register, show Register Modal
+            //If current modal is register, show Register Modal
           ) : (
             <>
               <h2 className="text-4xl font-semibold mb-15 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">Register</h2>
@@ -219,21 +232,21 @@ export default function LoginModal({
                     name="role"
                     value="teacher"
                     checked={registerData.role === "teacher"}
-                    onChange={(e) => 
+                    onChange={(e) =>
                       setRegisterData(prev => ({ ...prev, role: e.target.value }))
                     }
                     className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                   />
                   Teacher
                 </label>
-                  
+
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="role"
                     value="student"
                     checked={registerData.role === "student"}
-                    onChange={(e) => 
+                    onChange={(e) =>
                       setRegisterData(prev => ({ ...prev, role: e.target.value }))
                     }
                     className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
