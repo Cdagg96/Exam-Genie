@@ -21,9 +21,11 @@ export default function PastExams() {
     const [examTitleToDelete, setExamTitleToDelete] = useState<string>("");
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
+    const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
 
     // Filtering states
     const [selectedSubject, setSelectedSubject] = useState<string>('');
+    const [selectedCourseNum, setselectedCourseNum] = useState<string>('');
 
     // Fetch exams from MongoDB
     const fetchExams = async () => {
@@ -52,12 +54,18 @@ export default function PastExams() {
         fetchExams();
     }, []);
 
-    //Creates a unique list of subjects for the filter box
+    //Creates a unique list of subjects and course numbers for the filter box
     useEffect(() => {
         const uniqueSubjects = Array.from(
             new Set(exams.map(e => e.subject?.trim()).filter((s): s is string => !!s))
         ).map(subject => ({ value: subject, label: subject }));
 
+        const uniqueCourseNums = Array.from(
+            new Set(exams.map(e => e.courseNum?.trim()).filter((s): s is string => !!s))
+        ).map(courseNum => ({ value: courseNum, label: courseNum }));
+
+        //Store the list of unique topics if any changes occur in questions
+        setCourseNums(uniqueCourseNums);
         //Store the list of unique topics if any changes occur in questions
         setSubjects(uniqueSubjects);
     }, [exams]);
@@ -120,7 +128,7 @@ export default function PastExams() {
                 </header>
 
                 <main className="flex flex-col items-center justify-center pt-8">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent mb-4">
+                    <h1 className="text-4xl font-bold bg-linear-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent mb-4">
                         Generated Exams
                     </h1>
                     <p className="text-gray-600 mb-8 text-lg max-w-2xl">
@@ -185,6 +193,16 @@ export default function PastExams() {
                                 onSelect={setSelectedSubject}
                                 value={selectedSubject}
                             />
+
+                            {/* Course number Filter Box */}
+                            <FilterBox
+                                options={courseNums}
+                                label="Course Number"
+                                placeholder="Search a Course Number"
+                                onSelect={setselectedCourseNum}
+                                value={selectedCourseNum}
+                            />
+
                             <div className="text-left">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Last Used
@@ -223,13 +241,16 @@ export default function PastExams() {
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
                         <div className="overflow-x-auto w-full max-w-full max-h-90 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200 min-h-[400px]">
-                                <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 sticky top-0">
+                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0">
                                     <tr>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Exam Title
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Subject
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Course Number
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Difficulty
@@ -289,6 +310,11 @@ export default function PastExams() {
                                                 <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
                                                     <div className="truncate" title={exam.title}>
                                                         {exam.subject ? exam.subject : "N/A"}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                    <div className="truncate" title={exam.title}>
+                                                        {exam.courseNum ? exam.courseNum : "N/A"}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">

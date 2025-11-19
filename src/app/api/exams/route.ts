@@ -109,6 +109,7 @@ export async function POST(req:Request) {
         const {
             title,
             subject,
+            courseNum,
             timeLimit,
             difficulty = "mixed",
             randomize = true,
@@ -144,8 +145,9 @@ export async function POST(req:Request) {
         const band = DIFF_MAP[difficulty];
         const diffFilter = band ? {$in: band} : undefined;
 
-        // If a subject is given, filter on subject as well
+        // If a subject or course number is given, filter on those as well
         const subjectFilter = subject && subject.trim() !== "";
+        const courseNumFilter = courseNum && courseNum.trim() !== "";
 
         // Check availability for each type in the DB
         const shortages: Array<{type: string; requested: number; available: number}> = [];
@@ -155,6 +157,7 @@ export async function POST(req:Request) {
             if(diffFilter) match.difficulty = diffFilter;
             match.userID = userID;
             if(subjectFilter) match.subject = subject;
+            if(courseNumFilter) match.courseNum = courseNum;
 
             const available = await questionsdb.countDocuments(match);
             if(available < requested){
@@ -180,6 +183,7 @@ export async function POST(req:Request) {
             if(diffFilter) match.difficulty = diffFilter;
             match.userID = userID;
             if(subjectFilter) match.subject = subject;
+            if(courseNumFilter) match.courseNum = courseNum;
 
             // Randomly sample questions for current type
             const sample = await questionsdb.aggregate([
@@ -193,6 +197,7 @@ export async function POST(req:Request) {
                     questionId: q._id,
                     type: q.type,
                     subject: q.subject,
+                    courseNum: q.courseNum,
                     points: 1,
                     snapshot: {
                         stem: q.stem,
@@ -217,6 +222,7 @@ export async function POST(req:Request) {
         const exam_data = {
             title,
             subject,
+            courseNum,
             timeLimitMin: timeLimit,
             difficulty,
             totalPoints,

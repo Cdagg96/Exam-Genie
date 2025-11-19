@@ -2,23 +2,24 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import SelectBox from "@/components/SelectBox";
+import { Question } from "@/types/question";
 
-interface Question {
-    _id: string;
-    stem: string;
-    type: string;
-    difficulty: string;
-    topics: string[];
-    subject: string;
-    choices: {
-        label: string;
-        text: string;
-        isCorrect: boolean;
-    }[];
-    answer: string;
-    lastUsed: string | null;
-    userID: string;
-}
+// interface Question {
+//     _id: string;
+//     stem: string;
+//     type: string;
+//     difficulty: string;
+//     topics: string[];
+//     subject: string;
+//     choices: {
+//         label: string;
+//         text: string;
+//         isCorrect: boolean;
+//     }[];
+//     answer: string;
+//     lastUsed: string | null;
+//     userID: string;
+// }
 
 interface EditQuestionModalProps {
     isOpen: boolean;
@@ -39,6 +40,7 @@ export default function EditQuestionModal({
     const [difficulty, setDifficulty] = useState(1);
     const [topics, setTopics] = useState("");
     const [subject, setSubject] = useState("");
+    const [courseNum, setCourseNum] = useState("");
     const [choiceA, setChoiceA] = useState("");
     const [choiceB, setChoiceB] = useState("");
     const [choiceC, setChoiceC] = useState("");
@@ -56,6 +58,7 @@ export default function EditQuestionModal({
             setDifficulty(Number(question.difficulty));
             setTopics(question.topics.join(", "));
             setSubject(question.subject);
+            setCourseNum(question.courseNum);
 
             //Initialize answers based on question type
             if (question.type === "MC" || question.type === "TF") {
@@ -94,6 +97,7 @@ export default function EditQuestionModal({
             difficulty: difficulty,
             topics: topics.split(",").map(t => t.trim()),
             subject,
+            courseNum,
             lastUsed: question.lastUsed,
             userID: question.userID
         };
@@ -168,7 +172,7 @@ export default function EditQuestionModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-white text-black rounded-2xl shadow-2xl w-[40rem] p-6 relative overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="bg-white text-black rounded-2xl shadow-2xl w-160 p-6 relative overflow-hidden max-h-[90vh] overflow-y-auto">
 
                 {/* Close button */}
                 <button
@@ -259,6 +263,20 @@ export default function EditQuestionModal({
                             placeholder="Subject"
                             value={subject ?? ""}
                             onChange={(e) => setSubject(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    {/* Question Course Number */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Course Number
+                        </label>
+                        <input
+                            className="border px-4 py-3 w-full rounded-xl"
+                            placeholder="Course Number"
+                            value={courseNum ?? ""}
+                            onChange={(e) => setCourseNum(e.target.value)}
                             required
                         />
                     </div>
@@ -401,7 +419,7 @@ export default function EditQuestionModal({
                         <button
                             type="submit"
                             disabled={loading}
-                            className="bg-black text-white px-6 py-2 rounded hover:bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 transition-all disabled:opacity-50"
+                            className="bg-black text-white px-6 py-2 rounded hover:bg-linear-to-r from-blue-400 via-cyan-400 to-blue-600 transition-all disabled:opacity-50"
                         >
                             {loading ? "Updating..." : "Update Question"}
                         </button>

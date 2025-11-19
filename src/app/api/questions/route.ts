@@ -94,6 +94,7 @@ export async function GET(req: Request) {
     const difficulty = searchParams.get('difficulty');
     const type = searchParams.get('type');
     const subject = searchParams.get('subject');
+    const courseNum = searchParams.get('courseNum');
     const lastUsed = searchParams.get('lastUsed');
     
     const client = await clientPromise;
@@ -125,6 +126,10 @@ export async function GET(req: Request) {
 
     if(subject){
         filter.subject = subject;
+    }
+
+    if(courseNum){
+        filter.courseNum = courseNum;
     }
     
     if (lastUsed) {

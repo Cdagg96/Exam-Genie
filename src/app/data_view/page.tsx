@@ -13,23 +13,24 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { useAuth } from "@/components/AuthContext";
 import { LightBackground } from "@/components/BackgroundModal";
+import { Question } from "@/types/question";
 
-interface Question {
-    _id: string;
-    stem: string;
-    type: string;
-    difficulty: string;
-    topics: string[];
-    subject: string;
-    choices: {
-        label: string;
-        text: string;
-        isCorrect: boolean;
-    }[];
-    answer: string;
-    lastUsed: string | null;
-    userID: string;
-}
+// interface Question {
+//     _id: string;
+//     stem: string;
+//     type: string;
+//     difficulty: string;
+//     topics: string[];
+//     subject: string;
+//     choices: {
+//         label: string;
+//         text: string;
+//         isCorrect: boolean;
+//     }[];
+//     answer: string;
+//     lastUsed: string | null;
+//     userID: string;
+// }
 
 export default function DatabaseActionPage() {
     const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
@@ -38,6 +39,7 @@ export default function DatabaseActionPage() {
     const [error, setError] = useState<string | null>(null);
     const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
+    const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
     const [questionTextToDelete, setQuestionTextToDelete] = useState<string>("");
@@ -58,6 +60,7 @@ export default function DatabaseActionPage() {
     const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
     const [selectedType, setSelectedType] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
+    const [selectedCourseNum, setselectedCourseNum] = useState<string>('');
     const [filtersApplied, setFiltersApplied] = useState(false);
 
     //Fetch questions with filters
@@ -72,6 +75,7 @@ export default function DatabaseActionPage() {
             if (selectedDifficulty) params.append('difficulty', selectedDifficulty);
             if (selectedType) params.append('type', selectedType);
             if (selectedSubject) params.append('subject', selectedSubject);
+            if (selectedCourseNum) params.append('courseNum', selectedCourseNum);
             if (lastUsedDate) params.append('lastUsed', lastUsedDate.format('MM-DD-YYYY'));
 
             const queryString = params.toString();
@@ -107,6 +111,7 @@ export default function DatabaseActionPage() {
         setSelectedDifficulty('');
         setSelectedType('');
         setSelectedSubject('');
+        setselectedCourseNum('');
         setLastUsedDate(null);
         setDateInputValue('');
         setFiltersApplied(false);
@@ -159,6 +164,16 @@ export default function DatabaseActionPage() {
 
         //Store the list of unique topics if any changes occur in questions
         setSubjects(uniqueSubjects);
+    }, [questions]);
+
+     //Creates a unique list of course numbers for the filter box
+    useEffect(() => {
+        const uniqueCourseNums = Array.from(
+            new Set(questions.map(quest => quest.courseNum?.trim()).filter((s): s is string => !!s))
+        ).map(courseNum => ({ value: courseNum, label: courseNum }));
+
+        //Store the list of unique topics if any changes occur in questions
+        setCourseNums(uniqueCourseNums);
     }, [questions]);
 
     //Runs when the add question form closes to potentially grab new questions just added
@@ -301,7 +316,7 @@ export default function DatabaseActionPage() {
                     <NavBar />
                 </header>
                 <main className="flex flex-col items-center justify-center pt-8">
-                    <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
                         Question Bank
                     </h1>
                     <p className="text-gray-600 mb-8 text-lg max-w-2xl">
@@ -367,6 +382,15 @@ export default function DatabaseActionPage() {
                                 placeholder="Search a subject"
                                 onSelect={setSelectedSubject}
                                 value={selectedSubject}
+                            />
+
+                            {/* Course number Filter Box */}
+                            <FilterBox
+                                options={courseNums}
+                                label="Course Number"
+                                placeholder="Search a Course Number"
+                                onSelect={setselectedCourseNum}
+                                value={selectedCourseNum}
                             />
 
                             <div className="text-left">
@@ -445,7 +469,7 @@ export default function DatabaseActionPage() {
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
                         <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
-                                <thead className="bg-gradient-to-r from-blue-50 to-cyan-50 sticky top-0">
+                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0">
                                     <tr>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Question
@@ -461,6 +485,9 @@ export default function DatabaseActionPage() {
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Subject
+                                        </th>
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                            Course Number
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200 max-w-72">
                                             Choices
@@ -526,7 +553,10 @@ export default function DatabaseActionPage() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                                     {question.subject || 'N/A'}
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200 max-w-72">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                    {question.courseNum || 'N/A'}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
                                                     <div className="truncate" title={formatChoices(question.choices)}>
                                                         {formatChoices(question.choices)}
                                                     </div>
