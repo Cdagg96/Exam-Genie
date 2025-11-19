@@ -15,23 +15,6 @@ import { useAuth } from "@/components/AuthContext";
 import { LightBackground } from "@/components/BackgroundModal";
 import { Question } from "@/types/question";
 
-// interface Question {
-//     _id: string;
-//     stem: string;
-//     type: string;
-//     difficulty: string;
-//     topics: string[];
-//     subject: string;
-//     choices: {
-//         label: string;
-//         text: string;
-//         isCorrect: boolean;
-//     }[];
-//     answer: string;
-//     lastUsed: string | null;
-//     userID: string;
-// }
-
 export default function DatabaseActionPage() {
     const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
     const [questions, setQuestions] = useState<Question[]>([]);

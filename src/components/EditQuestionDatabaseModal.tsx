@@ -4,23 +4,6 @@ import toast from "react-hot-toast";
 import SelectBox from "@/components/SelectBox";
 import { Question } from "@/types/question";
 
-// interface Question {
-//     _id: string;
-//     stem: string;
-//     type: string;
-//     difficulty: string;
-//     topics: string[];
-//     subject: string;
-//     choices: {
-//         label: string;
-//         text: string;
-//         isCorrect: boolean;
-//     }[];
-//     answer: string;
-//     lastUsed: string | null;
-//     userID: string;
-// }
-
 interface EditQuestionModalProps {
     isOpen: boolean;
     onClose: () => void;
