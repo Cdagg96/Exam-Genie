@@ -54,6 +54,7 @@ test("MC: submits valid form → posts and shows success toast, closes modal", a
   await user.type(screen.getByPlaceholderText(/difficulty/i), "1");
   await user.type(screen.getByPlaceholderText(/topic/i), "C++ Syntax");
   await user.type(screen.getByPlaceholderText(/subject/i), "Computer Science");
+  await user.type(screen.getByPlaceholderText(/Course Number/i), "CS2401");
 
   await user.type(screen.getByPlaceholderText(/choice a/i), "//");
   await user.type(screen.getByPlaceholderText(/choice b/i), "/* */");
@@ -114,6 +115,7 @@ test("TF: true/false buttons should appear and submitting should return 401 with
   await user.type(screen.getByPlaceholderText(/difficulty/i), "1");
   await user.type(screen.getByPlaceholderText(/topic/i), "C++ Syntax");
   await user.type(screen.getByPlaceholderText(/subject/i), "Computer Science");
+  await user.type(screen.getByPlaceholderText(/Course Number/i), "CS2401");
 
   // choose correct answer A
   await user.click(trueB);

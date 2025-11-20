@@ -294,6 +294,8 @@ export default function ExamForm() {
                                 setTitle("");
                                 setTotalQuestions(25);
                                 setDifficulty("mixed");
+                                setCourseNum("");
+                                setSubject("");
                                 setTimeLimit(60);
                                 setRandomize(true);
                                 setAllowedTypes(["MC", "TF", "Essay"]);
