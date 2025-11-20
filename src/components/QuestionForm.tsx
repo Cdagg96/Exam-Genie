@@ -21,6 +21,7 @@ export default function BackgroundModal({
     const [difficulty, setDifficulty] = useState(1);
     const [topics, setTopics] = useState("");
     const [subject, setSubject] = useState("");
+    const [courseNum, setCourseNum] = useState("");
     const [choiceA, setChoiceA] = useState("");
     const [choiceB, setChoiceB] = useState("");
     const [choiceC, setChoiceC] = useState("");
@@ -38,6 +39,7 @@ export default function BackgroundModal({
             stem, type, difficulty,
             topics: topics.split(",").map(t => t.trim()),
             subject,
+            courseNum,
             lastUsed: null,
             userID: user?._id ?? "", //if user not logged in set id to ""
             points: 1,
@@ -124,7 +126,7 @@ export default function BackgroundModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-            <div className="bg-white text-black rounded-2xl shadow-2xl w-[40rem] p-6 relative overflow-hidden">
+            <div className="bg-white text-black rounded-2xl shadow-2xl w-160 max-h-[80vh] overflow-y-auto p-6 relative overflow-hidden">
 
                 {/* Close button */}
                 <button
@@ -191,6 +193,17 @@ export default function BackgroundModal({
                         onChange={(e) => setSubject(e.target.value)}
                         required
                     />
+
+                    {/* Question Course Number */}
+                    <div>
+                        <input
+                            className="border px-4 py-3 w-full rounded-xl"
+                            placeholder="Course Number"
+                            value={courseNum ?? ""}
+                            onChange={(e) => setCourseNum(e.target.value)}
+                            required
+                        />
+                    </div>
 
                     {/* MC options */}
                     {type === "MC" && (

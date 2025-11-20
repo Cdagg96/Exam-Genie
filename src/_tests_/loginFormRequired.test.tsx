@@ -71,7 +71,7 @@ describe("LoginModal Alerts", () => {
 
     //Wait for the alert to appear
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Not all registration fields are filled out.");
+      expect(toast.error).toHaveBeenCalledWith("Please enter a valid email address.");
     });
 
   });

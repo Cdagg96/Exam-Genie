@@ -31,6 +31,7 @@ export default function ExamForm() {
     const { user } = useAuth(); 
     const [title, setTitle] = useState("");
     const [subject, setSubject] = useState("");
+    const [courseNum, setCourseNum] = useState("");
     const [totalQuestions, setTotalQuestions] = useState(25);
     const [difficulty, setDifficulty] = useState("mixed");
     const [timeLimit, setTimeLimit] = useState(60);
@@ -50,6 +51,7 @@ export default function ExamForm() {
 
     // For select dropdown
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
+    const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
 
     // Simple optional sections (can remove if you want ultra-minimal)
     const [sections, setSections] = useState([{ ...DEFAULT_SECTION }]);
@@ -85,6 +87,32 @@ export default function ExamForm() {
             }
         }
 
+        async function loadCourseNums(){
+            try {
+                const response = await fetch("/api/course_numbers");
+                const data = await response.json();
+
+                if(!response.ok || !data.ok){
+                    console.log("Failed to load course numbers: ", data);
+                    return
+                }
+
+                const options = data.courseNums.map((s: string) => ({
+                    value: s,
+                    label: s
+                }))
+
+                setCourseNums([
+                    { value: '', label: 'All Course Numbers' },
+                    ...options
+                ]);
+            } catch (error) {
+                console.error("Error fetching subjects");
+                
+            }
+        }
+
+        loadCourseNums();
         loadSubjects();
     }, []);
 
@@ -103,6 +131,7 @@ export default function ExamForm() {
         const data = {
             title,
             subject,
+            courseNum,
             timeLimit,
             difficulty,
             allowedTypes,
@@ -180,29 +209,6 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Subject</span>
-                            <SelectBox
-                                label=""
-                                options={subjects}
-                                placeholder="All Subjects"
-                                onSelect={setSubject}
-                                defaultValue=""
-                                value={subject}
-                            />
-                        </label>
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Time Limit</span>
-                            <input
-                                type="number"
-                                min={0}
-                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
-                                placeholder="60"
-                                value={timeLimit || ""}
-                                onChange={(e) => setTimeLimit(Number(e.target.value))}
-                                required
-                            />
-                        </label>
-                        <label className="flex flex-col gap-1">
                             <span className="text-sm font-medium">Difficulty</span>
                             {/* Difficulty Filter */}
                             <SelectBox
@@ -217,6 +223,40 @@ export default function ExamForm() {
                                 onSelect={setDifficulty}
                                 defaultValue="mixed"
                                 value={difficulty}
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">Subject</span>
+                            <SelectBox
+                                label=""
+                                options={subjects}
+                                placeholder="All Subjects"
+                                onSelect={setSubject}
+                                defaultValue=""
+                                value={subject}
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">Course Number</span>
+                            <SelectBox
+                                label=""
+                                options={courseNums}
+                                placeholder="All Course Numbers"
+                                onSelect={setCourseNum}
+                                defaultValue=""
+                                value={courseNum}
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">Time Limit</span>
+                            <input
+                                type="number"
+                                min={0}
+                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
+                                placeholder="60"
+                                value={timeLimit || ""}
+                                onChange={(e) => setTimeLimit(Number(e.target.value))}
+                                required
                             />
                         </label>
                     </div>
@@ -254,6 +294,8 @@ export default function ExamForm() {
                                 setTitle("");
                                 setTotalQuestions(25);
                                 setDifficulty("mixed");
+                                setCourseNum("");
+                                setSubject("");
                                 setTimeLimit(60);
                                 setRandomize(true);
                                 setAllowedTypes(["MC", "TF", "Essay"]);

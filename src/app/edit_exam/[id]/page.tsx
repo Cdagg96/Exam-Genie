@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import type { ExamDoc } from "@/components/examForm";
+import type { ExamDoc } from "@/types/exam";
 import QuestionForm from "@/components/QuestionForm";
 import EditQuestionModal from "@/components/EditQuestionModal";
 import toast from "react-hot-toast";
@@ -256,7 +256,8 @@ export default function EditExamPage() {
         <header className="mb-6 border-b pb-4 text-center">
           <div className="text-sm text-gray-600">Department of {exam.subject}</div>
           <h1 className="mt-1 text-2xl font-bold">{exam.title}</h1>
-          <div className="mt-2 text-[13px] text-gray-600">
+          <div className=" mt-1 text-sm text-gray-600">{exam.courseNum}</div>
+          <div className="text-[13px] text-gray-600">
             Time: {exam.timeLimitMin} minutes • Total Points: {exam.totalPoints}
           </div>
         </header>

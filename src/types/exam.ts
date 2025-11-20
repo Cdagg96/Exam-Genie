@@ -10,6 +10,7 @@ export type ExamQuestionItem = {
   questionId: string;
   type: QuestionType;
   subject: string;
+  courseNum: string;
   points: number;
   order?: number;
   snapshot?: any;
@@ -19,6 +20,7 @@ export type ExamDoc = {
   _id: string;
   title: string;
   subject: string;
+  courseNum: string;
   timeLimitMin: number;
   difficulty: string;
   totalPoints: number;

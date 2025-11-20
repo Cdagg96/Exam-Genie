@@ -2,12 +2,7 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import SelectBox from "@/components/SelectBox";
-
-interface Choice {
-    label: string;
-    text: string;
-    isCorrect: boolean;
-}
+import { Choice } from "@/types/question";
 
 interface EditQuestionModalProps {
     isOpen: boolean;
@@ -168,7 +163,7 @@ export default function EditQuestionModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-white text-black rounded-2xl shadow-2xl w-[40rem] p-6 relative overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="bg-white text-black rounded-2xl shadow-2xl w-160 p-6 relative overflow-hidden max-h-[90vh] overflow-y-auto">
 
                 {/* Close button */}
                 <button
@@ -388,7 +383,7 @@ export default function EditQuestionModal({
                         <button
                             type="submit"
                             disabled={loading}
-                            className="bg-black text-white px-6 py-2 rounded hover:bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 transition-all disabled:opacity-50"
+                            className="bg-black text-white px-6 py-2 rounded hover:bg-linear-to-r from-blue-400 via-cyan-400 to-blue-600 transition-all disabled:opacity-50"
                         >
                             {loading ? "Updating..." : "Update Question"}
                         </button>
