@@ -126,7 +126,7 @@ export default function BackgroundModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-            <div className="bg-white text-black rounded-2xl shadow-2xl w-160 p-6 relative overflow-hidden">
+            <div className="bg-white text-black rounded-2xl shadow-2xl w-160 max-h-[80vh] overflow-y-auto p-6 relative overflow-hidden">
 
                 {/* Close button */}
                 <button
