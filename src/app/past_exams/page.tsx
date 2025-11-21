@@ -9,7 +9,7 @@ import Link from "next/link";
 import { LightBackground } from "@/components/BackgroundModal";
 import SelectBox from "@/components/SelectBox";
 import FilterBox from "@/components/filterBox";
-import generateExamPDF from "@/components/ExamPDF"
+import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX } from "@/components/ExamDownload"
 import type { ExamWithMeta } from "@/types/exam";
 
 export default function PastExams() {
@@ -22,6 +22,8 @@ export default function PastExams() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
     const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
+    type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
+    const [openDownloadMenuId, setOpenDownloadMenuId] = useState<string | null>(null);
 
     // Filtering states
     const [selectedSubject, setSelectedSubject] = useState<string>('');
@@ -32,10 +34,10 @@ export default function PastExams() {
         try {
             setLoading(true);
             const response = await fetch("../api/exams", {
-                method: 'GET' 
+                method: 'GET'
             });
 
-            if(!response.ok) {
+            if (!response.ok) {
                 throw new Error('Failed to fetch exams');
             }
 
@@ -79,7 +81,7 @@ export default function PastExams() {
 
     // Confirm delete exam
     const handleConfirmDelete = async () => {
-        if(!examToDelete) return;
+        if (!examToDelete) return;
 
         try {
             setDeleteLoading(true);
@@ -89,7 +91,7 @@ export default function PastExams() {
 
             const result = await response.json();
 
-            if(response.ok) {
+            if (response.ok) {
                 toast.success("Exam deleted successfully!");
                 await fetchExams();
             } else {
@@ -116,9 +118,18 @@ export default function PastExams() {
         setExamTitleToDelete("");
     };
 
-    const handleDownloadPDF = (exam: ExamWithMeta) => {
-        generateExamPDF(exam);
-    }
+    const handleDownloadExam = (exam: ExamWithMeta, format: DownloadFormat) => {
+        if (format === "txt") {
+            DownloadExamTXT(exam);        // or exam as any / ExamDoc if needed
+        } else if (format === "pdf") {
+            DownloadExamPDF(exam);
+        }else if (format ==="csv"){
+            DownloadExamCSV(exam);
+        }else if (format === "docx"){
+            DownloadExamDOCX(exam);
+        }
+        
+    };
 
     return (
         <LightBackground>
@@ -241,7 +252,7 @@ export default function PastExams() {
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
                         <div className="overflow-x-auto w-full max-w-full max-h-90 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200 min-h-[400px]">
-                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0">
+                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0 z-50 overflow-hidden">
                                     <tr>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Exam Title
@@ -283,7 +294,7 @@ export default function PastExams() {
                                             <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
                                                 <div className="text-gray-400 text-lg">Error loading exams</div>
                                                 <div className="text-red-400 text-sm mt-2">{error}</div>
-                                                <button 
+                                                <button
                                                     onClick={fetchExams}
                                                     className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
                                                     Retry
@@ -345,20 +356,62 @@ export default function PastExams() {
                                                         <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(exam._id, exam.title)}>
                                                             Delete
                                                         </button>
-                                                        <button onClick={() => handleDownloadPDF(exam)}>
-                                                            <svg
-                                                            xmlns="http://www.w3.org/2000/svg" 
-                                                            fill="none" 
-                                                            viewBox="0 0 24 24" 
-                                                            strokeWidth={1.5} 
-                                                            stroke="currentColor" 
-                                                            className="w-5 h-5 hover:-translate-y-0.5">
-                                                                <path 
-                                                                strokeLinecap="round" 
-                                                                strokeLinejoin="round" 
-                                                                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                                            </svg>
-                                                        </button>
+                                                        {/* Download menu */}
+                                                        <div className="relative">
+                                                            <button
+                                                                onClick={() =>
+                                                                    setOpenDownloadMenuId(
+                                                                        openDownloadMenuId === exam._id ? null : exam._id
+                                                                    )
+                                                                }
+                                                                className="p-1 rounded hover:bg-gray-100"
+                                                                aria-label="Download exam"
+                                                            >
+                                                                <svg
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    fill="none"
+                                                                    viewBox="0 0 24 24"
+                                                                    strokeWidth={1.5}
+                                                                    stroke="currentColor"
+                                                                    className="w-5 h-5 hover:-translate-y-0.5"
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                                                                    />
+                                                                </svg>
+                                                            </button>
+
+                                                            {openDownloadMenuId === exam._id && (
+                                                                <div className="absolute right-0 top-full mt-2 w-35 rounded-lg border bg-white shadow-lg text-sm z-10 overflow-hidden">
+                                                                    <button
+                                                                        className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                                                                        onClick={() => handleDownloadExam(exam, "pdf")}
+                                                                    >
+                                                                        Download PDF
+                                                                    </button>
+                                                                    <button
+                                                                        className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                                                                        onClick={() => handleDownloadExam(exam, "txt")}
+                                                                    >
+                                                                        Download TXT
+                                                                    </button>
+                                                                    <button
+                                                                        className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                                                                        onClick={() => handleDownloadExam(exam, "docx")}
+                                                                    >
+                                                                        Download DOCX
+                                                                    </button>
+                                                                    <button
+                                                                        className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                                                                        onClick={() => handleDownloadExam(exam, "csv")}
+                                                                    >
+                                                                        Download CSV
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </td>
                                             </tr>

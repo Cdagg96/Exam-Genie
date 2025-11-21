@@ -33,6 +33,8 @@ User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/m
 
   - PDF Creator- jsPDF
 
+  - DOCX Creator - docx file-saver
+
   - Calendar Component- MUI X
 
   - Testing- vitest
