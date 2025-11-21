@@ -39,6 +39,8 @@ User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/m
 
   - Password Hashing- bcryptjs
 
+  - CSV Parsing- csv-parse
+
 ## License (if any)
 No license asof now
 
