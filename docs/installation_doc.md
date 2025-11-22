@@ -72,3 +72,10 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-
 npm install bcryptjs
 ```
 
+## Install for DOCX Downloading
+
+```bash
+npm install docx file-saver
+```
+
+

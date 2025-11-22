@@ -3,12 +3,14 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, test } from "vitest";
 import "@testing-library/jest-dom";
 import ExamPreviewModal from "@/components/examPreview";
-import type { ExamDoc } from "@/components/examForm";
+import type { ExamDoc } from "@/types/exam";
 
 // Sample exam 
 const sampleExam: ExamDoc = {
   _id: "exam1",
   title: "CS 2400 Midterm",
+  subject: "CS",        
+  courseNum: "2400",    
   timeLimitMin: 55,
   difficulty: "mixed",
   totalPoints: 10,
@@ -16,6 +18,8 @@ const sampleExam: ExamDoc = {
     {
       questionId: "q1",
       type: "MC",
+      subject: "CS",     
+      courseNum: "2400", 
       points: 3,
       order: 1,
       snapshot: {
@@ -29,6 +33,8 @@ const sampleExam: ExamDoc = {
     {
       questionId: "q2",
       type: "TF",
+      subject: "CS",
+      courseNum: "2400",
       points: 2,
       order: 2,
       snapshot: { stem: "The Earth is flat." },
@@ -36,6 +42,8 @@ const sampleExam: ExamDoc = {
     {
       questionId: "q3",
       type: "Essay",
+      subject: "CS",
+      courseNum: "2400",
       points: 5,
       order: 3,
       snapshot: { stem: "Explain Big-O.", blankLines: 6 },

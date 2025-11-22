@@ -1,16 +1,32 @@
 "use client";
-import React from "react";
+import React, {useState} from "react";
 import type { ExamDoc } from "@/types/exam";
-import generateExamPDF from "@/components/ExamPDF"
-
+import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX } from "@/components/ExamDownload"
+type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
 export default function ExamPreviewModal({
   open, onClose, exam,
 }: { open: boolean; onClose: () => void; exam: ExamDoc | null }) {
   if (!open || !exam) return null;
 
-  const handleDownloadPDF = () => {
-    generateExamPDF(exam);
-  }
+
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
+
+  const handleDownloadExam = (format: DownloadFormat) => {
+    if (!exam) return;
+
+    if (format === "txt") {
+      DownloadExamTXT(exam);
+    } else if (format === "pdf") {
+      DownloadExamPDF(exam);
+    } else if (format === "csv") {
+      DownloadExamCSV(exam);
+    } else if (format === "docx") {
+      DownloadExamDOCX(exam);
+    }
+
+    setIsDownloadMenuOpen(false);
+  };
+     
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 print:bg-transparent">
@@ -121,20 +137,58 @@ export default function ExamPreviewModal({
               >
                 Print
               </button>
-              <button onClick={() => handleDownloadPDF()}>
+              {/* Download menu */}
+            <div className="relative">
+              <button
+                onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
+                className="p-2 rounded-lg border hover:bg-gray-100"
+                aria-label="Download exam"
+              >
                 <svg
-                xmlns="http://www.w3.org/2000/svg" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                strokeWidth={1.5} 
-                stroke="currentColor" 
-                className="w-5 h-5 hover:-translate-y-0.5">
-                    <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 hover:-translate-y-0.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                  />
                 </svg>
               </button>
+
+              {isDownloadMenuOpen && (
+                <div className="absolute right-0 bottom-full mb-2 w-40 rounded-lg border bg-white shadow-lg text-sm z-50 overflow-hidden">
+                  <button
+                    className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                    onClick={() => handleDownloadExam("pdf")}
+                  >
+                    Download PDF
+                  </button>
+                  <button
+                    className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                    onClick={() => handleDownloadExam("txt")}
+                  >
+                    Download TXT
+                  </button>
+                  <button
+                    className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                    onClick={() => handleDownloadExam("docx")}
+                  >
+                    Download DOCX
+                  </button>
+                  <button
+                    className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                    onClick={() => handleDownloadExam("csv")}
+                  >
+                    Download CSV
+                  </button>
+                </div>
+              )}
+            </div>
             </div>
           </div>
       </div>
