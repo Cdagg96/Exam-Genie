@@ -252,7 +252,7 @@ export default function PastExams() {
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
                         <div className="overflow-x-auto w-full max-w-full max-h-90 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200 min-h-[400px]">
-                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0 z-50 overflow-hidden">
+                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0 z-30 overflow-hidden">
                                     <tr>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Exam Title
