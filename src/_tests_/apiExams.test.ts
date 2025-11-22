@@ -52,7 +52,8 @@ const {
     const questionsAggregateMock = vi.fn((_pipeline?: any[]) => ({
         toArray: async () => [
         { _id: "q1", type: "TF", difficulty: 1, stem: "Sun rises in the East?" },
-        { _id: "q2", type: "TF", difficulty: 2, stem: "2 + 2 = 4?" },
+        { _id: "q2", type: "FIB", difficulty: 2, stem: "2 + 2 = _" },
+        { _id: "q3", type: "MC", difficulty: 3, stem: "What is the capital of France?" },
         ],
     }));
 
@@ -162,6 +163,37 @@ describe("POST /api/exams", () => {
         
         expect(collectionMock).toHaveBeenCalledWith("exams");
         expect(insertOneMock).toHaveBeenCalledTimes(1);
+    });
+
+    // Testing question order logic
+    it("Sorts question types based on provided user input", async () => {
+        const req = new Request("http://localhost/api/exams", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+                title: "Ordered Exam",
+                timeLimit: 60,
+                difficulty: "mixed",
+                typeCounts: { TF: 1, MC: 1, FIB: 1 },
+                questionOrder: ["FIB", "MC", "TF"]
+            }),
+        });
+
+        const res = await POST(req);
+        const data = await res.json();
+
+        expect(res.status).toBe(201);
+
+        const returnedTypes = data.exam.questions.map((q: any) => q.type);
+
+        // Verify sorting matches user input
+        const firstByType = [
+            returnedTypes.find(t => t === "FIB"),
+            returnedTypes.find(t => t === "MC"),
+            returnedTypes.find(t => t === "TF"),
+        ];
+
+        expect(firstByType).toEqual(["FIB", "MC", "TF"]);
     });
 });
 
