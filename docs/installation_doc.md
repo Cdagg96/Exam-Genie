@@ -77,3 +77,10 @@ npm install bcryptjs
 ```bash
 npm install csv-parse
 ```
+## Install for DOCX Downloading
+
+```bash
+npm install docx file-saver
+```
+
+
