@@ -264,6 +264,7 @@ export default function PastExams() {
                                     { value: 'easy', label: 'Easy' },
                                     { value: 'medium', label: 'Medium' },
                                     { value: 'hard', label: 'Hard' },
+                                    { value: 'mixed', label: 'Mixed' },
                                 ]}
                                 onSelect={setSelectedDifficulty}
                                 value={selectedDifficulty}
