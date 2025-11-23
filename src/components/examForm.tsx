@@ -28,7 +28,7 @@ const DEFAULT_SECTION = {
 
 export default function ExamForm() {
     // Core fields (minimal state)
-    const { user } = useAuth(); 
+    const { user } = useAuth();
     const [title, setTitle] = useState("");
     const [subject, setSubject] = useState("");
     const [courseNum, setCourseNum] = useState("");
@@ -36,6 +36,13 @@ export default function ExamForm() {
     const [difficulty, setDifficulty] = useState("mixed");
     const [timeLimit, setTimeLimit] = useState(60);
     const [randomize, setRandomize] = useState(true);
+    const [availableCounts, setAvailableCounts] = useState<Record<QuestionType, number>>({
+        MC: 0,
+        TF: 0,
+        Essay: 0,
+        FIB: 0,
+        Code: 0,
+    });
     const [allowedTypes, setAllowedTypes] = useState<QuestionType[]>([
         "MC",
         "TF",
@@ -66,12 +73,12 @@ export default function ExamForm() {
 
     //Runs when page opens to get subjects
     useEffect(() => {
-        async function loadSubjects(){
+        async function loadSubjects() {
             try {
                 const response = await fetch("/api/subjects");
                 const data = await response.json();
 
-                if(!response.ok || !data.ok){
+                if (!response.ok || !data.ok) {
                     console.log("Failed to load subjects: ", data);
                     return
                 }
@@ -87,16 +94,16 @@ export default function ExamForm() {
                 ]);
             } catch (error) {
                 console.error("Error fetching subjects");
-                
+
             }
         }
 
-        async function loadCourseNums(){
+        async function loadCourseNums() {
             try {
                 const response = await fetch("/api/course_numbers");
                 const data = await response.json();
 
-                if(!response.ok || !data.ok){
+                if (!response.ok || !data.ok) {
                     console.log("Failed to load course numbers: ", data);
                     return
                 }
@@ -112,13 +119,60 @@ export default function ExamForm() {
                 ]);
             } catch (error) {
                 console.error("Error fetching subjects");
-                
+
+            }
+        }
+
+        async function loadQuestionTypeCounts() {
+            setAvailableCounts({
+                MC: 0,
+                TF: 0,
+                Essay: 0,
+                FIB: 0,
+                Code: 0,
+            });
+
+            if (!user) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/questions?userId=${user._id}`);
+                if (!res.ok) {
+                    console.error("Failed to load questions for counts");
+                    return;
+                }
+
+                const questions = await res.json();
+                const filtered = user
+                    ? questions.filter((q: any) => String(q.userID) === String(user._id))
+                    : questions;
+
+                const counts: Record<QuestionType, number> = {
+                    MC: 0,
+                    TF: 0,
+                    Essay: 0,
+                    FIB: 0,
+                    Code: 0,
+                };
+
+                filtered.forEach((q: any) => {
+                    const t = q.type as QuestionType;
+                    if (t in counts) {
+                        counts[t] += 1;
+                    }
+                });
+
+                setAvailableCounts(counts);
+            } catch (err) {
+                console.error("Error fetching question counts:", err);
             }
         }
 
         loadCourseNums();
         loadSubjects();
-    }, []);
+        loadQuestionTypeCounts();
+    }, [user?._id]);
 
     const parseOrderInput = (input: string): QuestionType[] => {
         const types = input.split(","); // Split by commas
@@ -156,7 +210,7 @@ export default function ExamForm() {
         const selectedTypes = Object.entries(typeCounts)
             .filter(([_, count]) => count > 0)
             .map(([type]) => type as QuestionType);
-        
+
         // If there is an order input, parse and validate it
         if (orderInput.trim() !== "") {
             const parsedOrder = parseOrderInput(orderInput);
@@ -183,7 +237,7 @@ export default function ExamForm() {
                 return;
             }
 
-        // Otherwise, use the default order of selected types
+            // Otherwise, use the default order of selected types
         } else {
             setQuestionOrder([]);
         }
@@ -329,6 +383,11 @@ export default function ExamForm() {
                         {TYPES.map((t) => (
                             <label key={t.value} className="flex flex-col gap-2">
                                 <span className="text-sm font-medium">{t.label}</span>
+                                {user && (
+                                    <span className="text-xs text-gray-500">
+                                        {availableCounts[t.value] ?? 0} questions available
+                                    </span>
+                                )}
                                 <input
                                     type="number"
                                     min={0}
