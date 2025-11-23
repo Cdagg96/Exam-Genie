@@ -6,6 +6,7 @@ import type { ExamDoc } from "@/types/exam";
 import QuestionForm from "@/components/QuestionForm";
 import EditQuestionModal from "@/components/EditQuestionModal";
 import toast from "react-hot-toast";
+import AnswerKeyModal from "@/components/answerKeyModal";
 
 export default function EditExamPage() {
   const { id } = useParams();
@@ -15,6 +16,7 @@ export default function EditExamPage() {
   const [error, setError] = useState<string | null>(null);
   const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
   const [isEditQuestionFormOpen, setIsEditQuestionFormOpen] = useState(false);
+  const [isAnswerKeyOpen, setIsAnswerKeyOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [draggedQuestion, setDraggedQuestion] = useState<string | null>(null);
@@ -430,6 +432,9 @@ export default function EditExamPage() {
             <button onClick={() => setIsQuestionFormOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
               + Add New Question
             </button>
+            <button onClick={() => setIsAnswerKeyOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
+              View Answer Key
+            </button>
             {/* <button className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
               + Add Existing Question
             </button> */}
@@ -450,6 +455,7 @@ export default function EditExamPage() {
       </div>
       <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
       <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
+      {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} />}
     </div>
   );
 }
