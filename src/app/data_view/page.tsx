@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import NavBar from "@/components/navbar";
 import QuestionForm from "@/components/QuestionForm";
 import FilterBox from "@/components/filterBox";
@@ -14,6 +14,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { useAuth } from "@/components/AuthContext";
 import { LightBackground } from "@/components/BackgroundModal";
 import { Question } from "@/types/question";
+import CSVUploadModal from "@/components/CSVUploadModal";
 
 export default function DatabaseActionPage() {
     const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
@@ -45,6 +46,11 @@ export default function DatabaseActionPage() {
     const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [selectedCourseNum, setselectedCourseNum] = useState<string>('');
     const [filtersApplied, setFiltersApplied] = useState(false);
+
+    //File import states
+    const [importLoading, setImportLoading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [csvModalOpen, setCSVModalOpen] = useState(false);
 
     //Fetch questions with filters
     const fetchQuestionsWithFilters = async () => {
@@ -139,7 +145,7 @@ export default function DatabaseActionPage() {
         setTopics(uniqueTopics);
     }, [questions]);
 
-     //Creates a unique list of subjects for the filter box
+    //Creates a unique list of subjects for the filter box
     useEffect(() => {
         const uniqueSubjects = Array.from(
             new Set(questions.map(quest => quest.subject?.trim()).filter((s): s is string => !!s))
@@ -149,7 +155,7 @@ export default function DatabaseActionPage() {
         setSubjects(uniqueSubjects);
     }, [questions]);
 
-     //Creates a unique list of course numbers for the filter box
+    //Creates a unique list of course numbers for the filter box
     useEffect(() => {
         const uniqueCourseNums = Array.from(
             new Set(questions.map(quest => quest.courseNum?.trim()).filter((s): s is string => !!s))
@@ -290,6 +296,44 @@ export default function DatabaseActionPage() {
         setLastUsedDate(newValue);
         setDateInputValue(newValue ? newValue.format('MM/DD/YYYY') : '');
         setCalendarOpen(false);
+    };
+
+    //CSV import handler
+    const handleImportCSV = async (file: File) => {
+        try {
+            setImportLoading(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            if (user?._id) {
+                formData.append('userID', user._id);
+            }
+
+            const response = await fetch('/api/questions/import', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                toast.success(`Successfully imported ${result.importedCount} questions!`);
+                fetchQuestions(); //Refresh the questions list
+                setCSVModalOpen(false);
+            } else {
+                throw new Error(result.error || 'Failed to import questions');
+            }
+        } catch (err) {
+            console.error('Error importing CSV:', err);
+            toast.error(err instanceof Error ? err.message : 'Failed to import questions');
+        } finally {
+            setImportLoading(false);
+        }
+    };
+
+    //Trigger file input click for CSV import
+    const handleImportClick = () => {
+        setCSVModalOpen(true);
     };
 
     return (
@@ -569,14 +613,27 @@ export default function DatabaseActionPage() {
                     </div>
 
 
-                    {/* Add Question Button */}
+                    {/* Add Question Button and Import*/}
                     <div className="mt-12 flex justify-center">
-                        <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-                            Add New Question to Database
-                        </button>
+                        <div>
+                            <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                                Add New Question to Database
+                            </button>
+                        </div>
+                        <div className="pl-6">
+                            <button
+                                className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2"
+                                onClick={handleImportClick}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                                </svg>
+                                Upload Questions from CSV
+                            </button>
+                        </div>
                     </div>
                 </main>
                 <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} />
@@ -597,6 +654,14 @@ export default function DatabaseActionPage() {
                     onClose={() => setEditModalOpen(false)}
                     question={questionToEdit}
                     onQuestionUpdated={handleEditComplete}
+                />
+
+                {/* CSV Upload Modal */}
+                <CSVUploadModal
+                    isOpen={csvModalOpen}
+                    onClose={() => setCSVModalOpen(false)}
+                    onUpload={handleImportCSV}
+                    isLoading={importLoading}
                 />
             </div>
         </LightBackground>

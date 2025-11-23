@@ -72,6 +72,11 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-
 npm install bcryptjs
 ```
 
+## Install for CSV Parsing
+
+```bash
+npm install csv-parse
+```
 ## Install for DOCX Downloading
 
 ```bash
