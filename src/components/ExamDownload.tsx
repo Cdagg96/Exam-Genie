@@ -552,3 +552,133 @@ export function DownloadExamCSV(exam: ExamDoc) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+export function DownloadAnswerKeyPDF(exam: ExamDoc) {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 28;
+    let y = margin;
+
+    // Header that includes exam title + " Answer Key"
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(`${exam.title} Answer Key`, pageWidth / 2, y, { align: "center" });
+    y += 8;
+
+    // Divider line 
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 15;
+
+    const sortedQuestions = [...exam.questions].sort(
+        (a, b) => (a.order ?? 0) - (b.order ?? 0)
+    );
+
+    // Iterate through each question to display the answers
+    sortedQuestions.forEach((q, index) => {
+        // page break
+        if (y > 240) {
+            doc.addPage();
+            y = margin;
+        }
+
+        // Question number, stem, and points for each question
+        const num = index + 1;
+        const stem = q.snapshot?.stem ?? "(Question text)";
+        const points = q.points ?? 1;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text(`${num}.`, margin, y);
+
+        // Calculate width for points 
+        const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
+        const pointsWidth = doc.getTextWidth(pointsText);
+
+        // Print the question stem, wrapped if necessary
+        const stemWidth = pageWidth - (2 * margin) - pointsWidth - 10;
+        doc.setFont("helvetica", "normal");
+        const wrappedStem = doc.splitTextToSize(stem, stemWidth);
+        doc.text(wrappedStem, margin + 8, y);
+
+        // Points for the question is displayed on the righthand side
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.text(pointsText, pageWidth - margin - pointsWidth, y);
+
+        // Adjust y position based on stem height
+        const stemHeight = wrappedStem.length * 5;
+        y += Math.max(stemHeight, 8);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+
+        // If multiple choice, find and display the correct letter and answer
+        if (q.type === "MC" && q.snapshot?.choices) {
+            const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
+            const letter = correct
+                ? String.fromCharCode(65 + q.snapshot.choices.indexOf(correct))
+                : "N/A";
+
+            doc.text(`${letter}. ${correct ? correct.text : "N/A"}`, margin + 8, y);
+            y += 10;
+        }
+
+        // If true/false, find and display the correct answer
+        else if (q.type === "TF" && q.snapshot?.choices) {
+            const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
+            doc.text(`${correct ? correct.text : "N/A"}`, margin + 8, y);
+            y += 10;
+        }
+
+        // If fill in the blank, display the answer
+        else if (q.type === "FIB") {
+            doc.text(`${q.snapshot.answer ?? "N/A"}`, margin + 8, y);
+            y += 10;
+        }
+
+        // If essay, display the answer
+        else if (q.type === "Essay") {
+            const response = q.snapshot.answer ?? "N/A";
+            const wrappedResponse = doc.splitTextToSize(response, pageWidth - margin * 2 - 20);
+
+            // Prevent the answer from overflowing the page
+            wrappedResponse.forEach((line: string) => {
+                if (y > 240) {
+                    doc.addPage();
+                    y = margin;
+                }
+
+                doc.text(line, margin + 8, y);
+                y += 5;
+            });
+
+            y += 6;
+        }
+
+        // If code, display the answer
+        else if (q.type === "Code") {
+            const code = q.snapshot.answer ?? "";
+            const wrappedCode = doc.splitTextToSize(code, pageWidth - margin * 2 - 20);
+
+            // Prevent the code from overflowing the page
+            wrappedCode.forEach((line: string) => {
+                if (y > 240) {
+                    doc.addPage();
+                    y = margin;
+                }
+                
+                doc.text(line, margin + 8, y);
+                y += 5;
+            });
+
+            y += 6;
+        }
+
+        y += 2; // Small space between questions
+    });
+
+    const filename = `${exam.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_answer_key.pdf`; // Filename for answer key PDF
+
+    doc.save(filename); // Handles the rest
+}
