@@ -114,6 +114,7 @@ export async function POST(req:Request) {
             difficulty = "mixed",
             randomize = true,
             totalQuestions,
+            questionOrder,
             typeCounts,
             userID,
         } = body;
@@ -215,9 +216,17 @@ export async function POST(req:Request) {
 
         const lastUsed = body.lastUsed ?? null;
 
-        // Sort the order of types (MC, TF, FIB, Short Answer, Code)
-        const TYPE_ORDER = ["MC", "TF", "FIB", "Essay", "Code"];
+        // Sort the order of types (MC, TF, FIB, Essay, Code by default)
+        const TYPE_ORDER = questionOrder && questionOrder.length > 0
+            ? questionOrder
+            : ["MC", "TF", "FIB", "Essay", "Code"];
+
         items.sort((a, b) => TYPE_ORDER.indexOf(a.type) - TYPE_ORDER.indexOf(b.type));
+
+        // Assign order to each question
+        items.forEach((item, index) => {
+            item.order = index + 1;
+        });
 
         const exam_data = {
             title,

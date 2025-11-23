@@ -60,6 +60,10 @@ export default function ExamForm() {
     const [previewExam, setPreviewExam] = useState<ExamDoc | null>(null);
     const [generating, setGenerating] = useState(false);
 
+    // States for ordering question by type
+    const [questionOrder, setQuestionOrder] = useState<QuestionType[]>([]);
+    const [orderInput, setOrderInput] = useState<string>("");
+
     //Runs when page opens to get subjects
     useEffect(() => {
         async function loadSubjects(){
@@ -116,6 +120,26 @@ export default function ExamForm() {
         loadSubjects();
     }, []);
 
+    const parseOrderInput = (input: string): QuestionType[] => {
+        const types = input.split(","); // Split by commas
+        const reformatted = types.map(t => t.trim().toUpperCase()); // Trim whitespace and convert to uppercase
+        const nonEmpty = reformatted.filter(t => t.length > 0); // Remove empty strings
+
+        // Validate types
+        const validTypes = nonEmpty.filter(t =>
+            ["MC", "TF", "ESSAY", "FIB", "CODE"].includes(t)
+        );
+
+        // Convert "ESSAY" and "CODE" back to proper QuestionType format
+        const mappedTypes = validTypes.map(t => {
+            if (t === "ESSAY") return "Essay";
+            if (t === "CODE") return "Code";
+            return t as QuestionType;
+        });
+
+        return mappedTypes as QuestionType[]; // Confirm the type by converting to QuestionType[]
+    }
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -128,6 +152,42 @@ export default function ExamForm() {
 
         setGenerating(true);
 
+        // Determine which types the user selected (requested > 0)
+        const selectedTypes = Object.entries(typeCounts)
+            .filter(([_, count]) => count > 0)
+            .map(([type]) => type as QuestionType);
+        
+        // If there is an order input, parse and validate it
+        if (orderInput.trim() !== "") {
+            const parsedOrder = parseOrderInput(orderInput);
+
+            // Ensure that types are not repeated in the order
+            const duplicates = parsedOrder.filter(
+                (t, index) => parsedOrder.indexOf(t) !== index
+            );
+
+            // If there are duplicates, show error
+            if (duplicates.length > 0) {
+                toast.error("Duplicate question types in ordering are not allowed.");
+                setGenerating(false);
+                return;
+            }
+
+            // Ensure the order includes all selected types
+            const missingTypes = selectedTypes.filter(t => !parsedOrder.includes(t));
+
+            // If there are missing types, show error
+            if (missingTypes.length > 0) {
+                toast.error("Include every selected question type in the ordering.");
+                setGenerating(false);
+                return;
+            }
+
+        // Otherwise, use the default order of selected types
+        } else {
+            setQuestionOrder([]);
+        }
+
         const data = {
             title,
             subject,
@@ -137,6 +197,7 @@ export default function ExamForm() {
             allowedTypes,
             typeCounts,
             totalQuestions,
+            questionOrder,
             questions: [],
             totalPoints: 0,
             userID: user._id
@@ -280,6 +341,27 @@ export default function ExamForm() {
                             </label>
                         ))}
                     </div>
+                    {/* Question Order */}
+                    <h2 className="mb-3 mt-8 text-lg font-semibold">Question Order</h2>
+                    <p className="mb-3 text-sm text-gray-600">
+                        Set the order of questions types in the exam by using a comma separated list. For example: MC, TF, Essay will group questions in that order.
+                    </p>
+                    <div className="flex justify-center">
+                        <label className="flex flex-col gap-1 pl-40 pr-40 w-full max-w-[800px]">
+                            <input
+                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 w-full"
+                                placeholder="MC, TF, FIB, Essay, Code"
+                                value={orderInput}
+                                // Parse and validate the input order
+                                onChange={(e) => {
+                                    const input = e.target.value;
+                                    setOrderInput(input);
+                                    const parsed = parseOrderInput(input);
+                                    setQuestionOrder(parsed);
+                                }}
+                            />
+                        </label>
+                    </div>
                 </section>
                 {/* Allowed Types */}
 
@@ -307,6 +389,8 @@ export default function ExamForm() {
                                     FIB: 0,
                                     Code: 0,
                                 });
+                                setOrderInput("");
+                                setQuestionOrder([]);
                             }}
                             className="rounded-xl border px-4 py-2 btn btn-ghost"
                         >
