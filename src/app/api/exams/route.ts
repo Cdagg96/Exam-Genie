@@ -5,11 +5,21 @@ import { ObjectId } from "mongodb";
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
+
         const id = searchParams.get('id');
+        const name = searchParams.get('name');
+        const difficulty = searchParams.get('difficulty');
+        const totalPoints = searchParams.get('totalPoints');
+        const subject = searchParams.get('subject');
+        const courseNum = searchParams.get('courseNum');
+        const lastUsed = searchParams.get('lastUsed');
 
         const client = await clientPromise;
         const database = client.db(process.env.MONGODB_DB);
         const collection = database.collection('exams');
+
+        // Build filter object based on provided parameters
+        const filter: any = {};
 
         // If ID exists, fetch specific exam
         if(id) {
@@ -20,37 +30,74 @@ export async function GET(req: Request) {
                     { status: 400 }
                 );
             }
-
-            const exam = await collection.findOne({ _id: new ObjectId(id) }); // Fetch by the ID
-
-            // If no exam found with that ID
-            if(!exam) {
-                return NextResponse.json(
-                    { ok: false, error: 'Exam not found' },
-                    { status: 404 }
-                );
-            }
-
-            const serializedExam = {...exam, _id: exam._id.toString() }; // Convert ObjectId to string
-            return NextResponse.json(serializedExam);
+            filter._id = new ObjectId(id);
         }
 
-        // If no ID exists, fetch all exams
-        const exams = await collection.find({}).toArray();
+        // Apply other filters
+        if (name) {
+            filter.title = { $regex: name, $options: 'i' }; // case-insensitive search
+        }
+
+        if (difficulty) {
+            filter.difficulty = difficulty;
+        }
+
+        if (totalPoints) {
+            // If there is a range it needs to return the numbers in between
+            if (totalPoints.includes('-')) {
+                const [min, max] = totalPoints.split('-').map(Number);
+                filter.totalPoints = { $gte: min, $lte: max };
+            }
+
+            // Otherwise, take care of the rest of the cases which is 25+
+            else {
+                const min = Number(totalPoints.replace('+', ''));
+                filter.totalPoints = { $gte: min };
+            }
+        }
+
+        if (subject) {
+            filter.subject = subject;
+        }
+
+        if (courseNum) {
+            filter.courseNum = courseNum;
+        }
+
+        if (lastUsed) {
+            try {
+                const [month, day, year] = lastUsed.split('-').map(Number);
+                const baseDate = new Date(year, month - 1, day);
+
+                const startOfDay = new Date(baseDate);
+                const endOfDay = new Date(baseDate);
+                endOfDay.setDate(endOfDay.getDate() + 1);
+
+                filter.lastUsed = { 
+                    $gte: startOfDay, 
+                    $lt: endOfDay 
+                };
+            } catch (error) {
+                console.error('Error parsing lastUsed date:', error);
+                // If date parsing fails, don't apply the filter rather than throwing error
+            }
+        }
+
+        const exams = await collection.find(filter).toArray(); // Fetch by the ID
 
         // Convert MongoDB ObjectId to string for serialization
-        const serializedExams = exams.map(exam => ({
+        const serializedExam = exams.map(exam => ({
             ...exam,
             _id: exam._id.toString()
         }));
-
-        return NextResponse.json(serializedExams);
+            
+        return NextResponse.json(serializedExam);
     } catch (error) {
         console.error('Error fetching exams:', error);
         return NextResponse.json(
             { message: 'Error fetching exams' },
             { status: 500 }
-        )
+        );
     }
 }
 

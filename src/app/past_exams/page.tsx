@@ -5,6 +5,9 @@ import NavBar from "@/components/navbar";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import dayjs, { Dayjs} from "dayjs";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Link from "next/link";
 import { LightBackground } from "@/components/BackgroundModal";
 import SelectBox from "@/components/SelectBox";
@@ -22,27 +25,92 @@ export default function PastExams() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
     const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
+    const [names, setNames] = useState<{ value: string; label: string }[]>([]);
+    const [calendarOpen, setCalendarOpen] = useState(false);
+    const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLElement | null>(null);
+    const [dateInputValue, setDateInputValue] = useState<string>("");
     type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
     const [openDownloadMenuId, setOpenDownloadMenuId] = useState<string | null>(null);
 
     // Filtering states
+    const [selectedName, setSelectedName] = useState<string>('');
+    const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
+    const [selectedTotalPoints, setSelectedTotalPoints] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
-    const [selectedCourseNum, setselectedCourseNum] = useState<string>('');
+    const [selectedCourseNum, setSelectedCourseNum] = useState<string>('');
+    const [selectedLastUsed, setSelectedLastUsed] = useState<Dayjs | null>(null);
+    const [filtersApplied, setFiltersApplied] = useState<boolean>(false);
 
     // Fetch exams from MongoDB
-    const fetchExams = async () => {
+    const fetchExamsWithFilters = async () => {
         try {
             setLoading(true);
-            const response = await fetch("../api/exams", {
-                method: 'GET'
+            
+            // Build query parameters based on selected filters
+            const queryParams = new URLSearchParams();
+            
+            if (selectedName) queryParams.append('name', selectedName);
+            if (selectedDifficulty) queryParams.append('difficulty', selectedDifficulty);
+            if (selectedTotalPoints) queryParams.append('totalPoints', selectedTotalPoints);
+            if (selectedSubject) queryParams.append('subject', selectedSubject);
+            if (selectedCourseNum) queryParams.append('courseNum', selectedCourseNum);
+            if (selectedLastUsed) queryParams.append('lastUsed', selectedLastUsed.format('MM-DD-YYYY'));
+
+            const queryString = queryParams.toString();
+            const url = queryString ? `/api/exams?${queryString}` : '/api/exams';
+
+            const response = await fetch(url, {
+                method: 'GET',
             });
 
             if (!response.ok) {
-                throw new Error('Failed to fetch exams');
+                throw new Error(`Failed to fetch exams`);
             }
 
             const data = await response.json();
             setExams(data);
+            setFiltersApplied(queryString.length > 0);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+            console.error('Error fetching exams:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Apply filters
+    const handleApplyFilters = async () => {
+        fetchExamsWithFilters();
+    }
+
+    // Clear filters
+    const handleClearFilters = async () => {
+        setSelectedName('');
+        setSelectedDifficulty('');
+        setSelectedTotalPoints('');
+        setSelectedSubject('');
+        setSelectedCourseNum('');
+        setSelectedLastUsed(null);
+        setDateInputValue('');
+        setFiltersApplied(false);
+        fetchExams();
+    }
+
+    // Fetch exams from MongoDB without filters
+    const fetchExams = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/exams', {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch exams`);
+            }
+
+            const data = await response.json();
+            setExams(data);
+            setFiltersApplied(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
             console.error('Error fetching exams:', err);
@@ -66,10 +134,18 @@ export default function PastExams() {
             new Set(exams.map(e => e.courseNum?.trim()).filter((s): s is string => !!s))
         ).map(courseNum => ({ value: courseNum, label: courseNum }));
 
+        const uniqueNames = Array.from(
+            new Set(exams.map(e => e.title?.trim()).filter((s): s is string => !!s))
+        ).map(name => ({ value: name, label: name }));
+
         //Store the list of unique topics if any changes occur in questions
         setCourseNums(uniqueCourseNums);
+
         //Store the list of unique topics if any changes occur in questions
         setSubjects(uniqueSubjects);
+
+        //Store the list of unique names if any changes occur in questions
+        setNames(uniqueNames);
     }, [exams]);
 
     // Delete exam handler
@@ -131,6 +207,25 @@ export default function PastExams() {
         
     };
 
+    const handleDateInputChange = (inputValue: string) => {
+        setDateInputValue(inputValue);
+
+        //Try to parse it, but don't worry if it's invalid
+        const parsedDate = dayjs(inputValue, 'MM/DD/YYYY', true);
+        if (parsedDate.isValid()) {
+            setSelectedLastUsed(parsedDate);
+        } else {
+            setSelectedLastUsed(null);
+        }
+    };
+
+    //Update when calendar is used
+    const handleCalendarChange = (newValue: Dayjs | null) => {
+        setSelectedLastUsed(newValue);
+        setDateInputValue(newValue ? newValue.format('MM/DD/YYYY') : '');
+        setCalendarOpen(false);
+    };
+
     return (
         <LightBackground>
             <div className="flex flex-col justify-between min-h-screen p-4 text-center">
@@ -152,19 +247,13 @@ export default function PastExams() {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Exam Name Filter */}
-                            <SelectBox
+                            <FilterBox
                                 label="Exam Name"
-                                placeholder="All Exams"
-                                options={[
-                                    { value: '', label: 'All Exams' },
-                                    { value: 'Midterm 1', label: 'Midterm 1' },
-                                    { value: 'Midterm 2', label: 'Midterm 2' },
-                                    { value: 'Midterm 3', label: 'Midterm 3' },
-                                    { value: 'Midterm 4', label: 'Midterm 4' },
-                                    { value: 'Midterm 5', label: 'Midterm 5' },
-                                ]}
+                                placeholder="Search by exam name"
+                                options={names}
+                                onSelect={setSelectedName}
+                                value={selectedName}
                             />
-
 
                             {/* Difficulty Filter */}
                             <SelectBox
@@ -175,7 +264,10 @@ export default function PastExams() {
                                     { value: 'easy', label: 'Easy' },
                                     { value: 'medium', label: 'Medium' },
                                     { value: 'hard', label: 'Hard' },
+                                    { value: 'mixed', label: 'Mixed' },
                                 ]}
+                                onSelect={setSelectedDifficulty}
+                                value={selectedDifficulty}
                             />
 
                             {/* Total Points Filter */}
@@ -190,6 +282,8 @@ export default function PastExams() {
                                     { value: '16-20', label: '16-20' },
                                     { value: '25+', label: '25+' },
                                 ]}
+                                onSelect={setSelectedTotalPoints}
+                                value={selectedTotalPoints}
                             />
                         </div>
 
@@ -210,7 +304,7 @@ export default function PastExams() {
                                 options={courseNums}
                                 label="Course Number"
                                 placeholder="Search a Course Number"
-                                onSelect={setselectedCourseNum}
+                                onSelect={setSelectedCourseNum}
                                 value={selectedCourseNum}
                             />
 
@@ -218,31 +312,73 @@ export default function PastExams() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Last Used
                                 </label>
-                                <div className="relative">
+                                <div className="relative" ref={setCalendarAnchorEl}>
                                     <input
                                         type="text"
                                         placeholder="Ex: 01/01/2025"
                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                                        value={dateInputValue}
+                                        onChange={(e) => handleDateInputChange(e.target.value)}
                                     />
                                     <button
                                         type="button"
                                         className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                    >
+                                        onClick={() => setCalendarOpen(true)}>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
                                         </svg>
                                     </button>
                                 </div>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DatePicker
+                                        open={calendarOpen}
+                                        onClose={() => setCalendarOpen(false)}
+                                        value={selectedLastUsed}
+                                        onChange={(newValue) => {
+                                            setSelectedLastUsed(newValue);
+                                            setCalendarOpen(false);
+                                            handleCalendarChange(newValue);
+                                        }}
+                                        slotProps={{
+                                            popper: {
+                                                anchorEl: calendarAnchorEl,
+                                                placement: 'bottom-start',
+                                                modifiers: [
+                                                    {
+                                                        name: 'flip',
+                                                        enabled: false,
+                                                    },
+                                                    {
+                                                        name: 'preventOverflow',
+                                                        enabled: true,
+                                                        options: {
+                                                            boundary: 'viewport',
+                                                            altBoundary: true,
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        }}
+                                        slots={{
+                                            field: () => null,
+                                        }}
+                                    />
+                                </LocalizationProvider>
                             </div>
                         </div>
 
-
                         {/* Filter Actions */}
                         <div className="flex justify-end space-x-4 mt-8">
-                            <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                            <button 
+                                onClick ={handleClearFilters}
+                                className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
+                            >
                                 Clear Filters
                             </button>
-                            <button className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                            <button 
+                                onClick ={handleApplyFilters}
+                                className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
+                            >
                                 Apply Filters
                             </button>
                         </div>
@@ -250,9 +386,9 @@ export default function PastExams() {
 
                     {/* Exams Table */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
-                        <div className="overflow-x-auto w-full max-w-full max-h-90 overflow-y-auto">
-                            <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200 min-h-[400px]">
-                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0 z-30 overflow-hidden">
+                        <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
+                            <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
+                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0">
                                     <tr>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
                                             Exam Title
