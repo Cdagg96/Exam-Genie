@@ -96,6 +96,7 @@ export default function EditExamPage() {
         const res = await fetch(`/api/exams?id=${id}`);
         if (!res.ok) throw new Error("Failed to fetch exam");
         const data = await res.json();
+        console.log("API /api/exams result for edit_exam:", data);
         setExam(data);
       } catch (err) {
         console.error("Error fetching exam:", err);
@@ -418,7 +419,7 @@ export default function EditExamPage() {
               onDragOver={(e) => handleDragOver(e, exam.questions.length)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, exam.questions.length)}
-              className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === exam.questions.length
+              className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === (exam.questions?.length ?? 0)
                   ? 'bg-blue-100 border-blue-500'
                   : 'border-transparent'
                 }`}
