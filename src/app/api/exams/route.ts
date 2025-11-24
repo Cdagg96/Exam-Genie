@@ -83,15 +83,32 @@ export async function GET(req: Request) {
             }
         }
 
-        const exams = await collection.find(filter).toArray(); // Fetch by the ID
+        // If ID was provided return a single exam
+        if (id) {
+            const exam = await collection.findOne(filter);
 
-        // Convert MongoDB ObjectId to string for serialization
-        const serializedExam = exams.map(exam => ({
+            if (!exam) {
+                return NextResponse.json(
+                    { ok: false, error: "Exam not found" },
+                    { status: 404 }
+                );
+            }
+
+            return NextResponse.json({
+                ...exam,
+                _id: exam._id.toString(),
+            });
+        }
+        // Otherwise return all matching exams (array)
+        const exams = await collection.find(filter).toArray();
+
+        const serializedExams = exams.map(exam => ({
             ...exam,
-            _id: exam._id.toString()
+            _id: exam._id.toString(),
         }));
-            
-        return NextResponse.json(serializedExam);
+
+        return NextResponse.json(serializedExams);
+
     } catch (error) {
         console.error('Error fetching exams:', error);
         return NextResponse.json(
