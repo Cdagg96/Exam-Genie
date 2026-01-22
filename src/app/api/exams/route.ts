@@ -301,6 +301,7 @@ export async function POST(req:Request) {
             totalPoints,
             questions: items,
             lastUsed,
+            userID,
             createdAt: new Date(),
             updatedAt: new Date()
         }

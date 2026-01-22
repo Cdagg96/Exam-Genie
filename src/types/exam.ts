@@ -29,6 +29,7 @@ export type ExamDoc = {
 
 // What you actually get from Mongo (adds timestamps / lastUsed)
 export type ExamWithMeta = ExamDoc & {
+  userID: string;
   lastUsed: string | null;
   createdAt: string;
   updatedAt: string;
