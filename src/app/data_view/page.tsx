@@ -350,6 +350,17 @@ export default function DatabaseActionPage() {
                         Manage and view all questions in the database. Filter by topic, difficulty, or type to find specific questions.
                     </p>
 
+                    {/* Not logged in message */}
+                    {!user && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center mb-8 mx-auto w-full">
+                            <h3 className="font-semibold text-yellow-800 mb-2">
+                                Login Required
+                            </h3>
+                            <p className="text-yellow-700">
+                                Please log in to access your questions
+                            </p>
+                        </div>
+                    )}
 
                     {/* Filtering Section */}
                     <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
@@ -485,7 +496,7 @@ export default function DatabaseActionPage() {
                             <button onClick={handleClearFilters} className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
                                 Clear Filters
                             </button>
-                            <button onClick={handleApplyFilters} className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                            <button onClick={handleApplyFilters} className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5" disabled={!user}>
                                 Apply Filters
                             </button>
                         </div>
@@ -531,7 +542,7 @@ export default function DatabaseActionPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {loading ? (
+                                    {loading && user ? (
                                         //Questions Loading
                                         <tr>
                                             <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
@@ -559,7 +570,14 @@ export default function DatabaseActionPage() {
                                                 <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
                                             </td>
                                         </tr>
-                                    ) : (
+                                    ) : !user ? (
+                                        //Not logged in
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="text-gray-400 text-lg">Please log in to view your questions</div>
+                                            </td>
+                                        </tr>
+                                    ): (
                                         //Questions data
                                         filteredQuestions.map((question, index) => (
                                             <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -616,7 +634,7 @@ export default function DatabaseActionPage() {
                     {/* Add Question Button and Import*/}
                     <div className="mt-12 flex justify-center">
                         <div>
-                            <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)}>
+                            <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)} disabled={!user}>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                 </svg>
@@ -627,6 +645,7 @@ export default function DatabaseActionPage() {
                             <button
                                 className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2"
                                 onClick={handleImportClick}
+                                disabled={!user}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
