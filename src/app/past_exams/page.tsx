@@ -32,7 +32,6 @@ export default function PastExams() {
     const [dateInputValue, setDateInputValue] = useState<string>("");
     type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
     const [openDownloadMenuId, setOpenDownloadMenuId] = useState<string | null>(null);
-    const { user } = useAuth();
 
     // Filtering states
     const [selectedName, setSelectedName] = useState<string>('');
@@ -463,7 +462,6 @@ export default function PastExams() {
                                                 <div className="text-gray-400 text-lg">Please log in to view your past exams</div>
                                             </td>
                                         </tr>
-                                    ) : exams.length === 0 ? (
                                     ) : filteredExams.length === 0 ? (
                                         // No exams
                                         <tr>
