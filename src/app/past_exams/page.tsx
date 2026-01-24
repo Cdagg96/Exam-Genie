@@ -32,6 +32,7 @@ export default function PastExams() {
     const [dateInputValue, setDateInputValue] = useState<string>("");
     type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
     const [openDownloadMenuId, setOpenDownloadMenuId] = useState<string | null>(null);
+    const { user } = useAuth();
 
     // Filtering states
     const [selectedName, setSelectedName] = useState<string>('');
@@ -44,6 +45,7 @@ export default function PastExams() {
 
     //Get user from auth context
     const { user } = useAuth();
+    const filteredExams = user ? exams.filter(q => q.userID === user._id) : exams;
 
     // Fetch exams from MongoDB
     const fetchExamsWithFilters = async () => {
@@ -462,6 +464,7 @@ export default function PastExams() {
                                             </td>
                                         </tr>
                                     ) : exams.length === 0 ? (
+                                    ) : filteredExams.length === 0 ? (
                                         // No exams
                                         <tr>
                                             <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
@@ -471,7 +474,7 @@ export default function PastExams() {
                                         </tr>
                                     ) : (
                                         // Exams data
-                                        exams.map((exam, index) => (
+                                        filteredExams.map((exam, index) => (
                                             <tr key={exam._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                                 <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
                                                     <div className="truncate" title={exam.title}>

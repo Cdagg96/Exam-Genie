@@ -254,7 +254,7 @@ export default function ExamForm() {
             questionOrder,
             questions: [],
             totalPoints: 0,
-            userID: user._id
+            userID: user?._id ?? ""
         }
 
         try {
