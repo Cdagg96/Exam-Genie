@@ -136,34 +136,33 @@ export default function ExamForm() {
                 return;
             }
 
+            const params = new URLSearchParams();
+            params.set("userId", String(user._id));
+            params.set("counts", "1");
+            if (difficulty && difficulty !== "mixed") params.set("difficulty", difficulty);
+            if (subject) params.set("subject", subject);
+            if (courseNum) params.set("courseNum", courseNum);
+
             try {
-                const res = await fetch(`/api/questions?userId=${user._id}`);
+                params.set("counts", "1");
+                const res = await fetch(`/api/questions?${params.toString()}`);
                 if (!res.ok) {
-                    console.error("Failed to load questions for counts");
+                    const text = await res.text();
+                    console.error("Counts failed:", res.status, res.statusText, text);
                     return;
                 }
 
-                const questions = await res.json();
-                const filtered = user
-                    ? questions.filter((q: any) => String(q.userID) === String(user._id))
-                    : questions;
+                const data = await res.json();
 
-                const counts: Record<QuestionType, number> = {
-                    MC: 0,
-                    TF: 0,
-                    Essay: 0,
-                    FIB: 0,
-                    Code: 0,
-                };
 
-                filtered.forEach((q: any) => {
-                    const t = q.type as QuestionType;
-                    if (t in counts) {
-                        counts[t] += 1;
-                    }
+                setAvailableCounts({
+                    MC: data?.counts?.MC ?? 0,
+                    TF: data?.counts?.TF ?? 0,
+                    Essay: data?.counts?.Essay ?? 0,
+                    FIB: data?.counts?.FIB ?? 0,
+                    Code: data?.counts?.Code ?? 0,
                 });
 
-                setAvailableCounts(counts);
             } catch (err) {
                 console.error("Error fetching question counts:", err);
             }
@@ -172,7 +171,7 @@ export default function ExamForm() {
         loadCourseNums();
         loadSubjects();
         loadQuestionTypeCounts();
-    }, [user?._id]);
+    }, [user?._id, difficulty, subject, courseNum]);
 
     const parseOrderInput = (input: string): QuestionType[] => {
         const types = input.split(","); // Split by commas

@@ -100,16 +100,23 @@ export async function GET(req: Request) {
     const client = await clientPromise;
     const database = client.db(process.env.MONGODB_DB);
     const collection = database.collection('questions');
+    
+    const countsMode = searchParams.get("counts"); // "1" means return counts
+    const userId = searchParams.get("userId");
 
     // Build filter object based on provided parameters
     const filter: any = {};
+    if (userId) {
+      filter.userID = userId; // confirm your DB field name is exactly "userID"
+    }    
     
     if (topic) {
       filter.topics = { $in: [topic] };
     }
     
-    if (difficulty) {
-      filter.difficulty = parseInt(difficulty);
+    if (difficulty && difficulty !== "mixed") {
+        const diffMap: any = { easy: 1, medium: 2, hard: 3 };
+        filter.difficulty = diffMap[difficulty];
     }
     
     if (type) {
@@ -154,6 +161,16 @@ export async function GET(req: Request) {
     }
 
     const questions = await collection.find(filter).toArray();
+    if (countsMode === "1") {
+        const counts = { MC: 0, TF: 0, Essay: 0, FIB: 0, Code: 0 };
+
+        for (const q of questions) {
+            const t = q.type;
+            if (t in counts) counts[t as keyof typeof counts] += 1;
+        }
+
+            return NextResponse.json({ ok: true, counts });
+    }
 
     //Convert MongoDB ObjectId to string for serialization
     const serializedQuestions = questions.map(question => ({
