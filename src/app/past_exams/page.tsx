@@ -32,7 +32,6 @@ export default function PastExams() {
     const [dateInputValue, setDateInputValue] = useState<string>("");
     type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
     const [openDownloadMenuId, setOpenDownloadMenuId] = useState<string | null>(null);
-    const { user } = useAuth();
 
     // Filtering states
     const [selectedName, setSelectedName] = useState<string>('');
@@ -43,6 +42,8 @@ export default function PastExams() {
     const [selectedLastUsed, setSelectedLastUsed] = useState<Dayjs | null>(null);
     const [filtersApplied, setFiltersApplied] = useState<boolean>(false);
 
+    //Get user from auth context
+    const { user } = useAuth();
     const filteredExams = user ? exams.filter(q => q.userID === user._id) : exams;
 
     // Fetch exams from MongoDB
@@ -245,6 +246,17 @@ export default function PastExams() {
                     <p className="text-gray-600 mb-8 text-lg max-w-2xl">
                         Manage and view all your previously generated exams.
                     </p>
+                    {/* Not logged in message */}
+                    {!user && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center mb-8 mx-auto w-full">
+                            <h3 className="font-semibold text-yellow-800 mb-2">
+                                Login Required
+                            </h3>
+                            <p className="text-yellow-700">
+                                Please log in to view past exams
+                            </p>
+                        </div>
+                    )}
                     {/* Filtering Section */}
                     <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
                         <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
@@ -383,6 +395,7 @@ export default function PastExams() {
                             <button 
                                 onClick ={handleApplyFilters}
                                 className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
+                                disabled={!user}
                             >
                                 Apply Filters
                             </button>
@@ -422,7 +435,7 @@ export default function PastExams() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {loading ? (
+                                    {loading && user ? (
                                         // Exams loading
                                         <tr>
                                             <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
@@ -440,6 +453,13 @@ export default function PastExams() {
                                                     className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
                                                     Retry
                                                 </button>
+                                            </td>
+                                        </tr>
+                                    ) : !user ? (
+                                        // Not logged in
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="text-gray-400 text-lg">Please log in to view your past exams</div>
                                             </td>
                                         </tr>
                                     ) : filteredExams.length === 0 ? (
