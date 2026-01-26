@@ -22,14 +22,51 @@ export default function BackgroundModal({
     const [topics, setTopics] = useState("");
     const [subject, setSubject] = useState("");
     const [courseNum, setCourseNum] = useState("");
-    const [choiceA, setChoiceA] = useState("");
-    const [choiceB, setChoiceB] = useState("");
-    const [choiceC, setChoiceC] = useState("");
+    const [choices, setChoices] = useState([
+        {label: "A", text: ""},
+        {label: "B", text: ""},
+    ]);
     const [correctAnswer, setCorrect] = useState("A");
     const [extendedAnswer, setExAnswer] = useState("");
     const [fibAnswer, setFIBAnswer] = useState("");
     const [blankLines, setBlankLines] = useState(1);
     const { user } = useAuth();
+
+    // Update an MC choice
+    const updateChoice = (index: number, value: string) => {
+        const updated = [...choices];
+        updated[index].text = value;
+        setChoices(updated);
+    };
+
+    // Add an MC choice
+    const addChoice = () => {
+        const nextLabel = String.fromCharCode(65 + choices.length);
+        setChoices([...choices, { label: nextLabel, text: "" }]);
+        };
+
+        // Remove an MC choice
+        const removeChoice = (index: number) =>{
+            if (choices.length <= 2) return; // keep minimum 2
+
+        // remove the choice
+        const filtered = choices.filter((_, i) => i !== index);
+
+        // relabel sequentially: A, B, C, ...
+        const relabeled = filtered.map((c, i) => ({
+            ...c,
+            label: String.fromCharCode(65 + i),
+        }));
+
+        // if the currently-correct label no longer exists, default to A
+        const validLabels = new Set(relabeled.map(c => c.label));
+        if (!validLabels.has(correctAnswer)) {
+            setCorrect("A");
+        }
+
+        setChoices(relabeled);
+    }
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -52,11 +89,11 @@ export default function BackgroundModal({
             case "MC":
                 data = {
                     ...base_data,
-                    choices: [
-                        { label: "A", text: choiceA, isCorrect: correctAnswer === "A" },
-                        { label: "B", text: choiceB, isCorrect: correctAnswer === "B" },
-                        { label: "C", text: choiceC, isCorrect: correctAnswer === "C" }
-                    ],
+                    choices: choices.map(choice => ({
+                        label: choice.label,
+                        text: choice.text,
+                        isCorrect: choice.label === correctAnswer,
+                    })),
                 };
                 break;
             case "TF":
@@ -207,30 +244,36 @@ export default function BackgroundModal({
 
                     {/* MC options */}
                     {type === "MC" && (
-                        <div className="flex gap-2">
-                            <input
+                        <div className="space-y-2">
+                            {choices.map((choice, index) => (
+                            <div key={choice.label} className="flex gap-2">
+                                <input
                                 className="border px-4 py-3 w-full rounded-xl"
-                                placeholder="Choice A"
-                                value={choiceA}
-                                onChange={(e) => setChoiceA(e.target.value)}
-                                required />
+                                placeholder={`Choice ${choice.label}`}
+                                value={choice.text}
+                                onChange={(e) => updateChoice(index, e.target.value)}
+                                required
+                                />
 
-                            <input
-                                className="border px-4 py-3 w-full rounded-xl"
-                                placeholder="Choice B"
-                                value={choiceB}
-                                onChange={(e) => setChoiceB(e.target.value)}
-                                required />
+                                <button
+                                type="button"
+                                onClick={() => removeChoice(index)}
+                                className="px-3 text-red-500 hover:text-red-700"
+                                >
+                                ✕
+                                </button>
+                            </div>
+                            ))}
 
-                            <input
-                                className="border px-4 py-3 w-full rounded-xl"
-                                placeholder="Choice C"
-                                value={choiceC}
-                                onChange={(e) => setChoiceC(e.target.value)}
-                                required />
-
+                            <button
+                            type="button"
+                            onClick={addChoice}
+                            className="text-blue-600 hover:underline text-sm"
+                            >
+                            + Add Choice
+                            </button>
                         </div>
-                    )}
+                        )}
 
                     {/* True/False options */}
                     {type === "TF" && (
@@ -305,14 +348,16 @@ export default function BackgroundModal({
                         <label className="block">
                             Correct answer:
                             <select
-                                className="border p-2 ml-2 rounded"
-                                value={correctAnswer}
-                                onChange={(e) => setCorrect(e.target.value)}
-                                required
+                            className="border p-2 ml-2 rounded"
+                            value={correctAnswer}
+                            onChange={(e) => setCorrect(e.target.value)}
+                            required
                             >
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
+                            {choices.map(choice => (
+                                <option key={choice.label} value={choice.label}>
+                                {choice.label}
+                                </option>
+                            ))}
                             </select>
                         </label>
                     )}
