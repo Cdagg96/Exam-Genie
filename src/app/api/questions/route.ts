@@ -114,10 +114,23 @@ export async function GET(req: Request) {
       filter.topics = { $in: [topic] };
     }
     
-    if (difficulty && difficulty !== "mixed") {
-        const diffMap: any = { easy: 1, medium: 2, hard: 3 };
-        filter.difficulty = diffMap[difficulty];
-    }
+   if (difficulty && difficulty !== "mixed") {
+        const n = Number(difficulty);
+        if (Number.isInteger(n) && n >= 1 && n <= 5) {
+            //if difficulty comes from questions page
+            filter.difficulty = n;
+        }else {
+            //if difficulty comes from exam gen 
+            const diffMap: Record<string, number[]> = {
+            easy: [1, 2],
+            medium: [3, 4],
+            hard: [5],
+        };
+
+    const vals = diffMap[difficulty];
+    if (vals) filter.difficulty = { $in: vals };
+  }
+}
     
     if (type) {
       //Map the display types to database types
