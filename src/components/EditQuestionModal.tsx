@@ -22,14 +22,51 @@ export default function EditQuestionModal({
     const [type, setType] = useState("MC");
     const [difficulty, setDifficulty] = useState(1);
     const [topics, setTopics] = useState("");
-    const [choiceA, setChoiceA] = useState("");
-    const [choiceB, setChoiceB] = useState("");
-    const [choiceC, setChoiceC] = useState("");
+    const [choices, setChoices] = useState([
+        {label: "A", text: ""},
+        {label: "B", text: ""},
+    ]);
     const [correctAnswer, setCorrect] = useState("A");
     const [extendedAnswer, setExAnswer] = useState("");
     const [fibAnswer, setFIBAnswer] = useState("");
     const [blankLines, setBlankLines] = useState(1);
     const [loading, setLoading] = useState(false);
+
+    // Update an MC choice
+    const updateChoice = (index: number, value: string) => {
+        const updated = [...choices];
+        updated[index].text = value;
+        setChoices(updated);
+    };
+
+    // Add an MC choice
+    const addChoice = () => {
+        if (choices.length == 5) return;
+        const nextLabel = String.fromCharCode(65 + choices.length);
+        setChoices([...choices, { label: nextLabel, text: "" }]);
+    };
+
+    // Remove an MC choice
+    const removeChoice = (index: number) =>{
+        if (choices.length <= 2) return; // keep minimum 2
+
+        // remove the choice
+        const filtered = choices.filter((_, i) => i !== index);
+
+        // relabel sequentially: A, B, C, ...
+        const relabeled = filtered.map((c, i) => ({
+            ...c,
+            label: String.fromCharCode(65 + i),
+        }));
+
+        // if the currently-correct label no longer exists, default to A
+        const validLabels = new Set(relabeled.map(c => c.label));
+        if (!validLabels.has(correctAnswer)) {
+            setCorrect("A");
+        }
+
+        setChoices(relabeled);
+    }
 
     // Helper function to get question data from exam snapshot
     const getQuestionData = (q: any) => {
@@ -78,11 +115,17 @@ export default function EditQuestionModal({
                 
                 //For MC questions, populate choices
                 if (questionData.type === "MC" && questionData.choices) {
-                    questionData.choices.forEach((choice: Choice) => {
-                        if (choice.label === "A") setChoiceA(choice.text);
-                        if (choice.label === "B") setChoiceB(choice.text);
-                        if (choice.label === "C") setChoiceC(choice.text);
-                    });
+                    const relabeled = questionData.choices.map((choice: Choice, i: number) => ({
+                        ...choice,
+                        // force labels to be A, B, C... so UI doesn't end up with A/C gaps
+                        label: String.fromCharCode(65 + i),
+                    }));
+
+                    setChoices(relabeled);
+
+                    // If you store correctAnswer as a label ("A"/"B"/"C"...), set it from data:
+                    const correct = relabeled.find((c:Choice) => c.isCorrect)?.label ?? "A";
+                    setCorrect(correct);
                 }
             } else if (questionData.type === "FIB") {
                 setFIBAnswer(questionData.answer || "");
@@ -113,11 +156,11 @@ export default function EditQuestionModal({
             case "MC":
                 data = {
                     ...base_data,
-                    choices: [
-                        {label:"A", text:choiceA, isCorrect: correctAnswer === "A"},
-                        {label:"B", text:choiceB, isCorrect: correctAnswer === "B"},
-                        {label:"C", text:choiceC, isCorrect: correctAnswer === "C"}
-                    ],
+                    choices: choices.map(choice => ({
+                        label: choice.label,
+                        text: choice.text,
+                        isCorrect: choice.label === correctAnswer,
+                    })),
                 };
                 break;
             case "TF":
@@ -247,41 +290,35 @@ export default function EditQuestionModal({
 
                     {/* MC options */}
                     {type === "MC" && (
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Choices
-                        </label>
-                        <div className="flex gap-2">
-                            <input 
-                                className="border px-4 py-3 w-full rounded-xl" 
-                                placeholder="Choice A" 
-                                value={choiceA} 
-                                onChange={(e) => setChoiceA(e.target.value)}
-                                required 
-                                disabled={loading}
-                            />
+                        <div className="space-y-2">
+                            {choices.map((choice, index) => (
+                            <div key={choice.label} className="flex gap-2">
+                                <input
+                                className="border px-4 py-3 w-full rounded-xl"
+                                placeholder={`Choice ${choice.label}`}
+                                value={choice.text}
+                                onChange={(e) => updateChoice(index, e.target.value)}
+                                required
+                                />
+
+                                <button
+                                type="button"
+                                onClick={() => removeChoice(index)}
+                                className="px-3 text-red-500 hover:text-red-700"
+                                >
+                                ✕
+                                </button>
+                            </div>
+                            ))}
+
+                            <button
+                            type="button"
+                            onClick={addChoice}
+                            className="text-blue-600 hover:underline text-sm"
+                            >
+                            + Add Choice
+                            </button>
                         </div>
-                        <div className="flex gap-2">
-                            <input 
-                                className="border px-4 py-3 w-full rounded-xl" 
-                                placeholder="Choice B"
-                                value={choiceB}
-                                onChange={(e) => setChoiceB(e.target.value)}
-                                required 
-                                disabled={loading}
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <input 
-                                className="border px-4 py-3 w-full rounded-xl" 
-                                placeholder="Choice C" 
-                                value={choiceC} 
-                                onChange={(e) => setChoiceC(e.target.value)}
-                                required 
-                                disabled={loading}
-                            />
-                        </div>
-                    </div>
                     )}
 
                     {/* True/False options */}

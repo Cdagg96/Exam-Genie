@@ -41,13 +41,14 @@ export default function BackgroundModal({
 
     // Add an MC choice
     const addChoice = () => {
+        if (choices.length == 5) return;
         const nextLabel = String.fromCharCode(65 + choices.length);
         setChoices([...choices, { label: nextLabel, text: "" }]);
-        };
+    };
 
-        // Remove an MC choice
-        const removeChoice = (index: number) =>{
-            if (choices.length <= 2) return; // keep minimum 2
+    // Remove an MC choice
+    const removeChoice = (index: number) =>{
+        if (choices.length <= 2) return; // keep minimum 2
 
         // remove the choice
         const filtered = choices.filter((_, i) => i !== index);
