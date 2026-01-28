@@ -11,6 +11,7 @@ export default function ResetPasswordPage() {
     const [isValidToken, setIsValidToken] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isResetting, setIsResetting] = useState(false);
+    const [resetSuccess, setResetSuccess] = useState(false);
     const [userInfo, setUserInfo] = useState({ email: "", role: "" });
     const router = useRouter();
 
@@ -85,8 +86,8 @@ export default function ResetPasswordPage() {
 
             //Password reset
             if (data.success) {
-                toast.success("Password reset successful. Redirecting to login...");
-                setTimeout(() => router.push("/"), 2000);
+                setResetSuccess(true);
+                toast.success("Password reset successful.");
             } else {
                 toast.error(data.message);
             }
@@ -110,7 +111,7 @@ export default function ResetPasswordPage() {
     }
 
     //If token is invalid, show error message
-    if (!isValidToken) {
+    if (!isValidToken && !resetSuccess) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50">
                 <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">
@@ -122,6 +123,9 @@ export default function ResetPasswordPage() {
                         </div>
                         <h2 className="text-2xl font-bold text-gray-800 mb-2">Invalid Reset Link</h2>
                         <p className="text-gray-600 mb-6">This password reset link is invalid or has expired.</p>
+                        <p className="text-sm text-gray-500 mb-6">
+                            Please request a new password reset link from the login page.
+                        </p>
                         <button
                             onClick={() => router.push("/")}
                             className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -129,6 +133,25 @@ export default function ResetPasswordPage() {
                             Return to Home
                         </button>
                     </div>
+                </div>
+            </div >
+        );
+    }
+
+
+    if (resetSuccess) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50">
+                <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-6">
+                        {/* Checkmark svg */}
+                        <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-800 mb-4">Password Reset Complete</h1>
+                    <p className="text-gray-600 mb-2">Your password has been successfully updated.</p>
+                    <p className="text-gray-500 text-sm mb-6">You can now close this tab.</p>
                 </div>
             </div>
         );
@@ -222,7 +245,7 @@ export default function ResetPasswordPage() {
                         )}
                     </button>
                 </form>
-                
+
                 {/* Back to home link */}
                 <div className="mt-6 text-center">
                     <button

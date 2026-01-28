@@ -1,4 +1,3 @@
-// app/api/auth/forgot-password/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/libs/mongo";
 import crypto from "crypto";
