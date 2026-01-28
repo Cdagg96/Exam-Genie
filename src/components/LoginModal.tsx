@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthContext";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 export default function LoginModal({
   isOpen,
@@ -31,6 +32,8 @@ export default function LoginModal({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
+  //State to show/hide forgot password modal
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   //gets the users log in information
   const { login } = useAuth();
@@ -187,10 +190,11 @@ export default function LoginModal({
                   className="w-full rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
                 />
 
-                {/* Forgot Password link -- Not currently implemented */}
+                {/* Forgot Password link */}
                 <button
                   type="button"
                   className="self-end mt-1 text-sm text-blue-500 hover:text-blue-800 py-1"
+                  onClick={() => setShowForgotPassword(true)}
                 >
                   Forgot password?
                 </button>
@@ -295,6 +299,11 @@ export default function LoginModal({
           )}
         </div>
       </div>
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </div>
   );
 }
