@@ -682,3 +682,280 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
 
     doc.save(filename); // Handles the rest
 }
+
+export function buildAnswerKeyPlainText(exam: ExamDoc): string {
+  const lines: string[] = [];
+
+  // Header
+  lines.push(`${exam.title || "Untitled Exam"} Answer Key`);
+  lines.push("=".repeat(60));
+  lines.push("");
+
+  const sortedQuestions = [...exam.questions].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  );
+
+  sortedQuestions.forEach((q, index) => {
+    const num = index + 1;
+    const stem = q.snapshot?.stem ?? "(Question text)";
+
+    lines.push(`${num}. ${stem}`); // Question number and the question itself
+
+    // Multiple choice
+    if (q.type === "MC" && q.snapshot?.choices) {
+      const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
+      const letter = correct
+        ? String.fromCharCode(65 + q.snapshot.choices.indexOf(correct))
+        : "N/A";
+      lines.push(`${letter}. ${correct ? correct.text : "N/A"}`);
+    }
+
+    // True/False
+    else if (q.type === "TF") {
+      const correct = q.snapshot?.choices.find((c: any) => c.isCorrect);
+      lines.push(`${correct ? correct.text : "N/A"}`);
+    }
+
+    // Fill in the blank, essay, code
+    else {
+      lines.push(`${q.snapshot?.answer ?? "N/A"}`);
+    }
+
+    lines.push(""); // Add an extra space between questions
+  });
+
+  return lines.join("\n");
+}
+
+export function DownloadAnswerKeyTXT(exam: ExamDoc) {
+  const content = buildAnswerKeyPlainText(exam);
+  const blob = new Blob([content], {
+    type: "text/plain;charset=utf-8",
+  });
+
+  const filename =
+    `${exam.title || "exam"}_answer_key`.replace(/[^a-z0-9]/gi, "_").toLowerCase() +
+    ".txt";
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function DownloadAnswerKeyDOCX(exam: ExamDoc) {
+  const sortedQuestions = [...exam.questions].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  );
+
+  const paragraphs: Paragraph[] = [];
+
+  // Header
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `${exam.title || "Untitled Exam"} Answer Key`,
+          bold: true,
+          font: "Helvetica",
+          size: 22,
+        }),
+      ],
+      spacing: { after: 100 },
+    })
+  );
+
+  // Questions and answers
+  sortedQuestions.forEach((q, index) => {
+    const num = index + 1;
+    const stem = q.snapshot?.stem ?? "(Question text)";
+
+    // Question stem
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `${num}. `,
+            bold: true,
+            font: "Helvetica",
+            size: 22,
+          }),
+          new TextRun({
+            text: stem,
+            font: "Helvetica",
+            size: 22,
+          }),
+        ],
+        spacing: { after: 100 },
+      })
+    );
+
+    // Multiple choice
+    if (q.type === "MC" && q.snapshot?.choices) {
+      const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
+      const letter = correct
+        ? String.fromCharCode(65 + q.snapshot.choices.indexOf(correct))
+        : "N/A";
+
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `${letter}. ${correct ? correct.text : "N/A"}`,
+              font: "Helvetica",
+              size: 20,
+            }),
+          ],
+          spacing: { after: 50 },
+        })
+      );
+
+      // Extra space after each question
+      paragraphs.push(
+        new Paragraph({
+          text: "",
+          spacing: { after: 100 },
+        })
+      );
+    }
+
+    // True/False
+    else if (q.type === "TF") {
+      const correct = q.snapshot?.choices.find((c: any) => c.isCorrect);
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `${correct ? correct.text : "N/A"}`,
+              font: "Helvetica",
+              size: 20,
+            }),
+          ],
+          spacing: { after: 50 },
+        })
+      );
+
+      paragraphs.push(
+        new Paragraph({
+          text: "",
+          spacing: { after: 100 },
+        })
+      );
+    }
+
+    // Fill in the blank, essay, code
+    else {
+      const answer = q.snapshot?.answer ?? "";
+      const lines = answer.replace(/\r\n/g, "\n").split("\n"); // Handle multi-line answers
+
+      lines.forEach((line) => {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+                new TextRun({
+                  text: line,
+                  font: "Helvetica",
+                  size: 20,
+                }),
+              ],
+              spacing: { after: 50 },
+            })
+          );
+        });
+
+      paragraphs.push(
+        new Paragraph({
+          text: "",
+          spacing: { after: 100 },
+        })
+      );
+    }
+  });
+
+  const doc = new Document({
+    sections: [{ children: paragraphs }],
+  });
+
+  const blob = await Packer.toBlob(doc);
+
+  const baseTitle =
+    (exam.title && exam.title.trim().length > 0
+      ? exam.title
+      : "exam"
+    )
+      .replace(/[^a-z0-9]/gi, "_")
+      .toLowerCase() || "exam";
+
+  saveAs(blob, `${baseTitle}_answer_key.docx`);
+}
+
+export function DownloadAnswerKeyCSV(exam: ExamDoc) {
+  const sortedQuestions = [...exam.questions].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  );
+
+  const rows: string[] = [];
+
+  rows.push([
+    "question_number",
+    "type",
+    "stem",
+    "correct_answer"
+  ].join(","));
+
+  sortedQuestions.forEach((q, index) => {
+    const num = index + 1;
+    const type = q.type ?? "";
+    const stem = (q.snapshot?.stem ?? "").replace(/"/g, '""');
+
+    let answerStr = "";
+
+    // Multiple choice
+    if (q.type === "MC" && q.snapshot?.choices) {
+      const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
+      const letter = correct
+        ? String.fromCharCode(65 + q.snapshot.choices.indexOf(correct))
+        : "N/A";
+      answerStr = `${letter}. ${correct ? correct.text : "N/A"}`;
+    }
+
+    // True/False
+    else if (q.type === "TF") {
+      const correct = q.snapshot?.choices.find((c: any) => c.isCorrect);
+      answerStr = `${correct ? correct.text : "N/A"}`;
+    }
+
+    // Fill in the blank, essay, code
+    else {
+      answerStr = q.snapshot?.answer?.replace(/"/g, '""') ?? "N/A";
+    }
+
+    // There are a total of 4 columns (question number, type, stem, correct answer)
+    rows.push([
+      num,
+      `"${type}"`,
+      `"${stem}"`,
+      `"${answerStr}"`
+    ].join(","));
+  });
+
+  const blob = new Blob([rows.join("\n")], {
+    type: "text/csv;charset=utf-8",
+  });
+
+  const filename =
+    `${exam.title || "exam"}_answer_key`.replace(/[^a-z0-9]/gi, "_").toLowerCase() + ".csv";
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

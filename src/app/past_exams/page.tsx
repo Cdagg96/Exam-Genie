@@ -12,7 +12,7 @@ import Link from "next/link";
 import { LightBackground } from "@/components/BackgroundModal";
 import SelectBox from "@/components/SelectBox";
 import FilterBox from "@/components/filterBox";
-import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF } from "@/components/ExamDownload"
+import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV } from "@/components/ExamDownload"
 import type { ExamWithMeta } from "@/types/exam";
 import { useAuth } from "@/components/AuthContext";
 
@@ -202,15 +202,17 @@ export default function PastExams() {
     const handleDownloadExam = (exam: ExamWithMeta, format: DownloadFormat) => {
         if (format === "txt") {
             DownloadExamTXT(exam);        // or exam as any / ExamDoc if needed
+            DownloadAnswerKeyTXT(exam);
         } else if (format === "pdf") {
             DownloadExamPDF(exam);
+            DownloadAnswerKeyPDF(exam);
         } else if (format ==="csv"){
             DownloadExamCSV(exam);
+            DownloadAnswerKeyCSV(exam);
         } else if (format === "docx"){
             DownloadExamDOCX(exam);
+            DownloadAnswerKeyDOCX(exam);
         }
-        
-        DownloadAnswerKeyPDF(exam); // Download answer key no matter what and it is only PDF as of now
     };
 
     const handleDateInputChange = (inputValue: string) => {
