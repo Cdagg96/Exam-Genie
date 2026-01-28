@@ -23,14 +23,19 @@ export default function EditQuestionModal({
     const [difficulty, setDifficulty] = useState(1);
     const [topics, setTopics] = useState("");
     const [choices, setChoices] = useState([
-        {label: "A", text: ""},
-        {label: "B", text: ""},
+        { label: "A", text: "" },
+        { label: "B", text: "" },
     ]);
     const [correctAnswer, setCorrect] = useState("A");
     const [extendedAnswer, setExAnswer] = useState("");
     const [fibAnswer, setFIBAnswer] = useState("");
     const [blankLines, setBlankLines] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [editInDb, setEditInDb] = useState(false);
+
+    const getQuestionId = (q: any) => {
+        return ( q?.questionId || q?.question_id || q?.questionID || q?._id || q?.id || q?.question?._id || q?.question?.id || q?.snapshot?._id || q?.snapshot?.id || null);
+    };
 
     // Update an MC choice
     const updateChoice = (index: number, value: string) => {
@@ -47,7 +52,7 @@ export default function EditQuestionModal({
     };
 
     // Remove an MC choice
-    const removeChoice = (index: number) =>{
+    const removeChoice = (index: number) => {
         if (choices.length <= 2) return; // keep minimum 2
 
         // remove the choice
@@ -96,23 +101,24 @@ export default function EditQuestionModal({
 
     //Initialize form with question data when modal opens or question changes
     useEffect(() => {
+        if (isOpen) setEditInDb(false);
         if (question) {
             const questionData = getQuestionData(question);
-            console.log("Loading question data:", questionData); 
-            
+            console.log("Loading question data:", questionData);
+
             setStem(questionData.stem);
             setType(questionData.type);
             setDifficulty(Number(questionData.difficulty));
             setTopics(questionData.topics?.join(", ") || "");
             setBlankLines(questionData.blankLines || 1);
-            
+
             //Initialize answers based on question type
             if (questionData.type === "MC" || questionData.type === "TF") {
                 const correctChoice = questionData.choices?.find((choice: Choice) => choice.isCorrect);
                 if (correctChoice) {
                     setCorrect(correctChoice.label);
                 }
-                
+
                 //For MC questions, populate choices
                 if (questionData.type === "MC" && questionData.choices) {
                     const relabeled = questionData.choices.map((choice: Choice, i: number) => ({
@@ -124,7 +130,7 @@ export default function EditQuestionModal({
                     setChoices(relabeled);
 
                     // If you store correctAnswer as a label ("A"/"B"/"C"...), set it from data:
-                    const correct = relabeled.find((c:Choice) => c.isCorrect)?.label ?? "A";
+                    const correct = relabeled.find((c: Choice) => c.isCorrect)?.label ?? "A";
                     setCorrect(correct);
                 }
             } else if (questionData.type === "FIB") {
@@ -133,7 +139,7 @@ export default function EditQuestionModal({
                 setExAnswer(questionData.answer || "");
             }
         }
-    }, [question]);
+    }, [question, isOpen]);
 
     if (!isOpen || !question) return null;
 
@@ -143,8 +149,8 @@ export default function EditQuestionModal({
 
         // Build the updated question data structure for the exam
         const base_data = {
-            stem, 
-            type, 
+            stem,
+            type,
             difficulty: difficulty,
             topics: topics.split(",").map(t => t.trim()).filter(t => t !== ""), // Filter empty topics
         };
@@ -152,7 +158,7 @@ export default function EditQuestionModal({
         let data;
 
         // Build the answer portion based on question type
-        switch(type){
+        switch (type) {
             case "MC":
                 data = {
                     ...base_data,
@@ -167,8 +173,8 @@ export default function EditQuestionModal({
                 data = {
                     ...base_data,
                     choices: [
-                        {label:"True", text:"True", isCorrect: correctAnswer === "True"},
-                        {label:"False", text:"False", isCorrect: correctAnswer === "False"},
+                        { label: "True", text: "True", isCorrect: correctAnswer === "True" },
+                        { label: "False", text: "False", isCorrect: correctAnswer === "False" },
                     ],
                 };
                 break;
@@ -195,6 +201,25 @@ export default function EditQuestionModal({
         try {
             // For exam editing: just update local state, NO API call
             console.log("Updating question in exam with data:", data);
+            if (editInDb) {
+                const qid = getQuestionId(question);
+
+                if (!qid) {
+                    toast.error("Cannot update database: missing question id");
+                } else {
+                    const res = await fetch(`/api/questions?id=${encodeURIComponent(qid)}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data),
+                    });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err?.error || "Failed to update question in database");
+                    }
+
+                    toast.success("Updated in database");
+                }
+            }
             onQuestionUpdated(data);
             onClose();
         } catch (error) {
@@ -292,31 +317,31 @@ export default function EditQuestionModal({
                     {type === "MC" && (
                         <div className="space-y-2">
                             {choices.map((choice, index) => (
-                            <div key={choice.label} className="flex gap-2">
-                                <input
-                                className="border px-4 py-3 w-full rounded-xl"
-                                placeholder={`Choice ${choice.label}`}
-                                value={choice.text}
-                                onChange={(e) => updateChoice(index, e.target.value)}
-                                required
-                                />
+                                <div key={choice.label} className="flex gap-2">
+                                    <input
+                                        className="border px-4 py-3 w-full rounded-xl"
+                                        placeholder={`Choice ${choice.label}`}
+                                        value={choice.text}
+                                        onChange={(e) => updateChoice(index, e.target.value)}
+                                        required
+                                    />
 
-                                <button
-                                type="button"
-                                onClick={() => removeChoice(index)}
-                                className="px-3 text-red-500 hover:text-red-700"
-                                >
-                                ✕
-                                </button>
-                            </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeChoice(index)}
+                                        className="px-3 text-red-500 hover:text-red-700"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
                             ))}
 
                             <button
-                            type="button"
-                            onClick={addChoice}
-                            className="text-blue-600 hover:underline text-sm"
+                                type="button"
+                                onClick={addChoice}
+                                className="text-blue-600 hover:underline text-sm"
                             >
-                            + Add Choice
+                                + Add Choice
                             </button>
                         </div>
                     )}
@@ -328,7 +353,7 @@ export default function EditQuestionModal({
                                 Correct answer
                             </label>
                             <div className="flex gap-2">
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setCorrect("True")}
                                     disabled={loading}
@@ -336,9 +361,9 @@ export default function EditQuestionModal({
                                     ${correctAnswer === "True" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"} 
                                     ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                                 >
-                                True
+                                    True
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setCorrect("False")}
                                     disabled={loading}
@@ -346,7 +371,7 @@ export default function EditQuestionModal({
                                     ${correctAnswer === "False" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"} 
                                     ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                                 >
-                                False
+                                    False
                                 </button>
                             </div>
                         </div>
@@ -398,24 +423,38 @@ export default function EditQuestionModal({
 
                     {/* MC correct answer*/}
                     {type === "MC" && (
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Correct answer:
-                        </label>
-                        <select
-                            className="border px-4 py-3 w-full rounded-xl"
-                            value={correctAnswer}
-                            onChange={(e) => setCorrect(e.target.value)}
-                            required
-                            disabled={loading}
-                        >
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        </select>
-                    </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Correct answer:
+                            </label>
+                            <select
+                                className="border px-4 py-3 w-full rounded-xl"
+                                value={correctAnswer}
+                                onChange={(e) => setCorrect(e.target.value)}
+                                required
+                                disabled={loading}
+                            >
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
                     )}
-
+                    
+                    {/* Edit in DB Check Box*/}
+                    <div className="flex items-center gap-2">
+                        <input
+                            id="editInDb"
+                            type="checkbox"
+                            checked={editInDb}
+                            onChange={(e) => setEditInDb(e.target.checked)}
+                            disabled={loading}
+                            className="h-4 w-4"
+                        />
+                        <label htmlFor="editInDb" className="text-sm text-gray-700">
+                            Edit question in question bank
+                        </label>
+                    </div>
                     <div className="flex justify-center gap-4 pt-4">
                         <button
                             type="submit"

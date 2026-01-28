@@ -1,5 +1,5 @@
 "use client";
-import React, {useState} from "react";
+import React, { useState } from "react";
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -8,6 +8,9 @@ interface ConfirmationModalProps {
     text?: string;
     isLoading?: boolean;
     type?: 'question' | 'exam';
+    showAlsoDeleteInBank?: boolean;
+    alsoDeleteInBank?: boolean;
+    onAlsoDeleteInBankChange?: (val: boolean) => void;
 }
 
 export default function ConfirmationModal({
@@ -16,7 +19,10 @@ export default function ConfirmationModal({
     onConfirm,
     text,
     isLoading = false,
-    type = 'question'
+    type = 'question',
+    showAlsoDeleteInBank = false,
+    alsoDeleteInBank = false,
+    onAlsoDeleteInBankChange,
 }: ConfirmationModalProps) {
     if (!isOpen) return null;
 
@@ -56,6 +62,23 @@ export default function ConfirmationModal({
                         <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
                             <h3 className="font-semibold text-gray-800 mb-2">{deletionType}</h3>
                             <p className="text-gray-700 whitespace-pre-wrap">{text}</p>
+                        </div>
+                    )}
+
+                    {/* Delete in DB Check Box */}
+                    {showAlsoDeleteInBank && type === "question" && (
+                        <div className="flex items-center gap-2 ">
+                            <input
+                                id="alsoDeleteInBank"
+                                type="checkbox"
+                                checked={alsoDeleteInBank}
+                                onChange={(e) => onAlsoDeleteInBankChange?.(e.target.checked)}
+                                disabled={isLoading}
+                                className="h-4 w-4"
+                            />
+                            <label htmlFor="alsoDeleteInBank" className="text-sm text-gray-700">
+                                Delete question from question bank
+                            </label>
                         </div>
                     )}
 
