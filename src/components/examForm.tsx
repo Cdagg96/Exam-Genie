@@ -203,6 +203,22 @@ export default function ExamForm() {
             return;
         }
 
+        let emptyCount = true; // Flag to check if all counts are zero
+
+        // Go through all question types to see if any count is greater than zero
+        for (const count of Object.values(typeCounts)) {
+            if (count > 0) {
+                emptyCount = false; // Found at least one question
+                break;
+            }
+        }
+
+        // If all counts are zero, show an error and return before generating exam
+        if (emptyCount) {
+            toast.error("Select at least one question");
+            return;
+        }
+
         setGenerating(true);
 
         // Determine which types the user selected (requested > 0)
