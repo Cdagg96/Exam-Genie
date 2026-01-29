@@ -59,7 +59,7 @@ export default function ConfirmationModal({
 
                     {/* Question Display */}
                     {text && (
-                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 text-center">
                             <h3 className="font-semibold text-gray-800 mb-2">{deletionType}</h3>
                             <p className="text-gray-700 whitespace-pre-wrap">{text}</p>
                         </div>
