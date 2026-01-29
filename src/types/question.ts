@@ -14,7 +14,7 @@ export interface Choice {
 export interface Question {
     _id: string;
     stem: string;
-    type: QuestionType | string;
+    type: QuestionType;
     difficulty: string;
     topics: string[];
     subject: string;

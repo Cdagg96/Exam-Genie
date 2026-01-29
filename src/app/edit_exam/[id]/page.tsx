@@ -7,6 +7,9 @@ import QuestionForm from "@/components/QuestionForm";
 import EditQuestionModal from "@/components/EditQuestionModal";
 import toast from "react-hot-toast";
 import AnswerKeyModal from "@/components/answerKeyModal";
+import AddExistingQuestionModal from "@/components/addExistingQuestionModal";
+import type { Question } from "@/types/question";
+import type { ExamQuestionItem } from "@/types/exam";
 
 export default function EditExamPage() {
   const { id } = useParams();
@@ -21,6 +24,7 @@ export default function EditExamPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [draggedQuestion, setDraggedQuestion] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<number | null>(null);
+  const [isExistingPickerOpen, setIsExistingPickerOpen] = useState(false);
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, questionId: string) => {
@@ -162,6 +166,33 @@ export default function EditExamPage() {
     });
 
     handleEditFormClose();
+  };
+
+  const handleExistingQuestionsAdded = (selectedQuestions: Question[]) => {
+    if (!exam) return;
+
+    const existingIds = new Set((exam.questions ?? []).map(q => q.questionId));
+
+    const newExamQuestions: ExamQuestionItem[] = selectedQuestions
+      .filter(q => !existingIds.has(q._id))
+      .map((q): ExamQuestionItem => ({
+        questionId: q._id,
+        type: q.type,
+        subject: q.subject ?? exam.subject,
+        courseNum: q.courseNum ?? exam.courseNum,
+        points: 1,
+        snapshot: {
+          stem: q.stem,
+          choices: q.choices ?? [],
+          answer: q.answer ?? "",
+          blankLines: 4,
+        },
+    }));
+
+    setExam({
+      ...exam,
+      questions: [...(exam.questions ?? []), ...newExamQuestions],
+    });
   };
 
   //Saveing edits to exam
@@ -436,9 +467,12 @@ export default function EditExamPage() {
             <button onClick={() => setIsAnswerKeyOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
               View Answer Key
             </button>
-            {/* <button className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
+            <button
+              onClick={() => setIsExistingPickerOpen(true)}
+              className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
+              >
               + Add Existing Question
-            </button> */}
+            </button>
           </div>
 
           <div className="flex gap-3">
@@ -456,6 +490,7 @@ export default function EditExamPage() {
       </div>
       <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
       <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
+      <AddExistingQuestionModal isOpen={isExistingPickerOpen} onClose={() => setIsExistingPickerOpen(false)} onAddSelected={handleExistingQuestionsAdded} excludeIds={new Set((exam.questions ?? []).map(q => q.questionId))}/>
       {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} />}
     </div>
   );
