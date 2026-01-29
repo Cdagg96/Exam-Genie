@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import type { ExamDoc } from "@/types/exam";
 import { saveAs } from "file-saver";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel,} from "docx";
+import { before } from "node:test";
 
 //PDF generation function
 export function DownloadExamPDF(exam: ExamDoc) {
@@ -576,7 +577,7 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
 
     // Iterate through each question to display the answers
     sortedQuestions.forEach((q, index) => {
-        // page break
+        // Page break
         if (y > 240) {
             doc.addPage();
             y = margin;
@@ -584,14 +585,79 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
 
         // Question number, stem, and points for each question
         const num = index + 1;
-        const stem = q.snapshot?.stem ?? "(Question text)";
+        let stem = q.snapshot?.stem ?? "(Question text)";
         const points = q.points ?? 1;
+
+        // Handle fill in the blank separately first since it has unique formatting
+        if (q.type === "FIB") {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text(`${num}.`, margin, y);
+
+            // Calculate width for points 
+            const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
+            const pointsWidth = doc.getTextWidth(pointsText);
+
+            const answer = q.snapshot?.answer ?? "N/A";
+
+            let beforeBlank = stem;
+            let afterBlank = "";
+            let hasBlank = false;
+
+            // Find the underscores representing the blank
+            const match = stem.match(/_+/);
+
+            // If underscores found, split the stem
+            if (match) {
+                hasBlank = true;
+                const idx = match.index!;
+
+                // Split stem into before/after blank
+                beforeBlank = stem.slice(0, idx);
+                afterBlank = stem.slice(idx + match[0].length);
+            } 
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            
+            // If blank found, format accordingly
+            if (hasBlank) {
+                const answerStyled = `**${answer}**`; // This makes the answer stand out with asterisks
+
+                doc.text(beforeBlank, margin + 8, y); // Text before blank
+                const beforeBlankWidth = doc.getTextWidth(beforeBlank);
+
+                doc.text(answerStyled, margin + 8 + beforeBlankWidth, y); // Answer
+                const answerStyledWidth = doc.getTextWidth(answerStyled);
+
+                doc.text(afterBlank, margin + 8 + beforeBlankWidth + answerStyledWidth, y); // Text after blank
+            
+            // Otherwise, put the answer on the next line
+            } else {
+                const wrappedStem = doc.splitTextToSize(stem, pageWidth - (2 * margin) - 20);
+
+                doc.text(wrappedStem, margin + 8, y);
+
+                const stemHeight = wrappedStem.length * 5;
+                y += stemHeight + 4;
+
+                const answerStyled = `**${answer}**`;
+                doc.text(answerStyled, margin + 8, y);
+            }
+
+            // Points for the question is displayed on the righthand side
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.text(pointsText, pageWidth - margin - pointsWidth, y);
+            
+            y += 10;
+            return;
+        }
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
         doc.text(`${num}.`, margin, y);
 
-        // Calculate width for points 
         const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
         const pointsWidth = doc.getTextWidth(pointsText);
 
@@ -628,12 +694,6 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
         else if (q.type === "TF" && q.snapshot?.choices) {
             const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
             doc.text(`${correct ? correct.text : "N/A"}`, margin + 8, y);
-            y += 10;
-        }
-
-        // If fill in the blank, display the answer
-        else if (q.type === "FIB") {
-            doc.text(`${q.snapshot.answer ?? "N/A"}`, margin + 8, y);
             y += 10;
         }
 
@@ -697,9 +757,27 @@ export function buildAnswerKeyPlainText(exam: ExamDoc): string {
 
   sortedQuestions.forEach((q, index) => {
     const num = index + 1;
-    const stem = q.snapshot?.stem ?? "(Question text)";
+    let stem = q.snapshot?.stem ?? "(Question text)";
+    const answer = q.snapshot?.answer ?? "N/A";
 
-    lines.push(`${num}. ${stem}`); // Question number and the question itself
+    // Handle fill in the blank separately since it has unique formatting
+    if (q.type === "FIB") {
+      // If the stem contains underscores, replace them with the answer
+      if (stem.includes("_")) {
+        stem = stem.replace(/_+/g, `**${answer}**`);
+        lines.push(`${num}. ${stem}`);
+
+      // Otherwise, put the answer on the next line
+      } else {
+        lines.push(`${num}. ${stem}`);
+        lines.push(`**${answer}**`);
+      }
+
+      lines.push(""); // Add an extra space between questions
+      return;
+    }
+
+    lines.push(`${num}. ${stem}`);
 
     // Multiple choice
     if (q.type === "MC" && q.snapshot?.choices) {
@@ -716,7 +794,7 @@ export function buildAnswerKeyPlainText(exam: ExamDoc): string {
       lines.push(`${correct ? correct.text : "N/A"}`);
     }
 
-    // Fill in the blank, essay, code
+    // Essay and code
     else {
       lines.push(`${q.snapshot?.answer ?? "N/A"}`);
     }
@@ -773,6 +851,71 @@ export async function DownloadAnswerKeyDOCX(exam: ExamDoc) {
   sortedQuestions.forEach((q, index) => {
     const num = index + 1;
     const stem = q.snapshot?.stem ?? "(Question text)";
+    const answer = q.snapshot?.answer ?? "N/A";
+
+    if (q.type === "FIB") {
+      const hasBlank = stem.includes("_");
+
+      // If underscores found, replace with answer
+      if (hasBlank) {
+        const answerStyled = `**${answer}**`;
+        const stemWithAnswer = stem.replace(/_+/g, answerStyled);
+
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `${num}. `,
+                bold: true,
+                font: "Helvetica",
+                size: 22,
+              }),
+              new TextRun({
+                text: stemWithAnswer,
+                font: "Helvetica",
+                size: 22,
+              }),
+            ],
+            spacing: { after: 100 },
+          })
+        );
+      // No underscores found, put answer on next line
+      } else {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `${num}. `,
+                bold: true,
+                font: "Helvetica",
+                size: 22,
+              }),
+              new TextRun({
+                text: stem,
+                font: "Helvetica",
+                size: 22,
+              }),
+            ],
+            spacing: { after: 100 },
+          })
+        );
+
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `**${answer}**`,
+                font: "Helvetica",
+                size: 22,
+              }),
+            ],
+            spacing: { after: 100 },
+          })
+        );
+      }
+
+      return; // Move to next question
+    }
 
     // Question stem
     paragraphs.push(
@@ -847,7 +990,7 @@ export async function DownloadAnswerKeyDOCX(exam: ExamDoc) {
       );
     }
 
-    // Fill in the blank, essay, code
+    // Essay and code
     else {
       const answer = q.snapshot?.answer ?? "";
       const lines = answer.replace(/\r\n/g, "\n").split("\n"); // Handle multi-line answers
