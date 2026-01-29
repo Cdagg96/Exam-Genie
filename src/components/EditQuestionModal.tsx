@@ -205,7 +205,7 @@ export default function EditQuestionModal({
                 const qid = getQuestionId(question);
 
                 if (!qid) {
-                    toast.error("Cannot update database: missing question id");
+                    toast.error("Cannot update Question Bank: missing question id");
                 } else {
                     const res = await fetch(`/api/questions?id=${encodeURIComponent(qid)}`, {
                         method: "PUT",
@@ -217,7 +217,7 @@ export default function EditQuestionModal({
                         throw new Error(err?.error || "Failed to update question in database");
                     }
 
-                    toast.success("Updated in database");
+                    toast.success("Updated in Question Bank");
                 }
             }
             onQuestionUpdated(data);

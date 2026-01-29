@@ -159,7 +159,7 @@ export default function EditExamPage() {
             throw new Error(result?.error || "Failed to delete from question bank");
           }
 
-          toast.success("Deleted from question bank");
+          toast.success("Deleted from Question Bank");
         }
       }
 
