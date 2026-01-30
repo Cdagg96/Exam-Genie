@@ -10,6 +10,7 @@ import AnswerKeyModal from "@/components/answerKeyModal";
 import AddExistingQuestionModal from "@/components/addExistingQuestionModal";
 import type { Question } from "@/types/question";
 import type { ExamQuestionItem } from "@/types/exam";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 export default function EditExamPage() {
   const { id } = useParams();
@@ -25,6 +26,10 @@ export default function EditExamPage() {
   const [draggedQuestion, setDraggedQuestion] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<number | null>(null);
   const [isExistingPickerOpen, setIsExistingPickerOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [pendingDeleteQuestion, setPendingDeleteQuestion] = useState<any>(null);
+  const [alsoDeleteInBank, setAlsoDeleteInBank] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, questionId: string) => {
@@ -126,13 +131,50 @@ export default function EditExamPage() {
 
   // this will delete the question 
   // it will not save it if the exam is exited without saving 
-  const handleDeleteQuestion = (questionId: string) => {
-    if (!exam) return;
+  const closeDeleteConfirm = () => {
+    setIsDeleteConfirmOpen(false);
+    setPendingDeleteQuestion(null);
+    setAlsoDeleteInBank(false);
+  };
+  const getBankQuestionId = (q: any) => {
+    return q?.questionId || q?.snapshot?._id || q?._id || null;
+  };
+  const handleConfirmDeleteQuestion = async () => {
+    if (!exam || !pendingDeleteQuestion) return;
 
-    setExam({
-      ...exam,
-      questions: exam.questions.filter(q => q.questionId !== questionId)
-    });
+    setIsDeleting(true);
+    try {
+      setExam({
+        ...exam,
+        questions: exam.questions.filter(q => q.questionId !== pendingDeleteQuestion.questionId),
+      });
+      if (alsoDeleteInBank) {
+        const bankId = getBankQuestionId(pendingDeleteQuestion);
+
+        if (!bankId) {
+          toast.error("Missing question bank id — cannot delete from bank");
+        } else {
+          const res = await fetch(`/api/questions?id=${encodeURIComponent(bankId)}`, {
+            method: "DELETE",
+          });
+
+          const result = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(result?.error || "Failed to delete from question bank");
+          }
+
+          toast.success("Deleted from Question Bank");
+        }
+      }
+
+      toast.success("Removed from exam");
+      closeDeleteConfirm();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Delete failed");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
 
@@ -320,8 +362,8 @@ export default function EditExamPage() {
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, 0)}
               className={`h-5 mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === 0
-                  ? 'bg-blue-100 border-blue-500'
-                  : 'border-transparent'
+                ? 'bg-blue-100 border-blue-500'
+                : 'border-transparent'
                 }`}
             />
             {/* Render each question */}
@@ -384,7 +426,12 @@ export default function EditExamPage() {
                               >
                                 Edit
                               </button>
-                              <button onClick={() => handleDeleteQuestion(q.questionId)}
+                              <button
+                                onClick={() => {
+                                  setPendingDeleteQuestion(q);
+                                  setAlsoDeleteInBank(false);
+                                  setIsDeleteConfirmOpen(true);
+                                }}
                                 className="rounded border border-red-300 text-red-600 px-2 py-0.5 text-xs hover:bg-red-50 transition"
                               >
                                 Delete
@@ -436,8 +483,8 @@ export default function EditExamPage() {
                       onDragLeave={handleDragLeave}
                       onDrop={(e) => handleDrop(e, index + 1)}
                       className={`h-5 mt-3 -mb-2 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === index + 1
-                          ? 'bg-blue-100 border-blue-500'
-                          : 'border-transparent'
+                        ? 'bg-blue-100 border-blue-500'
+                        : 'border-transparent'
                         }`}
                     />
                   )}
@@ -451,8 +498,8 @@ export default function EditExamPage() {
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, exam.questions.length)}
               className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === (exam.questions?.length ?? 0)
-                  ? 'bg-blue-100 border-blue-500'
-                  : 'border-transparent'
+                ? 'bg-blue-100 border-blue-500'
+                : 'border-transparent'
                 }`}
             />
           </div>
@@ -488,6 +535,7 @@ export default function EditExamPage() {
           </div>
         </div>
       </div>
+      <ConfirmationModal isOpen={isDeleteConfirmOpen} onClose={closeDeleteConfirm} onConfirm={handleConfirmDeleteQuestion} type="question" isLoading={isDeleting} text={pendingDeleteQuestion?.snapshot?.stem ?? ""} showAlsoDeleteInBank={true} alsoDeleteInBank={alsoDeleteInBank} onAlsoDeleteInBankChange={setAlsoDeleteInBank} />
       <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
       <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
       <AddExistingQuestionModal isOpen={isExistingPickerOpen} onClose={() => setIsExistingPickerOpen(false)} onAddSelected={handleExistingQuestionsAdded} excludeIds={new Set((exam.questions ?? []).map(q => q.questionId))}/>
