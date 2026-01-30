@@ -464,14 +464,14 @@ export default function EditExamPage() {
             <button onClick={() => setIsQuestionFormOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
               + Add New Question
             </button>
-            <button onClick={() => setIsAnswerKeyOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
-              View Answer Key
-            </button>
             <button
               onClick={() => setIsExistingPickerOpen(true)}
               className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
               >
               + Add Existing Question
+            </button>
+            <button onClick={() => setIsAnswerKeyOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
+              View Answer Key
             </button>
           </div>
 
