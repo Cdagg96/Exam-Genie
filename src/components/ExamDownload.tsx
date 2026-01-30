@@ -586,17 +586,12 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
         // Question number, stem, and points for each question
         const num = index + 1;
         let stem = q.snapshot?.stem ?? "(Question text)";
-        const points = q.points ?? 1;
 
         // Handle fill in the blank separately first since it has unique formatting
         if (q.type === "FIB") {
             doc.setFont("helvetica", "bold");
             doc.setFontSize(11);
             doc.text(`${num}.`, margin, y);
-
-            // Calculate width for points 
-            const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
-            const pointsWidth = doc.getTextWidth(pointsText);
 
             const answer = q.snapshot?.answer ?? "N/A";
 
@@ -622,19 +617,29 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
             
             // If blank found, format accordingly
             if (hasBlank) {
-                const answerStyled = `**${answer}**`; // This makes the answer stand out with asterisks
+                const answerStyled = ` **${answer}** `; // This makes the answer stand out with asterisks
+                const fullStem = beforeBlank + answerStyled + afterBlank; // Combine all parts into one line
 
-                doc.text(beforeBlank, margin + 8, y); // Text before blank
-                const beforeBlankWidth = doc.getTextWidth(beforeBlank);
+                const wrappedStem = doc.splitTextToSize(fullStem, pageWidth - (2 * margin) - 20);
 
-                doc.text(answerStyled, margin + 8 + beforeBlankWidth, y); // Answer
-                const answerStyledWidth = doc.getTextWidth(answerStyled);
+                wrappedStem.forEach((line: string) => {
+                    if (y > 240) { 
+                      doc.addPage(); 
+                      y = margin; 
+                    }
 
-                doc.text(afterBlank, margin + 8 + beforeBlankWidth + answerStyledWidth, y); // Text after blank
-            
+                    doc.text(line, margin + 8, y);
+                    y += 5;
+                });
+
             // Otherwise, put the answer on the next line
             } else {
                 const wrappedStem = doc.splitTextToSize(stem, pageWidth - (2 * margin) - 20);
+
+                if (y > 240) { 
+                  doc.addPage(); 
+                  y = margin; 
+                }
 
                 doc.text(wrappedStem, margin + 8, y);
 
@@ -642,13 +647,14 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
                 y += stemHeight + 4;
 
                 const answerStyled = `**${answer}**`;
+
+                if (y > 240) { 
+                  doc.addPage(); 
+                  y = margin; 
+                }
+
                 doc.text(answerStyled, margin + 8, y);
             }
-
-            // Points for the question is displayed on the righthand side
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(9);
-            doc.text(pointsText, pageWidth - margin - pointsWidth, y);
             
             y += 10;
             return;
@@ -658,25 +664,21 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
         doc.setFontSize(11);
         doc.text(`${num}.`, margin, y);
 
-        const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
-        const pointsWidth = doc.getTextWidth(pointsText);
-
         // Print the question stem, wrapped if necessary
-        const stemWidth = pageWidth - (2 * margin) - pointsWidth - 10;
         doc.setFont("helvetica", "normal");
-        const wrappedStem = doc.splitTextToSize(stem, stemWidth);
-        doc.text(wrappedStem, margin + 8, y);
+        const wrappedStem = doc.splitTextToSize(stem, pageWidth - (2 * margin) - 10);
+        
+        wrappedStem.forEach((line: string) => {
+            if (y > 240) {
+                doc.addPage();
+                y = margin;
+            }
 
-        // Points for the question is displayed on the righthand side
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9);
-        doc.text(pointsText, pageWidth - margin - pointsWidth, y);
+            doc.text(line, margin + 8, y);
+            y += 5;
+        });
 
-        // Adjust y position based on stem height
-        const stemHeight = wrappedStem.length * 5;
-        y += Math.max(stemHeight, 8);
-
-        doc.setFont("helvetica", "normal");
+        y += 3;
         doc.setFontSize(10);
 
         // If multiple choice, find and display the correct letter and answer
@@ -686,6 +688,11 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
                 ? String.fromCharCode(65 + q.snapshot.choices.indexOf(correct))
                 : "N/A";
 
+            if (y > 240) {
+                doc.addPage();
+                y = margin;
+            }
+
             doc.text(`${letter}. ${correct ? correct.text : "N/A"}`, margin + 8, y);
             y += 10;
         }
@@ -693,6 +700,12 @@ export function DownloadAnswerKeyPDF(exam: ExamDoc) {
         // If true/false, find and display the correct answer
         else if (q.type === "TF" && q.snapshot?.choices) {
             const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
+
+            if (y > 240) {
+                doc.addPage();
+                y = margin;
+            }
+
             doc.text(`${correct ? correct.text : "N/A"}`, margin + 8, y);
             y += 10;
         }
