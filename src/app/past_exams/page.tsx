@@ -5,14 +5,14 @@ import NavBar from "@/components/navbar";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import dayjs, { Dayjs} from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Link from "next/link";
 import { LightBackground } from "@/components/BackgroundModal";
 import SelectBox from "@/components/SelectBox";
 import FilterBox from "@/components/filterBox";
-import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV } from "@/components/ExamDownload"
+import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV, downloadExamPackage } from "@/components/ExamDownload"
 import type { ExamWithMeta } from "@/types/exam";
 import { useAuth } from "@/components/AuthContext";
 
@@ -30,7 +30,7 @@ export default function PastExams() {
     const [calendarOpen, setCalendarOpen] = useState(false);
     const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLElement | null>(null);
     const [dateInputValue, setDateInputValue] = useState<string>("");
-    type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
+    type DownloadFormat = "pdf" | "txt" | "csv" | "docx";
     const [openDownloadMenuId, setOpenDownloadMenuId] = useState<string | null>(null);
 
     // Filtering states
@@ -50,10 +50,10 @@ export default function PastExams() {
     const fetchExamsWithFilters = async () => {
         try {
             setLoading(true);
-            
+
             // Build query parameters based on selected filters
             const queryParams = new URLSearchParams();
-            
+
             if (selectedName) queryParams.append('name', selectedName);
             if (selectedDifficulty) queryParams.append('difficulty', selectedDifficulty);
             if (selectedTotalPoints) queryParams.append('totalPoints', selectedTotalPoints);
@@ -199,19 +199,32 @@ export default function PastExams() {
         setExamTitleToDelete("");
     };
 
-    const handleDownloadExam = (exam: ExamWithMeta, format: DownloadFormat) => {
-        if (format === "txt") {
-            DownloadExamTXT(exam);        // or exam as any / ExamDoc if needed
-            DownloadAnswerKeyTXT(exam);
-        } else if (format === "pdf") {
-            DownloadExamPDF(exam);
-            DownloadAnswerKeyPDF(exam);
-        } else if (format ==="csv"){
-            DownloadExamCSV(exam);
-            DownloadAnswerKeyCSV(exam);
-        } else if (format === "docx"){
-            DownloadExamDOCX(exam);
-            DownloadAnswerKeyDOCX(exam);
+    const handleDownloadExam = async (exam: ExamWithMeta, format: DownloadFormat) => {
+        try {
+            toast.loading('Creating download package...', { id: 'download' });
+            await downloadExamPackage(exam, format);
+            toast.success('Download package created!', { id: 'download' });
+        }
+        catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to create download package', { id: 'download' });
+            toast.loading('Downloading individual files...', { id: 'download' });
+
+            if (format === "txt") {
+                DownloadExamTXT(exam);        // or exam as any / ExamDoc if needed
+                DownloadAnswerKeyTXT(exam);
+            } else if (format === "pdf") {
+                DownloadExamPDF(exam);
+                DownloadAnswerKeyPDF(exam);
+            } else if (format === "csv") {
+                DownloadExamCSV(exam);
+                DownloadAnswerKeyCSV(exam);
+            } else if (format === "docx") {
+                DownloadExamDOCX(exam);
+                DownloadAnswerKeyDOCX(exam);
+            }
+
+            toast.success('Individual files downloaded', { id: 'download-fallback' });
         }
     };
 
@@ -388,14 +401,14 @@ export default function PastExams() {
 
                         {/* Filter Actions */}
                         <div className="flex justify-end space-x-4 mt-8">
-                            <button 
-                                onClick ={handleClearFilters}
+                            <button
+                                onClick={handleClearFilters}
                                 className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
                             >
                                 Clear Filters
                             </button>
-                            <button 
-                                onClick ={handleApplyFilters}
+                            <button
+                                onClick={handleApplyFilters}
                                 className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
                                 disabled={!user}
                             >

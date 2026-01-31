@@ -58,8 +58,13 @@ test("MC: submits valid form → posts and shows success toast, closes modal", a
 
   await user.type(screen.getByPlaceholderText(/choice a/i), "//");
   await user.type(screen.getByPlaceholderText(/choice b/i), "/* */");
-  await user.type(screen.getByPlaceholderText(/choice c/i), "#");
 
+  // Click "Add Choice" button to add a third choice
+  await user.click(screen.getByRole("button", { name: /\+ Add Choice/i }));
+  
+  // Now fill the third choice (it should be Choice C)
+  await user.type(screen.getByPlaceholderText(/choice c/i), "#");
+  
   // choose correct answer A
   await user.selectOptions(screen.getByRole("combobox", { name: /correct answer/i }), "A");
 
