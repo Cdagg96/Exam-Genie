@@ -32,6 +32,8 @@ User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/m
   - Email sending- Resend
 
   - PDF Creator- jsPDF
+  
+  - Zip Creator- jszip
 
   - DOCX Creator - docx file-saver
 
