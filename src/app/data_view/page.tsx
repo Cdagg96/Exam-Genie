@@ -205,15 +205,6 @@ export default function DatabaseActionPage() {
         return "N/A";
     };
 
-    // Helper function that adds blank line after question stem if it is FIB
-    const formatQuestion = (question: Question): string => {
-        const { stem, type } = question;
-        if (type == "FIB") {
-            return stem + " __";
-        }
-        return stem;
-    }
-
     //Helper function to format topics (can have multiple topics)
     const formatTopics = (topics: string[] | undefined): string => {
         if (!topics || !Array.isArray(topics)) return 'No topic';
@@ -582,8 +573,8 @@ export default function DatabaseActionPage() {
                                         filteredQuestions.map((question, index) => (
                                             <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                                 <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
-                                                    <div className="truncate" title={formatQuestion(question)}>
-                                                        {formatQuestion(question)}
+                                                    <div className="truncate" title={question.stem}>
+                                                        {question.stem}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
@@ -618,7 +609,7 @@ export default function DatabaseActionPage() {
                                                     <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => handleEditClick(question)}>
                                                         Edit
                                                     </button>
-                                                    <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(question._id, formatQuestion(question))}>
+                                                    <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(question._id, question.stem)}>
                                                         Delete
                                                     </button>
                                                 </td>
