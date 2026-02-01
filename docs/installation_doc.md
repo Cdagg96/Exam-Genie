@@ -82,5 +82,9 @@ npm install csv-parse
 ```bash
 npm install docx file-saver
 ```
+## Install for Zip Folder 
 
+```bash
+npm install jszip
+```
 
