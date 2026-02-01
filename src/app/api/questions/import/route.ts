@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/libs/mongo';
 import { parse } from 'csv-parse/sync';
@@ -22,7 +23,8 @@ export async function POST(req: NextRequest) {
         const records = parse(fileContent, {
             columns: true,
             skip_empty_lines: true,
-            trim: true
+            trim: true,
+            relax_column_count: true,
         });
 
         const client = await clientPromise;
@@ -55,7 +57,7 @@ export async function POST(req: NextRequest) {
                 question.choices = [];
                 
                 //Parse choices A, B, C
-                ['A', 'B', 'C'].forEach(letter => {
+                ['A', 'B', 'C', 'D', 'E'].forEach(letter => {
                     const choiceText = record[`choice${letter}`];
                     if (choiceText && choiceText.trim() !== '') {
                         question.choices.push({
