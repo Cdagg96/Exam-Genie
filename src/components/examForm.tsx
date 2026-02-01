@@ -67,10 +67,6 @@ export default function ExamForm() {
     const [previewExam, setPreviewExam] = useState<ExamDoc | null>(null);
     const [generating, setGenerating] = useState(false);
 
-    // States for ordering question by type
-    const [questionOrder, setQuestionOrder] = useState<QuestionType[]>([]);
-    const [orderInput, setOrderInput] = useState<string>("");
-
     //Runs when page opens to get subjects
     useEffect(() => {
         async function loadSubjects() {
@@ -173,31 +169,66 @@ export default function ExamForm() {
         loadQuestionTypeCounts();
     }, [user?._id, difficulty, subject, courseNum]);
 
-    const parseOrderInput = (input: string): QuestionType[] => {
-        const types = input.split(","); // Split by commas
-        const reformatted = types.map(t => t.trim().toUpperCase()); // Trim whitespace and convert to uppercase
-        const nonEmpty = reformatted.filter(t => t.length > 0); // Remove empty strings
+    // States for ordering question by type
+    const [questionOrder, setQuestionOrder] = useState<QuestionType[]>([]);
+    const [draggedType, setDraggedType] = useState<QuestionType | null>(null);
+    const [dropType, setDropType] = useState<number | null>(null);
 
-        // Validate types
-        const validTypes = nonEmpty.filter(t =>
-            ["MC", "TF", "ESSAY", "FIB", "CODE"].includes(t)
-        );
+    // Drag and drop handlers
+    const handleDragStart = (e: React.DragEvent, type: QuestionType) => {
+        e.dataTransfer.setData("text/plain", type);
+        setDraggedType(type);
+    };
 
-        // Convert "ESSAY" and "CODE" back to proper QuestionType format
-        const mappedTypes = validTypes.map(t => {
-            if (t === "ESSAY") return "Essay";
-            if (t === "CODE") return "Code";
-            return t as QuestionType;
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        setDropType(index);
+    };
+
+    const handleDrop = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+
+        if (draggedType === null) return; // No type being dragged
+
+        const newOrder = [...questionOrder]; // Keep current question ordering
+        const oldIndex = newOrder.indexOf(draggedType); // Get the index where the dragged type was
+
+        if (oldIndex === -1) return;
+
+        newOrder.splice(oldIndex, 1); // Remove the dragged type from old position
+
+        let newIndex = index; // Set new index to drop position
+
+        // Adjust index if it was after the old index
+        if (oldIndex < index) {
+            newIndex = index - 1;
+        }
+
+        newOrder.splice(newIndex, 0, draggedType); // Insert the dragged type at new position
+        
+        setQuestionOrder(newOrder);
+        setDraggedType(null);
+        setDropType(null);
+    };
+
+    // Update the question ordering when the counts of the types change
+    useEffect(() => {
+        setQuestionOrder(prev => {
+            const selectedTypes = Object.entries(typeCounts)
+            .filter(([_, count]) => count > 0) // Only keep types with count larger than 0
+            .map(([type]) => type as QuestionType);
+
+            const filtered = prev.filter(t => selectedTypes.includes(t)); // Keep existing order and remove deleted types
+            const newOnes = selectedTypes.filter(t => !filtered.includes(t)); // Add newly selected types to the end
+
+            return [...filtered, ...newOnes]; // Combine the existing ordered types as well as new ones
         });
-
-        return mappedTypes as QuestionType[]; // Confirm the type by converting to QuestionType[]
-    }
-
+    }, [typeCounts]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        //Check if user is logged in
+        // Check if user is logged in
         if (!user) {
             toast.error("You must be logged in to generate exams");
             return;
@@ -220,42 +251,6 @@ export default function ExamForm() {
         }
 
         setGenerating(true);
-
-        // Determine which types the user selected (requested > 0)
-        const selectedTypes = Object.entries(typeCounts)
-            .filter(([_, count]) => count > 0)
-            .map(([type]) => type as QuestionType);
-
-        // If there is an order input, parse and validate it
-        if (orderInput.trim() !== "") {
-            const parsedOrder = parseOrderInput(orderInput);
-
-            // Ensure that types are not repeated in the order
-            const duplicates = parsedOrder.filter(
-                (t, index) => parsedOrder.indexOf(t) !== index
-            );
-
-            // If there are duplicates, show error
-            if (duplicates.length > 0) {
-                toast.error("Duplicate question types in ordering are not allowed.");
-                setGenerating(false);
-                return;
-            }
-
-            // Ensure the order includes all selected types
-            const missingTypes = selectedTypes.filter(t => !parsedOrder.includes(t));
-
-            // If there are missing types, show error
-            if (missingTypes.length > 0) {
-                toast.error("Include every selected question type in the ordering.");
-                setGenerating(false);
-                return;
-            }
-
-            // Otherwise, use the default order of selected types
-        } else {
-            setQuestionOrder([]);
-        }
 
         const data = {
             title,
@@ -417,28 +412,57 @@ export default function ExamForm() {
                     </div>
                     {/* Question Order */}
                     <h2 className="mb-3 mt-8 text-lg font-semibold">Question Order</h2>
+
+                    {/* Instructions */}
                     <p className="mb-3 text-sm text-gray-600">
-                        Set the order of questions types in the exam by using a comma separated list. For example: MC, TF, Essay will group questions in that order.
+                        Drag and drop the question types to set the order they appear in the exam.
                     </p>
-                    <div className="flex justify-center">
-                        <label className="flex flex-col gap-1 pl-40 pr-40 w-full max-w-[800px]">
-                            <input
-                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 w-full"
-                                placeholder="MC, TF, FIB, Essay, Code"
-                                value={orderInput}
-                                // Parse and validate the input order
-                                onChange={(e) => {
-                                    const input = e.target.value;
-                                    setOrderInput(input);
-                                    const parsed = parseOrderInput(input);
-                                    setQuestionOrder(parsed);
-                                }}
-                            />
-                        </label>
+                    <p className="mb-3 text-sm text-gray-500">
+                        Questions types will appear from left to right on exam — the leftmost type comes first, followed by the ones to its right.
+                    </p>
+                    
+                    {/* Display a message if no question types are selected */}
+                    {questionOrder.length === 0 && (
+                        <p className="text-center text-sm text-gray-500">
+                            Select at least one question type above to enable ordering.
+                        </p>
+                    )}
+
+                    <div className="flex justify-center flex-wrap">
+                        <div className="pl-40 pr-40 w-full max-w-[1000px]">
+                            <div className="flex justify-center items-center gap-0">
+                                {questionOrder.map((type, index) => (
+                                    <React.Fragment key={type}>
+                                        {/* Drag and drop zone before the boxes */}
+                                        <div
+                                            onDragOver={e => handleDragOver(e, index)}
+                                            onDrop={e => handleDrop(e, index)}
+                                            onDragLeave={() => setDropType(null)}
+                                            className={`w-5 h-12 transition-all duration-200 rounded-lg border-2 border-dashed ${dropType === index ? "bg-blue-100 border-blue-500" : "border-transparent"}`}
+                                        />
+
+                                        {/* Draggable box */}
+                                        <div
+                                            draggable
+                                            onDragStart={e => handleDragStart(e, type)}
+                                            className="cursor-move rounded-xl border px-4 py-3 bg-white shadow w-16 h-12 flex items-center justify-center text-sm select-none mx-[0.75rem]"
+                                        >
+                                            {type}
+                                        </div>
+                                    </React.Fragment>
+                                ))}
+
+                                {/* Drag and drop zone after last */}
+                                <div
+                                    onDragOver={e => handleDragOver(e, questionOrder.length)}
+                                    onDrop={e => handleDrop(e, questionOrder.length)}
+                                    onDragLeave={() => setDropType(null)}
+                                    className={`w-5 h-12 transition-all duration-200 rounded-lg border-2 border-dashed ${dropType === questionOrder.length ? "bg-blue-100 border-blue-500" : "border-transparent"}`}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </section>
-                {/* Allowed Types */}
-
                 <div className="flex items-center justify-between">
                     <div className="flex gap-3">
 
@@ -463,7 +487,6 @@ export default function ExamForm() {
                                     FIB: 0,
                                     Code: 0,
                                 });
-                                setOrderInput("");
                                 setQuestionOrder([]);
                             }}
                             className="rounded-xl border px-4 py-2 btn btn-ghost"
