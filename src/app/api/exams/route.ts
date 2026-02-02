@@ -2,6 +2,27 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/libs/mongo";
 import { ObjectId } from "mongodb";
 
+const DEFAULT_POINTS: Record<string, number> = {
+  MC: 1,
+  TF: 1,
+  FIB: 1,
+  Essay: 5,
+  Code: 10,
+};
+
+function normalizeType(t: string): "MC" | "TF" | "FIB" | "Essay" | "Code" {
+  const x = (t || "").trim();
+  if (x === "MC" || x === "TF" || x === "FIB" || x === "Essay" || x === "Code") return x;
+  if (x === "Multiple Choice") return "MC";
+  if (x === "True/False") return "TF";
+  if (x === "Fill in the Blank") return "FIB";
+  return "MC";
+}
+
+function computeTotalPoints(questions: any[]): number {
+  return questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0);
+}
+
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
@@ -179,6 +200,7 @@ export async function POST(req:Request) {
             randomize = true,
             totalQuestions,
             questionOrder,
+            pointsByType,
             typeCounts,
             userID,
         } = body;
@@ -195,6 +217,11 @@ export async function POST(req:Request) {
             easy:  [1, 2],
             medium:[2, 3, 4],
             hard:  [4, 5],
+        };
+
+        const resolvedPoints: Record<string, number> = {
+            ...DEFAULT_POINTS,
+            ...(pointsByType || {}),
         };
 
         // Loop through each question type and grab -
@@ -263,7 +290,7 @@ export async function POST(req:Request) {
                     type: q.type,
                     subject: q.subject,
                     courseNum: q.courseNum,
-                    points: 1,
+                    points: resolvedPoints[normalizeType(q.type)] ?? 1,
                     snapshot: {
                         stem: q.stem,
                         choices: q.choices,
@@ -275,8 +302,8 @@ export async function POST(req:Request) {
             }
         }
 
-        // get the total questions
-        const totalPoints = items.reduce((s, it) => s + it.points, 0);
+        // get the total points
+        const totalPoints = computeTotalPoints(items);
 
         const lastUsed = body.lastUsed ?? null;
 
@@ -327,7 +354,7 @@ export async function PUT(req: Request) {
     const body = await req.json();
     console.log('PUT /api/exams received:', body);
 
-    const { id, title, timeLimitMin, totalPoints, questions } = body;
+    const { id, title, timeLimitMin, questions } = body;
 
     // Validate required fields
     if (!id) {
@@ -357,6 +384,10 @@ export async function PUT(req: Request) {
         { status: 404 }
       );
     }
+
+    const totalPoints = questions.reduce((sum: number, q: any) => {
+      return sum + (Number(q?.points) || 0);
+    }, 0);
 
     // Update the exam
     const updateData = {

@@ -55,6 +55,13 @@ export default function ExamForm() {
         FIB: 0,
         Code: 0,
     });
+    const [pointsByType, setPointsByType] = useState<Record<QuestionType, number>>({
+        MC: 1,
+        TF: 1,
+        FIB: 1,
+        Essay: 5,
+        Code: 10,
+    });
 
     // For select dropdown
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
@@ -262,6 +269,7 @@ export default function ExamForm() {
             typeCounts,
             totalQuestions,
             questionOrder,
+            pointsByType,
             questions: [],
             totalPoints: 0,
             userID: user?._id ?? ""
@@ -409,6 +417,35 @@ export default function ExamForm() {
 
                             </label>
                         ))}
+                    </div>
+                    <h2 className="mb-3 mt-8 text-lg font-semibold">Point Values</h2>
+                        <p className="mb-3 text-sm text-gray-600">
+                        MC / TF / FIB use fixed defaults. Essay / Code can be set here (and adjusted later in Edit Exam).
+                        </p>
+
+                        <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
+                        {TYPES.map((t) => {
+                            const isFixed = t.value === "MC" || t.value === "TF" || t.value === "FIB";
+                            return (
+                            <label key={t.value} className="flex flex-col gap-2">
+                                <span className="text-sm font-medium">{t.label}</span>
+
+                                <input
+                                type="number"
+                                min={0}
+                                className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100"
+                                value={pointsByType[t.value]}
+                                disabled={isFixed}
+                                onChange={(e) =>
+                                    setPointsByType((prev) => ({
+                                    ...prev,
+                                    [t.value]: Number(e.target.value),
+                                    }))
+                                }
+                                />
+                            </label>
+                            );
+                        })}
                     </div>
                     {/* Question Order */}
                     <h2 className="mb-3 mt-8 text-lg font-semibold">Question Order</h2>

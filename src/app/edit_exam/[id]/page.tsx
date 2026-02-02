@@ -12,6 +12,23 @@ import type { Question } from "@/types/question";
 import type { ExamQuestionItem } from "@/types/exam";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
+const POINTS_BY_TYPE: Record<string, number> = {
+  MC: 1,
+  TF: 1,
+  FIB: 1,   // or 2 if you want
+  Essay: 5,
+  Code: 10,
+};
+
+const normalizeType = (t: string) => {
+  const x = (t || "").trim();
+  if (x === "MC" || x === "TF" || x === "FIB" || x === "Essay" || x === "Code") return x;
+  if (x === "Multiple Choice") return "MC";
+  if (x === "True/False") return "TF";
+  if (x === "Fill in the Blank") return "FIB";
+  return "MC";
+};
+
 export default function EditExamPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -30,6 +47,24 @@ export default function EditExamPage() {
   const [pendingDeleteQuestion, setPendingDeleteQuestion] = useState<any>(null);
   const [alsoDeleteInBank, setAlsoDeleteInBank] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Function to count the total points any time a point value is edited
+  const recomputeTotalPoints = (questions: any[]) =>
+  questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0);
+
+  const updateQuestionPoints = (questionId: string, newPoints: number) => {
+    if (!exam) return;
+
+    const questions = (exam.questions ?? []).map((q) =>
+      q.questionId === questionId ? { ...q, points: newPoints } : q
+    );
+
+    setExam({
+      ...exam,
+      questions,
+      totalPoints: recomputeTotalPoints(questions),
+    });
+  };
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, questionId: string) => {
@@ -123,9 +158,18 @@ export default function EditExamPage() {
   // it will not save it if the exam is exited without saving 
   const handleQuestionAdded = (newQuestion: any) => {
     if (!exam) return;
+
+    const newQuestionWithPoints = {
+      ...newQuestion,
+      type: newQuestion.type,
+      points: POINTS_BY_TYPE[newQuestion.type] ?? 1,
+    }
+
+    const questions = [...(exam.questions ?? []), newQuestionWithPoints];
     setExam({
       ...exam,
-      questions: [...(exam.questions ?? []), newQuestion],
+      questions,
+      totalPoints: recomputeTotalPoints(questions),
     });
   };
 
@@ -144,9 +188,11 @@ export default function EditExamPage() {
 
     setIsDeleting(true);
     try {
+      const questions = exam.questions.filter(q => q.questionId !== pendingDeleteQuestion.questionId)
       setExam({
         ...exam,
-        questions: exam.questions.filter(q => q.questionId !== pendingDeleteQuestion.questionId),
+        questions,
+        totalPoints: recomputeTotalPoints(questions),
       });
       if (alsoDeleteInBank) {
         const bankId = getBankQuestionId(pendingDeleteQuestion);
@@ -222,7 +268,7 @@ export default function EditExamPage() {
         type: q.type,
         subject: q.subject ?? exam.subject,
         courseNum: q.courseNum ?? exam.courseNum,
-        points: 1,
+        points: POINTS_BY_TYPE[q.type] ?? 1,
         snapshot: {
           stem: q.stem,
           choices: q.choices ?? [],
@@ -231,9 +277,11 @@ export default function EditExamPage() {
         },
     }));
 
+    const questions = [...(exam.questions ?? []), ...newExamQuestions]
     setExam({
       ...exam,
-      questions: [...(exam.questions ?? []), ...newExamQuestions],
+      questions,
+      totalPoints: recomputeTotalPoints(questions),
     });
   };
 
@@ -418,9 +466,16 @@ export default function EditExamPage() {
 
                             {/* Righthand side: points, edit, delete */}
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="rounded border px-2 py-0.5 text-xs text-gray-700">
-                                {points} pt{points !== 1 ? "s" : ""} {/* Make points plural if needed */}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <label className="text-xs text-gray-600">Pts</label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  className="w-16 rounded border px-2 py-0.5 text-xs text-gray-700"
+                                  value={points}
+                                  onChange={(e) => updateQuestionPoints(q.questionId, Number(e.target.value))}
+                                />
+                              </div>
                               <button onClick={() => handleEditQuestion(q)}
                                 className="rounded border border-blue-300 text-blue-600 px-2 py-0.5 text-xs hover:bg-blue-50 transition"
                               >
