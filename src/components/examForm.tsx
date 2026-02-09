@@ -55,12 +55,12 @@ export default function ExamForm() {
         FIB: 0,
         Code: 0,
     });
-    const [pointsByType, setPointsByType] = useState<Record<QuestionType, number>>({
-        MC: 1,
-        TF: 1,
-        FIB: 1,
-        Essay: 5,
-        Code: 10,
+    const [pointsByType, setPointsByType] = useState<Record<QuestionType, string>>({
+        MC: "1",
+        TF: "1",
+        FIB: "1",
+        Essay: "5",
+        Code: "10",
     });
 
     // For select dropdown
@@ -212,7 +212,7 @@ export default function ExamForm() {
         }
 
         newOrder.splice(newIndex, 0, draggedType); // Insert the dragged type at new position
-        
+
         setQuestionOrder(newOrder);
         setDraggedType(null);
         setDropType(null);
@@ -222,8 +222,8 @@ export default function ExamForm() {
     useEffect(() => {
         setQuestionOrder(prev => {
             const selectedTypes = Object.entries(typeCounts)
-            .filter(([_, count]) => count > 0) // Only keep types with count larger than 0
-            .map(([type]) => type as QuestionType);
+                .filter(([_, count]) => count > 0) // Only keep types with count larger than 0
+                .map(([type]) => type as QuestionType);
 
             const filtered = prev.filter(t => selectedTypes.includes(t)); // Keep existing order and remove deleted types
             const newOnes = selectedTypes.filter(t => !filtered.includes(t)); // Add newly selected types to the end
@@ -231,6 +231,24 @@ export default function ExamForm() {
             return [...filtered, ...newOnes]; // Combine the existing ordered types as well as new ones
         });
     }, [typeCounts]);
+
+    //this is to convert the string in the points box to an integer 
+    function normalizePoints(p: Record<QuestionType, string>) {
+        const toNum = (s: string) => {
+            if (s === "" || s == null) return 1;
+            const n = Number(s);
+            return Number.isFinite(n) && n >= 0 ? n : 1;
+        };
+
+        return {
+            MC: 1,
+            TF: 1,
+            FIB: 1,
+            Essay: toNum(p.Essay),
+            Code: toNum(p.Code),
+        } satisfies Record<QuestionType, number>;
+    }
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -259,6 +277,7 @@ export default function ExamForm() {
 
         setGenerating(true);
 
+        const normalizedPointsByType = normalizePoints(pointsByType);
         const data = {
             title,
             subject,
@@ -269,7 +288,7 @@ export default function ExamForm() {
             typeCounts,
             totalQuestions,
             questionOrder,
-            pointsByType,
+            pointsByType: normalizedPointsByType,
             questions: [],
             totalPoints: 0,
             userID: user?._id ?? ""
@@ -381,7 +400,7 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Time Limit</span>
+                            <span className="text-sm font-medium">Time Limit (mins)</span>
                             <input
                                 type="number"
                                 min={0}
@@ -399,10 +418,10 @@ export default function ExamForm() {
                     </p>
                     <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
                         {TYPES.map((t) => (
-                            <label key={t.value} className="flex flex-col gap-2">
+                            <label key={t.value} className="flex flex-col">
                                 <span className="text-sm font-medium">{t.label}</span>
                                 {user && (
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-base text-gray-500">
                                         {availableCounts[t.value] ?? 0} questions available
                                     </span>
                                 )}
@@ -419,31 +438,33 @@ export default function ExamForm() {
                         ))}
                     </div>
                     <h2 className="mb-3 mt-8 text-lg font-semibold">Point Values</h2>
-                        <p className="mb-3 text-sm text-gray-600">
-                        MC / TF / FIB use fixed defaults. Essay / Code can be set here (and adjusted later in Edit Exam).
-                        </p>
+                    <p className="mb-3 text-sm text-gray-600">
+                        Multiple Choice / True False / FIB use fixed defaults. Essay / Code can be set here (and adjusted later in Edit Exam).
+                    </p>
 
-                        <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
+                    <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
                         {TYPES.map((t) => {
                             const isFixed = t.value === "MC" || t.value === "TF" || t.value === "FIB";
                             return (
-                            <label key={t.value} className="flex flex-col gap-2">
-                                <span className="text-sm font-medium">{t.label}</span>
+                                <label key={t.value} className="flex flex-col gap-2">
+                                    <span className="text-sm font-medium">{t.label}</span>
 
-                                <input
-                                type="number"
-                                min={0}
-                                className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100"
-                                value={pointsByType[t.value]}
-                                disabled={isFixed}
-                                onChange={(e) =>
-                                    setPointsByType((prev) => ({
-                                    ...prev,
-                                    [t.value]: Number(e.target.value),
-                                    }))
-                                }
-                                />
-                            </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        placeholder={isFixed ? undefined : "1"}
+                                        className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100"
+                                        value={isFixed ? "1" : (pointsByType[t.value] ?? "")}
+                                        disabled={isFixed}
+                                        onChange={(e) => {
+                                            const v = e.target.value;
+                                            setPointsByType((prev) => ({
+                                                ...prev,
+                                                [t.value]: v,
+                                            }))
+                                        }}
+                                    />
+                                </label>
                             );
                         })}
                     </div>
@@ -457,7 +478,7 @@ export default function ExamForm() {
                     <p className="mb-3 text-sm text-gray-500">
                         Questions types will appear from left to right on exam — the leftmost type comes first, followed by the ones to its right.
                     </p>
-                    
+
                     {/* Display a message if no question types are selected */}
                     {questionOrder.length === 0 && (
                         <p className="text-center text-sm text-gray-500">
@@ -515,6 +536,7 @@ export default function ExamForm() {
                                 setSubject("");
                                 setTimeLimit(60);
                                 setRandomize(true);
+                                setPointsByType({MC: "1",TF: "1",FIB: "1",Essay: "5",Code: "10",});
                                 setAllowedTypes(["MC", "TF", "Essay"]);
                                 setSections([{ ...DEFAULT_SECTION }]);
                                 setTypeCounts({
