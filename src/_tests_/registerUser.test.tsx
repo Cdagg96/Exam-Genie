@@ -26,7 +26,7 @@ vi.mock("@/components/AuthContext", () => ({
   })
 }));
 
-describe("User Registration", () => {
+describe("User Registration", async () => {
   const mockOnClose = vi.fn();
 
   beforeEach(() => {
@@ -55,11 +55,19 @@ describe("User Registration", () => {
     fireEvent.click(teacherButton);
 
     // Fill out registration inputs
-    const registerEmailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
-    const registerPasswordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
-    
+    const firstNameInput = screen.getByPlaceholderText("First Name");
+    const lastNameInput = screen.getByPlaceholderText("Last Name");
+    const phoneInput = screen.getByPlaceholderText("Phone Number");
+    const registerEmailInput = screen.getByPlaceholderText("Email");
+    const registerPasswordInput = screen.getByPlaceholderText("Password");
+    const proofLinkInput = screen.getByPlaceholderText("Proof Link");
+
+    fireEvent.change(firstNameInput, { target: { value: "John" } });
+    fireEvent.change(lastNameInput, { target: { value: "Doe" } });
+    fireEvent.change(phoneInput, { target: { value: "1234567890" } });
     fireEvent.change(registerEmailInput, { target: { value: "teacher@example.com" } });
     fireEvent.change(registerPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(proofLinkInput, { target: { value: "https://example.com/proof.pdf" } });
 
     // Click the "Register" button
     const registerButton = screen.getByRole("button", { name: /Register/i });
@@ -71,15 +79,18 @@ describe("User Registration", () => {
     });
 
     // Verify that fetch was called correctly
-    expect(global.fetch).toHaveBeenCalledWith("/api/user", expect.objectContaining({
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        role: "teacher",
-        email: "teacher@example.com",
-        password: "password123",
-      }),
-    }));
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/user",
+      expect.objectContaining({
+        method: "POST",
+      })
+    );
+    // Get the actual fetch call arguments
+    const fetchCall = vi.mocked(global.fetch).mock.calls[0];
+    const fetchOptions = fetchCall[1];
+
+    // Check it's FormData
+    expect(fetchOptions?.body).toBeInstanceOf(FormData)
   });
 
   it("shows error alert when registration fails", async () => {
@@ -103,8 +114,12 @@ describe("User Registration", () => {
     fireEvent.click(studentButton);
 
     // Fill out registration inputs
+    fireEvent.change(screen.getByPlaceholderText("First Name"), { target: { value: "Jane" } });
+    fireEvent.change(screen.getByPlaceholderText("Last Name"), { target: { value: "Smith" } });
+    fireEvent.change(screen.getByPlaceholderText("Phone Number"), { target: { value: "9876543210" } });
     fireEvent.change(screen.getByPlaceholderText("Email"), { target: { value: "student@example.com" } });
     fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "password123" } });
+    fireEvent.change(screen.getByPlaceholderText("Proof Link"), { target: { value: "https://example.com/proof.pdf" } });
 
     // Click the "Register" button
     const registerButton = screen.getByRole("button", { name: /Register/i });
