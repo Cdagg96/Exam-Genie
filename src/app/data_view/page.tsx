@@ -295,7 +295,7 @@ export default function DatabaseActionPage() {
             setImportLoading(true);
             const formData = new FormData();
             formData.append('file', file);
-            
+
             if (user?._id) {
                 formData.append('userID', user._id);
             }
@@ -366,6 +366,7 @@ export default function DatabaseActionPage() {
                                 placeholder="Search a topic"
                                 onSelect={setSelectedTopic}
                                 value={selectedTopic}
+                                page="databaseView"
                             />
 
                             {/* Difficulty Filter */}
@@ -411,6 +412,7 @@ export default function DatabaseActionPage() {
                                 placeholder="Search a subject"
                                 onSelect={setSelectedSubject}
                                 value={selectedSubject}
+                                page="databaseView"
                             />
 
                             {/* Course number Filter Box */}
@@ -420,6 +422,7 @@ export default function DatabaseActionPage() {
                                 placeholder="Search a Course Number"
                                 onSelect={setselectedCourseNum}
                                 value={selectedCourseNum}
+                                page="databaseView"
                             />
 
                             <div className="text-left">
@@ -568,7 +571,7 @@ export default function DatabaseActionPage() {
                                                 <div className="text-gray-400 text-lg">Please log in to view your questions</div>
                                             </td>
                                         </tr>
-                                    ): (
+                                    ) : (
                                         //Questions data
                                         filteredQuestions.map((question, index) => (
                                             <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
@@ -646,7 +649,9 @@ export default function DatabaseActionPage() {
                         </div>
                     </div>
                 </main>
-                <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} />
+                {isQuestionFormOpen && (
+                    <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} />
+                )}
 
                 {/* Delete Confirmation Modal */}
                 <ConfirmationModal
