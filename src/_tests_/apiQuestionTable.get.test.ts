@@ -24,7 +24,8 @@ const {
   ];
 
   const toArrayMock = vi.fn().mockResolvedValue(fakeQuestions);
-  const findMock = vi.fn().mockReturnValue({ toArray: toArrayMock });
+  const sortMock = vi.fn().mockReturnValue({toArray: toArrayMock})
+  const findMock = vi.fn().mockReturnValue({ sort: sortMock, toArray: toArrayMock });
   const collectionMock = vi.fn().mockReturnValue({ find: findMock });
   const dbMock = { collection: collectionMock };
   const clientMock = { db: vi.fn().mockReturnValue(dbMock) };
