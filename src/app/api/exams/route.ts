@@ -121,7 +121,7 @@ export async function GET(req: Request) {
             });
         }
         // Otherwise return all matching exams (array)
-        const exams = await collection.find(filter).toArray();
+        const exams = await collection.find(filter).sort({createdAt: -1}).toArray();
 
         const serializedExams = exams.map(exam => ({
             ...exam,
