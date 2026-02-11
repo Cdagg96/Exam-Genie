@@ -128,11 +128,20 @@ describe("LoginModal Alerts", () => {
     fireEvent.click(teacherButton);
 
     //Get register inputs 
+    const firstNameInput = screen.getByPlaceholderText("First Name") as HTMLInputElement;
+    const lastNameInput = screen.getByPlaceholderText("Last Name") as HTMLInputElement;
+    const phoneInput = screen.getByPlaceholderText("Phone Number") as HTMLInputElement;
     const registerEmailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
     const registerPasswordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
+    const proofLinkInput = screen.getByPlaceholderText("Proof Link") as HTMLInputElement;
 
+    // Fill all fields
+    fireEvent.change(firstNameInput, { target: { value: "John" } });
+    fireEvent.change(lastNameInput, { target: { value: "Doe" } });
+    fireEvent.change(phoneInput, { target: { value: "1234567890" } });
     fireEvent.change(registerEmailInput, { target: { value: "teacher@example.com" } });
     fireEvent.change(registerPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(proofLinkInput, { target: { value: "https://example.com/proof.pdf" } });
 
     //Get the main register button
     const registerButton = screen.getByRole("button", { name: /Register/i });
