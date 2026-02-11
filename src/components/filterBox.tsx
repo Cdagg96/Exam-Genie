@@ -180,7 +180,7 @@ export default function FilterBox({
         />
 
         {/* Clear button (X) when there's text */}
-        {inputValue && page !== "questionForm" && (
+        {inputValue && /*page !== "questionForm" &&*/ (
           <button
             type="button"
             onClick={handleClear}
