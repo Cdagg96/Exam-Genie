@@ -30,6 +30,7 @@ export default function FilterBox({
   const [lastSelectedValue, setLastSelectedValue] = useState(value);
   const filterBoxRef = useRef<HTMLDivElement>(null); //Reference for the filter box so it can be closed when clicking outside
   const [customValue, setCustomValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
   //Keep the input value in sync with the value prop
   useEffect(() => {
@@ -57,9 +58,11 @@ export default function FilterBox({
 
   //Selects an option from the dropdown and updates the input value accordingly
   const select = (option: { value: string; label: string }) => {
-    setInputValue(option.value === '' ? '' : option.label); //Update the input value
+    //setInputValue(option.value === '' ? '' : option.label); //Update the input value
+    setInputValue(option.label); 
     setLastSelectedValue(option.value);
     setCustomValue('');
+    setIsTyping(false); 
     setIsOpen(false); //Close the dropdown since an option has been made
     onSelect?.(option.value);
   };
@@ -68,6 +71,7 @@ export default function FilterBox({
   const inputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
+    setIsTyping(true); 
 
     //Open the dropdown when typing
     if (!isOpen) {
@@ -91,13 +95,6 @@ export default function FilterBox({
       setLastSelectedValue('');
       onSelect?.('');
     }
-    else {
-      //If we are typing and had a previous selection clear it
-      if (lastSelectedValue && newValue != options.find(opt => opt.value === lastSelectedValue)?.label) {
-        setLastSelectedValue('');
-        onSelect?.('');
-      }
-    }
   };
 
   //Handles focus on the input field
@@ -108,9 +105,20 @@ export default function FilterBox({
   //Handle blur on the input field
   const inputBlur = () => {
     setTimeout(() => {
-      if (customValue.trim() !== '' && allowCustom) {
+      //If the dropdown is still open, don't do anything
+      if (isOpen) return;
+
+      //If we were typing and have a custom value, select it
+      if (isTyping && customValue.trim() !== '' && allowCustom) {
         setInputValue(customValue);
         onSelect?.(customValue);
+        setIsTyping(false);
+      }
+      //If we were typing but the input is empty, clear everything
+      else if (isTyping && inputValue.trim() === '') {
+        setLastSelectedValue('');
+        onSelect?.('');
+        setIsTyping(false);
       }
       setIsOpen(false);
     }, 200);
@@ -121,6 +129,7 @@ export default function FilterBox({
     setInputValue('');
     setLastSelectedValue('');
     setCustomValue('');
+    setIsTyping(false); 
     onSelect?.('');
     setIsOpen(false);
   };
@@ -129,11 +138,22 @@ export default function FilterBox({
   const handleUseCustom = () => {
     const customVal = inputValue.trim();
     if (customVal !== '' && allowCustom) {
+      setInputValue(customVal);
       setCustomValue(customVal);
+      setLastSelectedValue(customVal);
+      setIsTyping(false);
       onSelect?.(customVal);
       setIsOpen(false);
     }
   };
+
+  //Determine if we should show the "Use custom" option based on the current input and available options
+  const shouldShowCustomOption = allowCustom && 
+    inputValue.trim() !== '' &&
+    !options.some(opt =>
+      opt.label.toLowerCase() === inputValue.toLowerCase() ||
+      opt.value.toLowerCase() === inputValue.toLowerCase()
+    );
 
   return (
     //Filter box using reference for detecting clicks
@@ -201,8 +221,8 @@ export default function FilterBox({
                     key={option.value}
                     onClick={() => select(option)}
                     className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${index === 0 ? 'rounded-t-xl' : ''
-                      } ${index === filteredOptions.length - 1 ? 'rounded-b-xl' : ''
-                      } ${filteredOptions.length === 1 ? 'rounded-xl' : ''
+                      } ${index === filteredOptions.length - 1 && !shouldShowCustomOption ? 'rounded-b-xl' : ''
+                      } ${filteredOptions.length === 1 && !shouldShowCustomOption ? 'rounded-xl' : ''
                       }`}
                   >
                     {option.label}
