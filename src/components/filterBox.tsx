@@ -152,7 +152,7 @@ export default function FilterBox({
         
         {/* Dropdown choices */}
         {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
             { /* Render filtered options if any exist, otherwise display a message for no options found */}
             {filteredOptions.length > 0 ? (
               //Each option in the dropdown

@@ -273,7 +273,7 @@ export default function PastExams() {
                         </div>
                     )}
                     {/* Filtering Section */}
-                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
+                    <div className="relative z-30 bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
                         <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
                             Filter Exams
                         </h2>

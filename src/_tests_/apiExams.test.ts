@@ -240,7 +240,7 @@ describe("PUT /api/exams", () => {
                 $set: {
                     title: "Updated Exam Title",
                     timeLimitMin: 90,
-                    totalPoints: 5,
+                    totalPoints: 3,
                     questions: updatedExamData.questions,
                     updatedAt: expect.any(Date)
                 }
