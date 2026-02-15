@@ -87,15 +87,15 @@ export async function GET(req: Request) {
 
         if (lastUsed) {
             try {
+                //Parse the MM-DD-YYYY format from the frontend
                 const [month, day, year] = lastUsed.split('-').map(Number);
-                const baseDate = new Date(year, month - 1, day);
-
-                const startOfDay = new Date(baseDate);
-                const endOfDay = new Date(baseDate);
-                endOfDay.setDate(endOfDay.getDate() + 1);
+                
+                //Create date range for the entire day
+                const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+                const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
 
                 filter.lastUsed = { 
-                    $gte: startOfDay, 
+                    //$gte: startOfDay, 
                     $lt: endOfDay 
                 };
             } catch (error) {
@@ -118,6 +118,7 @@ export async function GET(req: Request) {
             return NextResponse.json({
                 ...exam,
                 _id: exam._id.toString(),
+                lastUsed: exam.lastUsed ? new Date(exam.lastUsed).toISOString() : null
             });
         }
         // Otherwise return all matching exams (array)
@@ -126,6 +127,7 @@ export async function GET(req: Request) {
         const serializedExams = exams.map(exam => ({
             ...exam,
             _id: exam._id.toString(),
+            lastUsed: exam.lastUsed ? new Date(exam.lastUsed).toISOString() : null
         }));
 
         return NextResponse.json(serializedExams);
@@ -244,6 +246,9 @@ export async function POST(req:Request) {
         // Check availability for each type in the DB
         const shortages: Array<{type: string; requested: number; available: number}> = [];
 
+        //Store all selected question IDs for bulk update
+        const selectedQuestionIds: ObjectId[] = [];
+
         for(const {type, requested} of pairs){
             const match: any = {type};
             if(diffFilter) match.difficulty = diffFilter;
@@ -285,6 +290,7 @@ export async function POST(req:Request) {
 
             // loop throup the array of sample questions and push them onto items
             for(const q of sample){
+                selectedQuestionIds.push(q._id); //Keep track of selected question IDs for later update of lastUsed
                 items.push({
                     questionId: q._id,
                     type: q.type,
@@ -305,7 +311,7 @@ export async function POST(req:Request) {
         // get the total points
         const totalPoints = computeTotalPoints(items);
 
-        const lastUsed = body.lastUsed ?? null;
+        const lastUsed = new Date();
 
         // Sort the order of types (MC, TF, FIB, Essay, Code by default)
         const TYPE_ORDER = questionOrder && questionOrder.length > 0
@@ -335,6 +341,14 @@ export async function POST(req:Request) {
 
         const result = await db.collection("exams").insertOne(exam_data);
         
+        //Update lastUsed for all selected questions
+        if (selectedQuestionIds.length > 0) {
+            await questionsdb.updateMany(
+                { _id: { $in: selectedQuestionIds } },
+                { $set: { lastUsed: new Date() } }
+            );
+        }
+
         return NextResponse.json(
             {ok: true, message: "Exam created!", exam: { _id: result.insertedId, ...exam_data }},
             {status: 201}
@@ -375,6 +389,7 @@ export async function PUT(req: Request) {
     const client = await clientPromise;
     const database = client.db(process.env.MONGODB_DB);
     const collection = database.collection('exams');
+    const questionsdb = database.collection('questions');
 
     // Check if exam exists
     const existingExam = await collection.findOne({ _id: new ObjectId(id) });
@@ -389,12 +404,21 @@ export async function PUT(req: Request) {
       return sum + (Number(q?.points) || 0);
     }, 0);
 
+    //Set lastUsed
+    const lastUsed = new Date();
+
+    //Get all question IDs from the updated exam to update their lastUsed field in the questions collection
+    const updatedQuestionIds = questions
+        .map((q: any) => q.questionId)
+        .filter((id: string | ObjectId) => id != null);
+
     // Update the exam
     const updateData = {
       title,
       timeLimitMin,
       totalPoints,
       questions,
+      lastUsed,
       updatedAt: new Date()
     };
 
@@ -408,6 +432,22 @@ export async function PUT(req: Request) {
         { ok: false, error: 'No changes made to exam' },
         { status: 400 }
       );
+    }
+
+    //Update lastUsed for all questions in the exam
+    if (updatedQuestionIds.length > 0) {
+        const objectIds = updatedQuestionIds.map((id: string) => {
+        try {
+            return new ObjectId(id);
+        } catch (error) {
+            return id; 
+        }
+        });
+
+        await questionsdb.updateMany(
+            { _id: { $in: objectIds } },
+            { $set: { lastUsed } } 
+        );
     }
 
     // Return the updated exam 
