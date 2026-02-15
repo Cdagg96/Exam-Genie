@@ -50,10 +50,6 @@ describe("User Registration", async () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
 
-    // Select "Teacher" role
-    const teacherButton = screen.getByLabelText("Teacher") as HTMLInputElement;
-    fireEvent.click(teacherButton);
-
     // Fill out registration inputs
     const firstNameInput = screen.getByPlaceholderText("First Name");
     const lastNameInput = screen.getByPlaceholderText("Last Name");
@@ -108,10 +104,6 @@ describe("User Registration", async () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
-
-    // Select "Student" role
-    const studentButton = screen.getByLabelText("Student") as HTMLInputElement;
-    fireEvent.click(studentButton);
 
     // Fill out registration inputs
     fireEvent.change(screen.getByPlaceholderText("First Name"), { target: { value: "Jane" } });

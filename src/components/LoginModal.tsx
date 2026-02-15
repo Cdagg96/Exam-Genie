@@ -146,7 +146,7 @@ export default function LoginModal({
       toast.error("Please enter a valid phone number.");
       return;
     }
-    if (!registerData.role || !registerData.email || !registerData.password || (!registerData.proofLink && !registerData.proofFile) || !registerData.firstName || !registerData.lastName || !registerData.phone) {
+    if (!registerData.email || !registerData.password || (!registerData.proofLink && !registerData.proofFile) || !registerData.firstName || !registerData.lastName || !registerData.phone) {
       //Show error if not all fields are filled out
       toast.error("Not all registration fields are filled out.");
     } else {

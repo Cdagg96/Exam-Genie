@@ -7,7 +7,7 @@ export async function POST(req: Request) {
         const formData = await req.formData();
 
         //Extract form fields
-        const role = formData.get("role") as string;
+        const role = "teacher";
         const firstName = formData.get("firstName") as string;
         const lastName = formData.get("lastName") as string;
         const phone = formData.get("phone") as string;
