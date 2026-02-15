@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthContext";
 import SelectBox from "@/components/SelectBox";
+import FilterBox from "@/components/filterBox";
 
 export default function BackgroundModal({
     isOpen,
@@ -31,6 +32,52 @@ export default function BackgroundModal({
     const [fibAnswer, setFIBAnswer] = useState("");
     const [blankLines, setBlankLines] = useState(1);
     const { user } = useAuth();
+
+    const [subjectsList, setSubjectsList] = useState<{ value: string; label: string }[]>([]);
+    const [courseNumbersList, setCourseNumbersList] = useState<{ value: string; label: string }[]>([]);
+
+    //Fetch existing subjects and course numbers for current user for dropdowns
+    useEffect(() => {
+    const fetchSubjectsAndCourses = async () => {
+        if (!user?._id) return;
+
+        try {
+            //Fetch unique subjects for the current user
+            const subjectsRes = await fetch(`../api/questions/subjects?userId=${user._id}`);
+            if (subjectsRes.ok) {
+                const subjectsData = await subjectsRes.json();
+                if (subjectsData.ok) {
+                    setSubjectsList(subjectsData.subjects.map((subject: string) => ({
+                        value: subject,
+                        label: subject
+                    })));
+                }
+            }
+
+            //Fetch unique course numbers for the current user
+            const coursesRes = await fetch(`../api/questions/course-numbers?userId=${user._id}`);
+            if (coursesRes.ok) {
+                const coursesData = await coursesRes.json();
+                if (coursesData.ok) {
+                    setCourseNumbersList(coursesData.courseNumbers.map((courseNum: string) => ({
+                        value: courseNum,
+                        label: courseNum
+                    })));
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching subjects/courses:", error);
+        }
+    };
+
+    if (isOpen && user?._id) {
+        fetchSubjectsAndCourses();
+    } else {
+        //Reset lists when modal closes or user logs out
+        setSubjectsList([]);
+        setCourseNumbersList([]);
+    }
+}, [isOpen, user?._id]);
 
     // Update an MC choice
     const updateChoice = (index: number, value: string) => {
@@ -224,24 +271,26 @@ export default function BackgroundModal({
                     />
 
                     {/* Question subject */}
-                    <input
-                        className="border px-4 py-3 w-full rounded-xl"
-                        placeholder="Subject"
+                    <FilterBox
+                        options={subjectsList}
+                        label="Subject"
+                        placeholder="Type or select subject"
+                        onSelect={(value) => setSubject(value)}
                         value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        required
+                        page="questionForm"
+                        allowCustom={true}
                     />
 
                     {/* Question Course Number */}
-                    <div>
-                        <input
-                            className="border px-4 py-3 w-full rounded-xl"
-                            placeholder="Course Number"
-                            value={courseNum ?? ""}
-                            onChange={(e) => setCourseNum(e.target.value)}
-                            required
-                        />
-                    </div>
+                    <FilterBox
+                        label="Course Number"
+                        placeholder="Type or select course number"
+                        options={courseNumbersList}
+                        value={courseNum}
+                        onSelect={(value) => setCourseNum(value)}
+                        page="questionForm"
+                        allowCustom={true}
+                    />
 
                     {/* MC options */}
                     {type === "MC" && (
@@ -266,13 +315,28 @@ export default function BackgroundModal({
                             </div>
                             ))}
 
-                            <button
-                            type="button"
-                            onClick={addChoice}
-                            className="text-blue-600 hover:underline text-sm"
-                            >
-                            + Add Choice
-                            </button>
+                            {/*Add Choice button disappears after 5 choices and shows a message when maximum is reached */}
+                            {choices.length < 5 && (
+                                <div className="flex justify-center">
+                                    <button
+                                        type="button"
+                                        onClick={addChoice}
+                                        className="text-blue-600 hover:underline text-sm flex items-center gap-1 hover:text-blue-800 transition-colors"
+                                    >
+                                        + Add Choice ({choices.length}/5)
+                                    </button> 
+                                </div>
+                            )}
+                            {choices.length >= 5 && (
+                                <div className="flex justify-center">
+                                    <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                        </svg>
+                                        Maximum of 5 choices reached
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         )}
 
