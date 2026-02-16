@@ -548,9 +548,23 @@ export default function DatabaseActionPage() {
                             Prev
                         </button>
 
-                        <span className="text-sm text-slate-600">
-                            Page {page} of {totalPages}
-                        </span>
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <span>Page</span>
+
+                            <input
+                                min={1}
+                                max={totalPages}
+                                value={page}
+                                onChange={(e) => {
+                                const next = Number(e.target.value);
+                                if (Number.isNaN(next)) return;
+                                setPage(Math.max(1, Math.min(totalPages, next)));
+                                }}
+                                className="w-16 rounded-xl border px-2 py-1 text-center"
+                            />
+
+                            <span>of {totalPages}</span>
+                            </div>
 
                         <button
                             className="btn btn-ghost"
