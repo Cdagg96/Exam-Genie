@@ -132,34 +132,6 @@ export default function DatabaseActionPage() {
         fetchQuestionsWithFilters();
     }
 
-    // //Fetch questions from MongoDB
-    // const fetchQuestions = async () => {
-    //     try {
-    //         setLoading(true);
-    //         const response = await fetch("../api/questions", {
-    //             method: 'GET',
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error('Failed to fetch questions');
-    //         }
-
-    //         const data = await response.json();
-    //         setQuestions(data);
-    //         setFiltersApplied(false);
-    //     } catch (err) {
-    //         setError(err instanceof Error ? err.message : 'An error occurred');
-    //         console.error('Error fetching questions:', err);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
-    // //Runs when page opens to get questions
-    // useEffect(() => {
-    //     fetchQuestionsWithFilters();
-    // }, []);
-
     //Runs when page or limit changes to get questions
     useEffect(() => {
         if (!user?._id) { // Only fetch questions if user is signed in
