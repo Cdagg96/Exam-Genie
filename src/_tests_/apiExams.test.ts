@@ -34,7 +34,8 @@ const {
     ];
 
     const toArrayMock = vi.fn().mockResolvedValue(fakeExams);
-    const findMock = vi.fn().mockReturnValue({ toArray: toArrayMock });
+    const sortMock = vi.fn().mockReturnValue({toArray: toArrayMock})
+    const findMock = vi.fn().mockReturnValue({ sort: sortMock, toArray: toArrayMock });
     const findOneMock = vi.fn().mockResolvedValue(fakeExams[0]);
     const deleteOneMock = vi.fn().mockResolvedValue({ deletedCount: 1 });
     const insertOneMock = vi.fn().mockResolvedValue({ insertedId: "69094a2c5bd7abae970d1fb9"});
@@ -209,7 +210,7 @@ describe("PUT /api/exams", () => {
                 { 
                     questionId: "68f39166f8b09cb6a1df1afe", 
                     type: "MC", 
-                    points: 3,
+                    points: 5,
                     snapshot: {
                         stem: "Updated question stem",
                         choices: [{ label: "A", text: "Choice A" }],

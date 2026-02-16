@@ -173,7 +173,7 @@ export async function GET(req: Request) {
       }
     }
 
-    const questions = await collection.find(filter).toArray();
+    const questions = await collection.find(filter).sort({createdOn: -1}).toArray();
     if (countsMode === "1") {
         const counts = { MC: 0, TF: 0, Essay: 0, FIB: 0, Code: 0 };
 
