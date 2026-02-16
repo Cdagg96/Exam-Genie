@@ -52,6 +52,12 @@ export default function DatabaseActionPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [csvModalOpen, setCSVModalOpen] = useState(false);
 
+    // Pagination variables
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(25);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+
     //Fetch questions with filters
     const fetchQuestionsWithFilters = async () => {
         try {
@@ -66,6 +72,10 @@ export default function DatabaseActionPage() {
             if (selectedSubject) params.append('subject', selectedSubject);
             if (selectedCourseNum) params.append('courseNum', selectedCourseNum);
             if (lastUsedDate) params.append('lastUsed', lastUsedDate.format('MM-DD-YYYY'));
+            if (user?._id) params.append("userId", user._id)
+        
+            params.set('page', String(page))
+            params.set('limit', String(limit))
 
             const queryString = params.toString();
             const url = queryString ? `../api/questions?${queryString}` : '../api/questions';
@@ -79,8 +89,21 @@ export default function DatabaseActionPage() {
             }
 
             const data = await response.json();
-            setQuestions(data);
-            setFiltersApplied(queryString.length > 0);
+            setQuestions(data.items ?? []);
+            setTotalPages(data.totalPages ?? 1);
+            setTotal(data.total ?? 0);
+            
+
+            // Only mark filtersApplied if real filters are on (ignore page/limit)
+            const hasFilters =
+            !!selectedTopic ||
+            !!selectedDifficulty ||
+            !!selectedType ||
+            !!selectedSubject ||
+            !!selectedCourseNum ||
+            !!lastUsedDate;
+
+            setFiltersApplied(hasFilters);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
             console.error('Error fetching questions:', err);
@@ -91,6 +114,7 @@ export default function DatabaseActionPage() {
 
     //Apply filters
     const handleApplyFilters = () => {
+        setPage(1);
         fetchQuestionsWithFilters();
     }
 
@@ -104,36 +128,54 @@ export default function DatabaseActionPage() {
         setLastUsedDate(null);
         setDateInputValue('');
         setFiltersApplied(false);
-        fetchQuestions();
+        setPage(1)
+        fetchQuestionsWithFilters();
     }
 
-    //Fetch questions from MongoDB
-    const fetchQuestions = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch("../api/questions", {
-                method: 'GET',
-            });
+    // //Fetch questions from MongoDB
+    // const fetchQuestions = async () => {
+    //     try {
+    //         setLoading(true);
+    //         const response = await fetch("../api/questions", {
+    //             method: 'GET',
+    //         });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch questions');
-            }
+    //         if (!response.ok) {
+    //             throw new Error('Failed to fetch questions');
+    //         }
 
-            const data = await response.json();
-            setQuestions(data);
-            setFiltersApplied(false);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-            console.error('Error fetching questions:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         const data = await response.json();
+    //         setQuestions(data);
+    //         setFiltersApplied(false);
+    //     } catch (err) {
+    //         setError(err instanceof Error ? err.message : 'An error occurred');
+    //         console.error('Error fetching questions:', err);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
-    //Runs when page opens to get questions
+    // //Runs when page opens to get questions
+    // useEffect(() => {
+    //     fetchQuestionsWithFilters();
+    // }, []);
+
+    //Runs when page or limit changes to get questions
     useEffect(() => {
-        fetchQuestions();
-    }, []);
+        if (!user?._id) { // Only fetch questions if user is signed in
+            setQuestions([]);
+            setTotalPages(1);
+            setTotal(0);
+            setLoading(false);
+            return;
+        }
+        fetchQuestionsWithFilters();
+    }, [page, limit, user?._id]);
+
+    // Set page back to one if user changes
+    useEffect(() => {
+        setPage(1);
+        }, [user?._id]);
 
     //Creates a unique list of topics for the filter box
     useEffect(() => {
@@ -168,7 +210,7 @@ export default function DatabaseActionPage() {
     //Runs when the add question form closes to potentially grab new questions just added
     const handleFormClose = () => {
         setIsQuestionFormOpen(false);
-        fetchQuestions();
+        fetchQuestionsWithFilters();
     };
 
     //Helper function to format choices (label then text plus can have multiple choices)
@@ -232,7 +274,7 @@ export default function DatabaseActionPage() {
 
             if (response.ok) {
                 toast.success("Question deleted successfully!");
-                await fetchQuestions();
+                await fetchQuestionsWithFilters();
             } else {
                 throw new Error(result.error || 'Failed to delete question');
             }
@@ -267,7 +309,7 @@ export default function DatabaseActionPage() {
     const handleEditComplete = () => {
         setEditModalOpen(false);
         setQuestionToEdit(null);
-        fetchQuestions();
+        fetchQuestionsWithFilters();
     };
 
     const handleDateInputChange = (inputValue: string) => {
@@ -309,7 +351,7 @@ export default function DatabaseActionPage() {
 
             if (response.ok) {
                 toast.success(`Successfully imported ${result.importedCount} questions!`);
-                fetchQuestions(); //Refresh the questions list
+                fetchQuestionsWithFilters(); //Refresh the questions list
                 setCSVModalOpen(false);
             } else {
                 throw new Error(result.error || 'Failed to import questions');
@@ -496,6 +538,41 @@ export default function DatabaseActionPage() {
                         </div>
                     </div>
 
+                    {/* Pages */}                  
+                    <div className="flex items-center gap-3 mb-5">
+                        <button
+                            className="btn btn-ghost"
+                            disabled={page === 1}
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                        >
+                            Prev
+                        </button>
+
+                        <span className="text-sm text-slate-600">
+                            Page {page} of {totalPages}
+                        </span>
+
+                        <button
+                            className="btn btn-ghost"
+                            disabled={page >= totalPages}
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        >
+                            Next
+                        </button>
+
+                        <select
+                            className="border rounded-xl px-2 py-1 text-sm"
+                            value={limit}
+                            onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                        >
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                        </div>
+
+
 
                     {/* Questions Table */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
@@ -550,18 +627,10 @@ export default function DatabaseActionPage() {
                                                 <div className="text-gray-400 text-lg">Error Loading questions</div>
                                                 <div className="text-red-400 text-sm mt-2">{error}</div>
                                                 <button
-                                                    onClick={fetchQuestions}
+                                                    onClick={fetchQuestionsWithFilters}
                                                     className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
                                                     Retry
                                                 </button>
-                                            </td>
-                                        </tr>
-                                    ) : filteredQuestions.length == 0 ? (
-                                        //No questions
-                                        <tr>
-                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">No questions found</div>
-                                                <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
                                             </td>
                                         </tr>
                                     ) : !user ? (
@@ -571,7 +640,15 @@ export default function DatabaseActionPage() {
                                                 <div className="text-gray-400 text-lg">Please log in to view your questions</div>
                                             </td>
                                         </tr>
-                                    ) : (
+                                    ): filteredQuestions.length == 0 ? (
+                                        //No questions
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="text-gray-400 text-lg">No questions found</div>
+                                                <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
+                                            </td>
+                                        </tr>
+                                    )  : (
                                         //Questions data
                                         filteredQuestions.map((question, index) => (
                                             <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
