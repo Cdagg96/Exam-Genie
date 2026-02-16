@@ -123,10 +123,6 @@ describe("LoginModal Alerts", () => {
     const signUpLink = screen.getByRole("button", { name: /Sign up/i });
     fireEvent.click(signUpLink);
 
-    //Select role
-    const teacherButton = screen.getByLabelText("Teacher") as HTMLInputElement;
-    fireEvent.click(teacherButton);
-
     //Get register inputs 
     const firstNameInput = screen.getByPlaceholderText("First Name") as HTMLInputElement;
     const lastNameInput = screen.getByPlaceholderText("Last Name") as HTMLInputElement;
@@ -151,5 +147,31 @@ describe("LoginModal Alerts", () => {
     await waitFor(() => {
       expect(toast.error).not.toHaveBeenCalledWith("Not all registration fields are filled out.");
     });
+  });
+
+  it("hide/unhide the password when the eye icon is clicked", () => {
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={mockOnClose}
+      />
+    );
+
+    //Get the input in the password box
+    const input = screen.getByPlaceholderText("Password") as HTMLInputElement;
+
+    //Start with hidden password
+    expect(input.type).toBe("password");
+
+    //Get the visibility toggle button
+    const visibilityButton = input.parentElement?.querySelector("button") as HTMLButtonElement;
+
+    //Click the visibility toggle button to unhide the password
+    fireEvent.click(visibilityButton);
+    expect(input.type).toBe("text");
+
+    //Click the visibility toggle button again to hide the password
+    fireEvent.click(visibilityButton);
+    expect(input.type).toBe("password");
   });
 });
