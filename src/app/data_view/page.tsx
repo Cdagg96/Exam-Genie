@@ -37,7 +37,7 @@ export default function DatabaseActionPage() {
     const { user } = useAuth();
     // Filter questions by logged-in user
     // If no user show all. Will proably need to be changed at somepoint 
-    const filteredQuestions = user ? questions.filter(q => q.userID === user._id) : questions;
+    const filteredQuestions = questions;
 
     //Filtering states
     const [selectedTopic, setSelectedTopic] = useState<string>('');
@@ -60,6 +60,12 @@ export default function DatabaseActionPage() {
             //Build query parameters
             const params = new URLSearchParams();
 
+            if (!user?._id) {
+                setQuestions([]);
+                setFiltersApplied(false);
+                return;
+            }
+            params.append("userID", user._id);
             if (selectedTopic) params.append('topic', selectedTopic);
             if (selectedDifficulty) params.append('difficulty', selectedDifficulty);
             if (selectedType) params.append('type', selectedType);
@@ -111,7 +117,14 @@ export default function DatabaseActionPage() {
     const fetchQuestions = async () => {
         try {
             setLoading(true);
-            const response = await fetch("../api/questions", {
+
+            if (!user?._id) {
+                setQuestions([]);
+                setFiltersApplied(false);
+                return;
+            }
+
+            const response = await fetch(`../api/questions?userID=${user._id}`, {
                 method: 'GET',
             });
 
@@ -132,38 +145,56 @@ export default function DatabaseActionPage() {
 
     //Runs when page opens to get questions
     useEffect(() => {
+        if (!user?._id) {
+            setQuestions([]);
+            setFiltersApplied(false);
+            setLoading(false);
+            return;
+        }
         fetchQuestions();
-    }, []);
+    }, [user]);
 
     //Creates a unique list of topics for the filter box
     useEffect(() => {
+        if (!user?._id) {
+            setTopics([]);
+            return;
+        }
         const uniqueTopics = Array.from(
             new Set(questions.flatMap(quest => quest.topics))
         ).map(topic => ({ value: topic, label: topic }));
 
         //Store the list of unique topics if any changes occur in questions
         setTopics(uniqueTopics);
-    }, [questions]);
+    }, [questions, user]);
 
     //Creates a unique list of subjects for the filter box
     useEffect(() => {
+        if (!user?._id) {
+            setSubjects([]);
+            return;
+        }
         const uniqueSubjects = Array.from(
             new Set(questions.map(quest => quest.subject?.trim()).filter((s): s is string => !!s))
         ).map(subject => ({ value: subject, label: subject }));
 
         //Store the list of unique topics if any changes occur in questions
         setSubjects(uniqueSubjects);
-    }, [questions]);
+    }, [questions, user]);
 
     //Creates a unique list of course numbers for the filter box
     useEffect(() => {
+        if (!user?._id) {
+            setCourseNums([]);
+            return;
+        }
         const uniqueCourseNums = Array.from(
             new Set(questions.map(quest => quest.courseNum?.trim()).filter((s): s is string => !!s))
         ).map(courseNum => ({ value: courseNum, label: courseNum }));
 
         //Store the list of unique topics if any changes occur in questions
         setCourseNums(uniqueCourseNums);
-    }, [questions]);
+    }, [questions, user]);
 
     //Runs when the add question form closes to potentially grab new questions just added
     const handleFormClose = () => {

@@ -34,13 +34,24 @@ export async function GET(req: Request) {
         const subject = searchParams.get('subject');
         const courseNum = searchParams.get('courseNum');
         const lastUsed = searchParams.get('lastUsed');
-
+        
+        const userID = searchParams.get("userID");
+        
         const client = await clientPromise;
         const database = client.db(process.env.MONGODB_DB);
         const collection = database.collection('exams');
 
         // Build filter object based on provided parameters
         const filter: any = {};
+
+        // Scope exams to the current user only
+        if (!userID) {
+  
+        return NextResponse.json([]);
+        }
+
+        filter.userID = userID;
+
 
         // If ID exists, fetch specific exam
         if(id) {
