@@ -400,7 +400,7 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Time Limit (mins)</span>
+                            <span className="text-sm font-medium">Time Limit (minutes)</span>
                             <input
                                 type="number"
                                 min={0}
