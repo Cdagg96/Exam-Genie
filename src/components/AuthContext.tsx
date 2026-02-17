@@ -7,7 +7,11 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 type User = {
   _id: string;
   email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
   role?: string;
+  createdOn?: string | Date;
 };
 
 // Auth Struct
