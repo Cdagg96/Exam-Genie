@@ -523,7 +523,9 @@ export default function DatabaseActionPage() {
                         <div className="flex items-center gap-2 text-sm text-slate-600">
                             <span>Page</span>
 
-                            <input
+                            <span>{page}</span>
+
+                            {/* <input
                                 min={1}
                                 max={totalPages}
                                 value={page}
@@ -533,10 +535,10 @@ export default function DatabaseActionPage() {
                                 setPage(Math.max(1, Math.min(totalPages, next)));
                                 }}
                                 className="w-16 rounded-xl border px-2 py-1 text-center"
-                            />
+                            /> */}
 
                             <span>of {totalPages}</span>
-                            </div>
+                        </div>
 
                         <button
                             className="btn btn-ghost"
