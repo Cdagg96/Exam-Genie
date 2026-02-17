@@ -161,16 +161,14 @@ export async function GET(req: Request) {
       try {
         //Parse the MM-DD-YYYY format from the frontend
         const [month, day, year] = lastUsed.split('-').map(Number);
-        const lastUsedDate = new Date(year, month - 1, day); 
         
-        //Set the date range for the entire day
-        const startOfDay = new Date(lastUsedDate);
-        const endOfDay = new Date(lastUsedDate);
-        endOfDay.setDate(endOfDay.getDate() + 1);
+        //Create date range for the entire day
+        const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
         
         filter.lastUsed = {
-          $gte: startOfDay.toISOString(),
-          $lt: endOfDay.toISOString()
+          //$gte: startOfDay,
+          $lt: endOfDay
         };
       } catch (error) {
         console.error('Error parsing lastUsed date:', error);
@@ -222,12 +220,13 @@ export async function GET(req: Request) {
 
     const questions = await collection.find(filter).sort({createdOn: -1, _id: -1}).toArray();
     //Convert MongoDB ObjectId to string for serialization
-        const serializedQuestions = questions.map(question => ({
-        ...question,
-        _id: question._id.toString()
-        }));
-
-    return NextResponse.json(serializedQuestions)
+    const serializedQuestions = questions.map(question => ({
+      ...question,
+      _id: question._id.toString(),
+      lastUsed: question.lastUsed ? new Date(question.lastUsed).toISOString() : null
+    }));
+    
+    return NextResponse.json(serializedQuestions);
   } catch (error) {
     console.error('Error fetching questions:', error);
     return NextResponse.json(
