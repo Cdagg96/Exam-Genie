@@ -179,6 +179,7 @@ export default function ExamForm() {
     // States for ordering question by type
     const [questionOrder, setQuestionOrder] = useState<QuestionType[]>([]);
     const [draggedType, setDraggedType] = useState<QuestionType | null>(null);
+    const [hoveredType, setHoveredType] = useState<QuestionType | null>(null);
     const [dropType, setDropType] = useState<number | null>(null);
 
     // Drag and drop handlers
@@ -328,7 +329,7 @@ export default function ExamForm() {
     return (
         <div className="mx-auto w-full">
             <form onSubmit={handleSubmit} className="space-y-6">
-                <section className="bg-white rounded-2xl p-4 shadow-sm">
+                <section className="bg-white rounded-2xl p-4 shadow-sm min-h-[1350px]">
                     <h2 className="mb-3 text-lg font-semibold">General</h2>
                     <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-2">
                         <label className="flex flex-col gap-1">
@@ -419,31 +420,31 @@ export default function ExamForm() {
                         ))}
                     </div>
                     <h2 className="mb-3 mt-8 text-lg font-semibold">Point Values</h2>
-                        <p className="mb-3 text-sm text-gray-600">
+                    <p className="mb-3 text-sm text-gray-600">
                         MC / TF / FIB use fixed defaults. Essay / Code can be set here (and adjusted later in Edit Exam).
-                        </p>
+                    </p>
 
-                        <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
+                    <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
                         {TYPES.map((t) => {
                             const isFixed = t.value === "MC" || t.value === "TF" || t.value === "FIB";
                             return (
-                            <label key={t.value} className="flex flex-col gap-2">
-                                <span className="text-sm font-medium">{t.label}</span>
+                                <label key={t.value} className="flex flex-col gap-2">
+                                    <span className="text-sm font-medium">{t.label}</span>
 
-                                <input
-                                type="number"
-                                min={0}
-                                className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100"
-                                value={pointsByType[t.value]}
-                                disabled={isFixed}
-                                onChange={(e) =>
-                                    setPointsByType((prev) => ({
-                                    ...prev,
-                                    [t.value]: Number(e.target.value),
-                                    }))
-                                }
-                                />
-                            </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100"
+                                        value={pointsByType[t.value]}
+                                        disabled={isFixed}
+                                        onChange={(e) =>
+                                            setPointsByType((prev) => ({
+                                                ...prev,
+                                                [t.value]: Number(e.target.value),
+                                            }))
+                                        }
+                                    />
+                                </label>
                             );
                         })}
                     </div>
@@ -452,50 +453,93 @@ export default function ExamForm() {
 
                     {/* Instructions */}
                     <p className="mb-3 text-sm text-gray-600">
-                        Drag and drop the question types to set the order they appear in the exam.
+                        Drag and drop the question types to set the order they will appear in the exam.
                     </p>
-                    <p className="mb-3 text-sm text-gray-500">
-                        Questions types will appear from left to right on exam — the leftmost type comes first, followed by the ones to its right.
-                    </p>
-                    
-                    {/* Display a message if no question types are selected */}
-                    {questionOrder.length === 0 && (
-                        <p className="text-center text-sm text-gray-500">
-                            Select at least one question type above to enable ordering.
-                        </p>
-                    )}
 
                     <div className="flex justify-center flex-wrap">
                         <div className="pl-40 pr-40 w-full max-w-[1000px]">
-                            <div className="flex justify-center items-center gap-0">
-                                {questionOrder.map((type, index) => (
-                                    <React.Fragment key={type}>
-                                        {/* Drag and drop zone before the boxes */}
-                                        <div
-                                            onDragOver={e => handleDragOver(e, index)}
-                                            onDrop={e => handleDrop(e, index)}
-                                            onDragLeave={() => setDropType(null)}
-                                            className={`w-5 h-12 transition-all duration-200 rounded-lg border-2 border-dashed ${dropType === index ? "bg-blue-100 border-blue-500" : "border-transparent"}`}
-                                        />
+                            <div className="max-w-md mx-auto">
+                                {/* If the user has not selected a question display more instructions */}
+                                {questionOrder.length === 0 ? (
+                                    <p className="text-center text-sm text-gray-600">
+                                        Select at least one question type above.
+                                    </p>
+                                ) : (
+                                    // Start displaying the drag and drop box 
+                                    <div className="rounded-xl border p-6 focus:outline-none focus:ring-2 bg-gray-100">
+                                        <div className="space-y-3">
+                                            { /* Render each question type in the current user order */}
+                                            {questionOrder.map((type) => (
+                                                <div
+                                                    key={type}
+                                                    draggable
+                                                    onDragStart={() => setDraggedType(type)}
+                                                    onDragEnd={() => {
+                                                        // Reset the drag and hover states if user drops the selected box before swapping
+                                                        setHoveredType(null);
+                                                        setDraggedType(null);
+                                                    }}
+                                                    onDragOver={(e) => {
+                                                        e.preventDefault();
 
-                                        {/* Draggable box */}
-                                        <div
-                                            draggable
-                                            onDragStart={e => handleDragStart(e, type)}
-                                            className="cursor-move rounded-xl border px-4 py-3 bg-white shadow w-16 h-12 flex items-center justify-center text-sm select-none mx-[0.75rem]"
-                                        >
-                                            {type}
+                                                        // Show the hovered type as a swap option if its different from the dragged type
+                                                        if (draggedType && draggedType !== type) {
+                                                            setHoveredType(type);
+                                                        }
+                                                    }}
+                                                    onDragLeave={() => setHoveredType(null)}
+                                                    onDrop={() => {
+                                                        if (!draggedType || draggedType === type) return;
+                                                        
+                                                        // Update the question order state
+                                                        setQuestionOrder((prev) => {
+                                                            const newOrder = [...prev];
+
+                                                            // Get the two indices of the swapped types
+                                                            const oldIndex = newOrder.indexOf(draggedType);
+                                                            const newIndex = newOrder.indexOf(type);
+
+                                                            // Swap the two type positions in the array
+                                                            const temp = newOrder[oldIndex];
+                                                            [newOrder[oldIndex] = newOrder[newIndex]];
+                                                            [newOrder[newIndex] = temp];
+
+                                                            return newOrder;
+                                                        });
+
+                                                        // Reset the drag and hover states
+                                                        setDraggedType(null);
+                                                        setHoveredType(null);
+                                                    }}
+                                                    className={
+                                                        `relative cursor-move rounded-xl border bg-white px-4 py-3 shadow flex items-center justify-center text-sm select-none transition-all hover:shadow-md
+                                                        ${draggedType === type ? "opacity-50 scale-105 z-10" : ""}
+                                                        ${hoveredType === type && draggedType ? "ring-1 ring-black" : ""}
+                                                    `}
+                                                >
+                                                    { /* Display the priority on the left of box */ }
+                                                    <span className="absolute left-3 font-medium">
+                                                        {questionOrder.indexOf(type) + 1}
+                                                    </span>
+                                                    
+                                                    { /* Display the question type name */ }
+                                                    <span className="font-medium">
+                                                        {TYPES.find(t => t.value === type)?.label}
+                                                    </span>
+                                                    
+                                                    { /* Display a swap icon on the right of box when dragging and hovering */}
+                                                    {hoveredType === type && draggedType && (
+                                                        <div className="absolute right-3 pointer-events-none text-black">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                                                            </svg>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
                                         </div>
-                                    </React.Fragment>
-                                ))}
-
-                                {/* Drag and drop zone after last */}
-                                <div
-                                    onDragOver={e => handleDragOver(e, questionOrder.length)}
-                                    onDrop={e => handleDrop(e, questionOrder.length)}
-                                    onDragLeave={() => setDropType(null)}
-                                    className={`w-5 h-12 transition-all duration-200 rounded-lg border-2 border-dashed ${dropType === questionOrder.length ? "bg-blue-100 border-blue-500" : "border-transparent"}`}
-                                />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
