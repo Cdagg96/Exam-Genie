@@ -27,6 +27,29 @@ export default function SettingsPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState("profile"); //Profile info, Reset password, Delete account
 
+    //makes sure that the email comes in valid format
+    const isValidEmail = (email: string) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
+    //makes sure that the phone number comes in valid format
+    // 3303278011
+    // 330-327-8011
+    // (330) 327-8011
+    const isValidPhone = (phone: string) => {
+        const digitsOnly = phone.replace(/\D/g, '');
+        return digitsOnly.length === 10;
+    };
+
+    //makes sure that the name only contains letters and is not empty
+    const isValidFirstName = (name: string) => {
+        return /^[A-Za-z]+$/.test(name);
+    };
+
+    const isValidLastName = (name: string) => {
+        return /^[A-Za-z]+$/.test(name);
+    };
+
     //Load user data
     useEffect(() => {
         if (user) {
@@ -52,6 +75,31 @@ export default function SettingsPage() {
     const handleProfileUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+
+        //Validate email, phone, and name formates
+        if (!isValidEmail(formData.email)) {
+            toast.error("Please enter a valid email address");
+            setIsLoading(false);
+            return;
+        }
+
+        if (!isValidFirstName(formData.firstName)) {
+            toast.error("Please enter a valid first name (letters only)");
+            setIsLoading(false);
+            return;
+        }
+
+        if (!isValidLastName(formData.lastName)) {
+            toast.error("Please enter a valid last name (letters only)");
+            setIsLoading(false);
+            return;
+        }
+
+        if (!isValidPhone(formData.phone)) {
+            toast.error("Please enter a valid 10-digit phone number");
+            setIsLoading(false);
+            return;
+        }
 
         try {
             const response = await fetch("/api/user/update", {
