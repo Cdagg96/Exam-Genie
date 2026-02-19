@@ -36,7 +36,6 @@ export default function DatabaseActionPage() {
     const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLDivElement | null>(null);
     const { user } = useAuth();
     // Filter questions by logged-in user
-    // If no user show all. Will proably need to be changed at somepoint 
     const filteredQuestions = user ? questions.filter(q => q.userID === user._id) : questions;
 
     //Filtering states

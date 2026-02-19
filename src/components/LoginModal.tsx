@@ -3,6 +3,7 @@ import React, { useState, useRef, ChangeEvent } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthContext";
 import ForgotPasswordModal from "./ForgotPasswordModal";
+import { signIn } from "next-auth/react";
 
 export default function LoginModal({
   isOpen,
@@ -85,29 +86,21 @@ export default function LoginModal({
       return;
     }
 
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(loginData),
-      });
+    const res = await signIn("credentials", {
+      redirect: false,
+      email: loginData.email,
+      password: loginData.password,
+    });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error("Login failed.");
-      } else {
-        //Successful login alert
-        toast.success("Login successful!");
-        login(data.user); //Update auth context
-        setLoginData({ email: "", password: "" }); //Clear the form
-        setShowPassword(false);
-        onClose(); //Close the modal
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Server error. Try again later.");
+    if (!res?.ok) {
+      toast.error("Login failed. Check your email/password.");
+      return;
     }
+
+    toast.success("Login successful!");
+    setLoginData({ email: "", password: "" });
+    setShowPassword(false);
+    onClose();
   };
 
   //Handle file upload for proof document
