@@ -46,13 +46,12 @@ export async function GET(req: Request) {
 
         // Scope exams to the current user only
         if (!userID) {
-  
         return NextResponse.json([]);
         }
 
         filter.userID = userID;
 
-
+        if (id) filter._id = new ObjectId(id);
         // If ID exists, fetch specific exam
         if(id) {
             // Validate the ID

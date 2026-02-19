@@ -1,16 +1,22 @@
 import { NextResponse, NextRequest } from "next/server";
 import clientPromise from "@/libs/mongo";
-import { ObjectId } from "mongodb";
+
 
 export async function GET(req: Request) {
     try {
+        const { searchParams } = new URL(req.url);
+        const userID = searchParams.get("userID") ?? searchParams.get("userId");
+
+        if (!userID) {
+            return NextResponse.json({ ok: false, courseNums: [], error: "Missing userID" }, { status: 400 });
+        }
         const client = await clientPromise;
         const database = client.db(process.env.MONGODB_DB);
         const collection = database.collection('questions');
 
-        const courseNums: string[] = await collection.distinct("courseNum");
+        const courseNums: string[] = await collection.distinct("courseNum", { userID });
 
-        return NextResponse.json({ok: true, courseNums});
+        return NextResponse.json({ ok: true, courseNums });
     } catch (error) {
         console.error("Error grabbing subjects: ", error);
         return NextResponse.json(

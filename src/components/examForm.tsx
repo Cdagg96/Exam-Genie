@@ -76,9 +76,11 @@ export default function ExamForm() {
 
     //Runs when page opens to get subjects
     useEffect(() => {
+        const userID = user?._id;
+        if (!userID) return;
         async function loadSubjects() {
             try {
-                const response = await fetch("/api/subjects");
+                const response = await fetch(`/api/subjects?userID=${userID}`);
                 const data = await response.json();
 
                 if (!response.ok || !data.ok) {
@@ -103,7 +105,7 @@ export default function ExamForm() {
 
         async function loadCourseNums() {
             try {
-                const response = await fetch("/api/course_numbers");
+                const response = await fetch(`/api/course_numbers?userID=${userID}`);
                 const data = await response.json();
 
                 if (!response.ok || !data.ok) {
@@ -140,7 +142,7 @@ export default function ExamForm() {
             }
 
             const params = new URLSearchParams();
-            params.set("userId", String(user._id));
+            params.set("userID", String(user._id));
             params.set("counts", "1");
             if (difficulty && difficulty !== "mixed") params.set("difficulty", difficulty);
             if (subject) params.set("subject", subject);
