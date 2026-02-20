@@ -73,7 +73,7 @@ export default function DatabaseActionPage() {
             if (selectedCourseNum) params.append('courseNum', selectedCourseNum);
             if (lastUsedDate) params.append('lastUsed', lastUsedDate.format('MM-DD-YYYY'));
             if (user?._id) params.append("userId", user._id)
-        
+
             params.set('page', String(page))
             params.set('limit', String(limit))
 
@@ -92,16 +92,16 @@ export default function DatabaseActionPage() {
             setQuestions(data.items ?? []);
             setTotalPages(data.totalPages ?? 1);
             setTotal(data.total ?? 0);
-            
+
 
             // Only mark filtersApplied if real filters are on (ignore page/limit)
             const hasFilters =
-            !!selectedTopic ||
-            !!selectedDifficulty ||
-            !!selectedType ||
-            !!selectedSubject ||
-            !!selectedCourseNum ||
-            !!lastUsedDate;
+                !!selectedTopic ||
+                !!selectedDifficulty ||
+                !!selectedType ||
+                !!selectedSubject ||
+                !!selectedCourseNum ||
+                !!lastUsedDate;
 
             setFiltersApplied(hasFilters);
         } catch (err) {
@@ -147,7 +147,7 @@ export default function DatabaseActionPage() {
     // Set page back to one if user changes
     useEffect(() => {
         setPage(1);
-        }, [user?._id]);
+    }, [user?._id]);
 
     //Creates a unique list of topics for the filter box
     useEffect(() => {
@@ -322,11 +322,19 @@ export default function DatabaseActionPage() {
             const result = await response.json();
 
             if (response.ok) {
-                toast.success(`Successfully imported ${result.importedCount} questions!`);
+                if(result.importedCount != 0){
+                    toast.success(`Successfully imported ${result.importedCount} questions!`);
+                }
+                if (result?.ignoredCount && result.ignoredCount > 0) {
+                    toast(`${result.ignoredCount} questions ignored Missing Required Fields`);
+                }
                 fetchQuestionsWithFilters(); //Refresh the questions list
                 setCSVModalOpen(false);
             } else {
-                throw new Error(result.error || 'Failed to import questions');
+                toast.error(result?.error || "Failed to import questions");
+                if (result?.ignoredCount && result.ignoredCount > 0) {
+                    toast(`${result.ignoredCount} questions ignored Missing Required Fields`);
+                }
             }
         } catch (err) {
             console.error('Error importing CSV:', err);
@@ -510,7 +518,7 @@ export default function DatabaseActionPage() {
                         </div>
                     </div>
 
-                    {/* Pages */}                  
+                    {/* Pages */}
                     <div className="flex items-center gap-3 mb-5">
                         <button
                             className="btn btn-ghost"
@@ -558,7 +566,7 @@ export default function DatabaseActionPage() {
                             <option value={50}>50</option>
                             <option value={100}>100</option>
                         </select>
-                        </div>
+                    </div>
 
 
 
@@ -628,7 +636,7 @@ export default function DatabaseActionPage() {
                                                 <div className="text-gray-400 text-lg">Please log in to view your questions</div>
                                             </td>
                                         </tr>
-                                    ): filteredQuestions.length == 0 ? (
+                                    ) : filteredQuestions.length == 0 ? (
                                         //No questions
                                         <tr>
                                             <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
@@ -636,7 +644,7 @@ export default function DatabaseActionPage() {
                                                 <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
                                             </td>
                                         </tr>
-                                    )  : (
+                                    ) : (
                                         //Questions data
                                         filteredQuestions.map((question, index) => (
                                             <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>

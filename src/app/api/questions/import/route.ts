@@ -64,10 +64,19 @@ export async function POST(req: NextRequest) {
             relax_column_count: true,
         });
 
-        const filteredRecords = records.filter((record: any) => {
-            // Ignore rows that don’t have a stem AND type
-            return record.stem?.trim() || record.type?.trim();
+        const isNonEmpty = (v: any) => String(v ?? "").trim() !== "";
+        const filteredRecords = records.filter((r: any) => {
+            const hasStem = isNonEmpty(r.stem);
+            const hasType = isNonEmpty(r.type);
+            const hasDifficulty = isNonEmpty(r.difficulty);
+            const hasTopics = isNonEmpty(r.topics);
+            const hasSubject = isNonEmpty(r.subject);
+            const hasCourseNum = isNonEmpty(r.courseNum);
+
+            return hasStem && hasType && hasDifficulty && hasTopics && hasSubject && hasCourseNum;
         });
+
+        const ignoredCount = records.length - filteredRecords.length;
 
         const client = await clientPromise;
         const db = client.db(process.env.MONGODB_DB);
@@ -96,7 +105,7 @@ export async function POST(req: NextRequest) {
             //Handle different question types
             if (record.type === 'MC') {
                 //Multiple Choice
-                
+
                 record = normalizeMcRow(record);
                 const correct = String(record.correctAnswer ?? "").trim().toUpperCase();
                 question.choices = [];
@@ -108,7 +117,7 @@ export async function POST(req: NextRequest) {
                         question.choices.push({
                             label: letter,
                             text: choiceText.trim(),
-                            isCorrect: record.correctAnswer === letter
+                            isCorrect: correct === letter
                         });
                     }
                 });
@@ -191,12 +200,23 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        if (questionsToInsert.length === 0) {
+            return NextResponse.json({
+                message: "No questions imported",
+                importedCount: 0,
+                ignoredCount,
+                ignoredReason: "Missing Required Fields",
+            }, { status: 200 });
+        }
+
         //Insert into database
         const result = await db.collection('questions').insertMany(questionsToInsert);
 
         return NextResponse.json({
             message: 'Questions imported successfully',
-            importedCount: result.insertedCount
+            importedCount: result.insertedCount,
+            ignoredCount,
+            ignoredReason: "Missing Required Fields",
         });
 
     } catch (error) {

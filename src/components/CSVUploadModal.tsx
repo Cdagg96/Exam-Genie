@@ -96,8 +96,8 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
                             <li><strong>Type</strong> - Question type: MC, TF, FIB, Essay, Code (required)</li>
                             <li><strong>Difficulty</strong> - Number from 1-5 (required)</li>
                             <li><strong>Topics</strong> - Comma-separated topics (required)</li>
-                            <li><strong>Subject</strong> - Subject area (optional)</li>
-                            <li><strong>CourseNum</strong> - Course number (optional)</li>
+                            <li><strong>Subject</strong> - Subject area (required)</li>
+                            <li><strong>CourseNum</strong> - Course number (required)</li>
                             <li><strong>Choice A, Choice B, Choice C, ect</strong> - Choices for MC/TF questions (max 5 choices)</li>
                             <li><strong>Answer</strong> - Answer text for FIB, Essay, and Code questions</li>
                             <li><strong>BlankLines</strong> - Number of blank lines for FIB questions</li>
