@@ -5,9 +5,16 @@ import Link from "next/link";
 import NavBar from "@/components/navbar";
 import { LightBackground } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
+import { signOut } from "next-auth/react"; 
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth(); 
+
+  const handleSignOut = async () => {
+    // This signs out of NextAuth (clears cookies + session)
+    await signOut({ callbackUrl: "/" });
+    // No need to call logout(); AuthBridge will see unauthenticated and clear AuthContext.
+  };
 
   return (
     <LightBackground>
@@ -53,7 +60,7 @@ export default function ProfilePage() {
 
                 {user ? (
                   <button
-                    onClick={logout}
+                    onClick={handleSignOut}
                     className="w-40 h-11 text-white bg-gray-800 hover:bg-gray-900 text-sm rounded-2xl shadow flex items-center justify-center"
                   >
                     Sign Out
