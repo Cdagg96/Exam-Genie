@@ -6,10 +6,17 @@ import Image from "next/image";
 import Link from "next/link";
 import LoginModal from "./LoginModal";
 import { useAuth } from "@/components/AuthContext";
+import { signOut } from "next-auth/react"; 
 
 export default function Navbar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const { user, logout } = useAuth(); 
+  const { user } = useAuth(); 
+
+  const handleSignOut = async () => {
+    // This signs out of NextAuth (clears cookies + session)
+    await signOut({ callbackUrl: "/" });
+    // No need to call logout(); AuthBridge will see unauthenticated and clear AuthContext.
+  };
 
   return (
     <>
@@ -80,7 +87,7 @@ export default function Navbar() {
                   <div className="my-1 h-px bg-gray-200" />
 
                   <button
-                    onClick={logout}
+                    onClick={handleSignOut}
                     className="w-full text-left px-4 py-2 rounded-xl hover:bg-gray-100 text-red-600"
                   >
                     Sign out
