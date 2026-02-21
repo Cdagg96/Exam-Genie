@@ -105,7 +105,7 @@ export default function SelectBox({
           >
             {options.map((option, index) => (
               <div
-                key={option.value}
+                key={`${option.value}-${index}`   }
                 onClick={() => handleSelect(option)}
                 className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${
                   index === 0 ? 'rounded-t-xl' : ''

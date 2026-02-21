@@ -44,7 +44,7 @@ export default function PastExams() {
 
     //Get user from auth context
     const { user } = useAuth();
-    const filteredExams = user ? exams.filter(q => q.userID === user._id) : exams;
+    const filteredExams = exams;
 
     // Fetch exams from MongoDB
     const fetchExamsWithFilters = async () => {
@@ -53,7 +53,12 @@ export default function PastExams() {
 
             // Build query parameters based on selected filters
             const queryParams = new URLSearchParams();
-
+            if (!user?._id) {
+                setExams([]);
+                setFiltersApplied(false);
+                return;
+            }
+            queryParams.append("userID", user._id);
             if (selectedName) queryParams.append('name', selectedName);
             if (selectedDifficulty) queryParams.append('difficulty', selectedDifficulty);
             if (selectedTotalPoints) queryParams.append('totalPoints', selectedTotalPoints);
@@ -105,8 +110,15 @@ export default function PastExams() {
     const fetchExams = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/exams', {
-                method: 'GET',
+
+            if (!user?._id) {
+                setExams([]);
+                setFiltersApplied(false);
+                return;
+            }
+            
+            const response = await fetch(`/api/exams?userID=${user._id}`, {
+                method: "GET",
             });
 
             if (!response.ok) {
@@ -126,11 +138,23 @@ export default function PastExams() {
 
     // Runs when page opens to get exams
     useEffect(() => {
+        if (!user?._id) {
+            setExams([]);
+            setFiltersApplied(false);
+            setLoading(false);
+            return;
+        }
         fetchExams();
-    }, []);
+    }, [user]);
 
     //Creates a unique list of subjects and course numbers for the filter box
     useEffect(() => {
+        if (!user) {
+            setSubjects([]);
+            setCourseNums([]);
+            setNames([]);
+            return;
+        }
         const uniqueSubjects = Array.from(
             new Set(exams.map(e => e.subject?.trim()).filter((s): s is string => !!s))
         ).map(subject => ({ value: subject, label: subject }));
@@ -151,7 +175,7 @@ export default function PastExams() {
 
         //Store the list of unique names if any changes occur in questions
         setNames(uniqueNames);
-    }, [exams]);
+    }, [exams, user]);
 
     // Delete exam handler
     const handleDeleteClick = (examId: string, examTitle: string) => {

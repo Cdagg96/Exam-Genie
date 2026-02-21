@@ -102,7 +102,12 @@ export async function GET(req: Request) {
     const collection = database.collection('questions');
     
     const countsMode = searchParams.get("counts"); // "1" means return counts
-    const userId = searchParams.get("userId");
+    const userId = searchParams.get("userID") || searchParams.get("userId");
+
+    // Detect pagination presence (only paginate if these params exist)
+    const hasPage = searchParams.has("page");
+    const hasLimit = searchParams.has("limit");
+    const usePagination = hasPage || hasLimit;
 
     // Build filter object based on provided parameters
     const filter: any = {};
@@ -171,8 +176,8 @@ export async function GET(req: Request) {
       }
     }
 
-    const questions = await collection.find(filter).sort({createdOn: -1}).toArray();
     if (countsMode === "1") {
+        const questions = await collection.find(filter).toArray();
         const counts = { MC: 0, TF: 0, Essay: 0, FIB: 0, Code: 0 };
 
         for (const q of questions) {
@@ -183,6 +188,37 @@ export async function GET(req: Request) {
             return NextResponse.json({ ok: true, counts });
     }
 
+    if(usePagination){
+        // For pagination
+        const page = Math.max(1, Number(searchParams.get("page") ?? 1)); // page number
+        const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") ?? 25))); // questions per page
+        const skip = (page - 1) * limit; // next/prev page
+
+        const questions = await collection.find(filter).sort({createdOn: -1, _id: -1}).skip(skip).limit(limit).toArray();
+
+        // total count for pagination controls
+        const total = await collection.countDocuments(filter);
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+
+        //Convert MongoDB ObjectId to string for serialization
+        const items = questions.map(question => ({
+        ...question,
+        _id: question._id.toString()
+        }));
+        
+        return NextResponse.json(
+            {
+                ok:true,
+                items,
+                page,
+                limit,
+                total,
+                totalPages
+            }
+        );
+    }
+
+    const questions = await collection.find(filter).sort({createdOn: -1, _id: -1}).toArray();
     //Convert MongoDB ObjectId to string for serialization
     const serializedQuestions = questions.map(question => ({
       ...question,

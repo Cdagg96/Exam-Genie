@@ -43,9 +43,7 @@ export default function AddExistingQuestionModal({
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const filteredQuestions = user
-    ? questions.filter((q) => q.userID === user._id)
-    : questions;
+  const filteredQuestions = questions;
 
   const visibleQuestions = useMemo(() => {
     const base = excludeIds?.size
@@ -92,7 +90,12 @@ export default function AddExistingQuestionModal({
   const fetchQuestions = async () => {
     try {
       setLoading(true);
-      const response = await fetch("../api/questions", { method: "GET" });
+      if (!user?._id) {
+        setQuestions([]);
+        setFiltersApplied(false);
+        return;
+      }
+      const response = await fetch(`../api/questions?userID=${user._id}`, { method: "GET" });
       if (!response.ok) throw new Error("Failed to fetch questions");
       const data = await response.json();
       setQuestions(Array.isArray(data) ? data : []);
@@ -110,6 +113,13 @@ export default function AddExistingQuestionModal({
       setLoading(true);
 
       const params = new URLSearchParams();
+
+      if (!user?._id) {
+      setQuestions([]);
+      setFiltersApplied(false);
+      return;
+    }
+    params.append("userID", user._id);
       if (selectedTopic) params.append("topic", selectedTopic);
       if (selectedDifficulty) params.append("difficulty", selectedDifficulty);
       if (selectedType) params.append("type", selectedType);
@@ -298,9 +308,8 @@ export default function AddExistingQuestionModal({
                 return (
                   <div
                     key={q._id}
-                    className={`border rounded-xl p-3 transition ${
-                      checked ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
-                    }`}
+                    className={`border rounded-xl p-3 transition ${checked ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
+                      }`}
                   >
                     <div className="flex items-start gap-3">
                       <input

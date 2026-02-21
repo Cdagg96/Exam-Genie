@@ -11,6 +11,7 @@ import AddExistingQuestionModal from "@/components/addExistingQuestionModal";
 import type { Question } from "@/types/question";
 import type { ExamQuestionItem } from "@/types/exam";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { useAuth } from "@/components/AuthContext";
 
 const POINTS_BY_TYPE: Record<string, number> = {
   MC: 1,
@@ -31,6 +32,7 @@ const normalizeType = (t: string) => {
 
 export default function EditExamPage() {
   const { id } = useParams();
+  const { user } = useAuth();
   const router = useRouter();
   const [exam, setExam] = useState<ExamDoc | null>(null);
   const [loading, setLoading] = useState(true);
@@ -135,9 +137,10 @@ export default function EditExamPage() {
   // Fetch this specific exam
   useEffect(() => {
     const fetchExam = async () => {
+      if (!id || !user?._id) return;
       try {
         setLoading(true);
-        const res = await fetch(`/api/exams?id=${id}`);
+        const res = await fetch(`/api/exams?id=${id}&userID=${user._id}`);
         if (!res.ok) throw new Error("Failed to fetch exam");
         const data = await res.json();
         console.log("API /api/exams result for edit_exam:", data);
@@ -150,7 +153,7 @@ export default function EditExamPage() {
       }
     };
     if (id) fetchExam();
-  }, [id]);
+  }, [id, user?._id]);
 
   const handleClose = () => router.push("/past_exams"); // Go back to past exams
 
@@ -311,7 +314,7 @@ export default function EditExamPage() {
 
       //if save workis 
       if (res.ok) {
-        const refreshRes = await fetch(`/api/exams?id=${id}`);
+        const refreshRes = await fetch(`/api/exams?id=${id}&userID=${user?._id}`);
         if (refreshRes.ok) {
           const updatedExam = await refreshRes.json();
           setExam(updatedExam);

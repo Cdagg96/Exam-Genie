@@ -16,6 +16,35 @@ export default function ProfilePage() {
     // No need to call logout(); AuthBridge will see unauthenticated and clear AuthContext.
   };
 
+  //Helper function to format the date
+  const formatDateJoined = (dateString?: string | Date) => {
+    if (!dateString) return "N/A";
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    } catch (e) {
+      return "Invalid date";
+    }
+  };
+
+  //Get full name from firstName and lastName
+  const getFullName = () => {
+    if (!user) return "Unknown User";
+    
+    if ((user as any).firstName && (user as any).lastName) {
+      return `${(user as any).firstName} ${(user as any).lastName}`;
+    } else if ((user as any).name) {
+      return (user as any).name;
+    } else {
+      return "Unknown User";
+    }
+  };
+
   return (
     <LightBackground>
       <div className="items-center justify-items-center min-h-screen p-4">
@@ -35,12 +64,12 @@ export default function ProfilePage() {
               {/* Avatar + info */}
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow">
-                  U
+                  {user ? (user as any).firstName?.charAt(0).toUpperCase() + (user as any).lastName?.charAt(0).toUpperCase() || "U" : "U"}
                 </div>
 
                 <div>
                   <div className="text-2xl font-semibold text-stone-800">
-                    {(user as any)?.name || "Unknown User"}
+                    {getFullName() || "Unknown User"}
                   </div>
                   <div className="text-sm text-slate-600">
                     {(user as any)?.email || ""}
@@ -95,9 +124,59 @@ export default function ProfilePage() {
                   Role
                 </div>
                 <div className="mt-1 text-sm text-stone-800">
-                  {(user as any)?.role || "User"}
+                  {((user as any)?.role || "Guest").charAt(0).toUpperCase() + ((user as any)?.role || "Guest").slice(1)}
                 </div>
               </div>
+
+              <div className="rounded-xl border border-gray-200 p-4">
+                <div className="text-xs uppercase tracking-wide text-slate-500">
+                  First Name
+                </div>
+                <div className="mt-1 text-sm text-stone-800">
+                  {(user as any)?.firstName || "N/A"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 p-4">
+                <div className="text-xs uppercase tracking-wide text-slate-500">
+                  Last Name
+                </div>
+                <div className="mt-1 text-sm text-stone-800">
+                  {(user as any)?.lastName || "N/A"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 p-4">
+                <div className="text-xs uppercase tracking-wide text-slate-500">
+                  Phone
+                </div>
+                <div className="mt-1 text-sm text-stone-800">
+                  {(user as any)?.phone || "N/A"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 p-4">
+                <div className="text-xs uppercase tracking-wide text-slate-500">
+                  Date Joined
+                </div>
+                <div className="mt-1 text-sm text-stone-800">
+                  {formatDateJoined((user as any)?.createdOn)}
+                </div>
+              </div>
+            </div>
+            
+            {/* Info alert about updating profile */}
+            <div className="mt-6 flex items-center gap-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-xl border border-blue-100">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span>
+                <span className="font-medium">Need to update your information?</span> Click the{" "}
+                <Link href="../settings/" className="text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2">
+                  Settings
+                </Link>{" "}
+                button above to edit your profile.
+              </span>
             </div>
 
             {!user && (
