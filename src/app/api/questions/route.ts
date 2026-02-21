@@ -102,7 +102,7 @@ export async function GET(req: Request) {
     const collection = database.collection('questions');
     
     const countsMode = searchParams.get("counts"); // "1" means return counts
-    const userId = searchParams.get("userId");
+    const userId = searchParams.get("userID") || searchParams.get("userId");
 
     // Detect pagination presence (only paginate if these params exist)
     const hasPage = searchParams.has("page");
