@@ -326,14 +326,14 @@ export default function DatabaseActionPage() {
                     toast.success(`Successfully imported ${result.importedCount} questions!`);
                 }
                 if (result?.ignoredCount && result.ignoredCount > 0) {
-                    toast(`${result.ignoredCount} questions ignored Missing Required Fields`);
+                    toast(`${result.ignoredCount} questions ignored missing required fields`);
                 }
                 fetchQuestionsWithFilters(); //Refresh the questions list
                 setCSVModalOpen(false);
             } else {
                 toast.error(result?.error || "Failed to import questions");
                 if (result?.ignoredCount && result.ignoredCount > 0) {
-                    toast(`${result.ignoredCount} questions ignored Missing Required Fields`);
+                    toast(`${result.ignoredCount} questions ignored missing required fields`);
                 }
             }
         } catch (err) {

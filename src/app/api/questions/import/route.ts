@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
                 message: "No questions imported",
                 importedCount: 0,
                 ignoredCount,
-                ignoredReason: "Missing Required Fields",
+                ignoredReason: "missing required fields",
             }, { status: 200 });
         }
 
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
             message: 'Questions imported successfully',
             importedCount: result.insertedCount,
             ignoredCount,
-            ignoredReason: "Missing Required Fields",
+            ignoredReason: "missing required fields",
         });
 
     } catch (error) {
