@@ -2,6 +2,7 @@
 import React, {useState, useRef} from "react";
 import type { ExamDoc } from "@/types/exam";
 import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV, downloadExamPackage } from "@/components/ExamDownload"
 type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
 export default function ExamPreviewModal({
@@ -12,6 +13,7 @@ export default function ExamPreviewModal({
 
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const handleDownloadExam = async (exam: ExamDoc, format: DownloadFormat) => {
     try {
@@ -190,7 +192,21 @@ export default function ExamPreviewModal({
               >
                 Print
               </button> */}
-              
+              {/* Edit Exam Navigation Button */}
+              <button
+                onClick={() => {
+                  //Close preview modal
+                  onClose();
+                  //Go to edit_exam page
+                  router.push(`/edit_exam/${exam._id}`);
+                }}
+                className="rounded-lg border px-3 py-1.5 hover:bg-black hover:text-white flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+                Edit Exam
+              </button>
               {/* Download menu */}
             <div className="relative">
               <button
