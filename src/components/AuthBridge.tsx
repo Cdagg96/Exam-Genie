@@ -21,6 +21,9 @@ export default function AuthBridge() {
         _id: (session.user as any).id,
         email: session.user.email ?? "",
         role: (session.user as any).role,
+        firstName: (session.user as any).firstName ?? "",
+        lastName: (session.user as any).lastName ?? "",
+        phone: (session.user as any).phone ?? "",
       };
 
       // Prevent unnecessary re-logins / loops
