@@ -1,7 +1,8 @@
 "use client";
 import React, {useState, useRef} from "react";
 import type { ExamDoc } from "@/types/exam";
-import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX } from "@/components/ExamDownload"
+import { toast } from "react-hot-toast";
+import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV, downloadExamPackage } from "@/components/ExamDownload"
 type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
 export default function ExamPreviewModal({
   open, onClose, exam,
@@ -12,21 +13,35 @@ export default function ExamPreviewModal({
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleDownloadExam = (format: DownloadFormat) => {
-    if (!exam) return;
-
-    if (format === "txt") {
-      DownloadExamTXT(exam);
-    } else if (format === "pdf") {
-      DownloadExamPDF(exam);
-    } else if (format === "csv") {
-      DownloadExamCSV(exam);
-    } else if (format === "docx") {
-      DownloadExamDOCX(exam);
+  const handleDownloadExam = async (exam: ExamDoc, format: DownloadFormat) => {
+    try {
+      toast.loading('Creating download package...', { id: 'download' });
+      await downloadExamPackage(exam, format);
+      toast.success('Download package created!', { id: 'download' });
     }
+    catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to create download package', { id: 'download' });
+      toast.loading('Downloading individual files...', { id: 'download' });
 
-    setIsDownloadMenuOpen(false);
+      if (format === "txt") {
+        DownloadExamTXT(exam);        // or exam as any / ExamDoc if needed
+        DownloadAnswerKeyTXT(exam);
+      } else if (format === "pdf") {
+        DownloadExamPDF(exam);
+        DownloadAnswerKeyPDF(exam);
+      } else if (format === "csv") {
+        DownloadExamCSV(exam);
+        DownloadAnswerKeyCSV(exam);
+      } else if (format === "docx") {
+        DownloadExamDOCX(exam);
+        DownloadAnswerKeyDOCX(exam);
+      }
+
+      toast.success('Individual files downloaded', { id: 'download-fallback' });
+    }
   };
+    
 
   //Scroll to top
   const scrollToTop = () => {
@@ -203,25 +218,25 @@ export default function ExamPreviewModal({
                 <div className="absolute right-0 bottom-full mb-2 w-40 rounded-lg border bg-white shadow-lg text-sm z-50 overflow-hidden">
                   <button
                     className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                    onClick={() => handleDownloadExam("pdf")}
+                    onClick={() => handleDownloadExam(exam, "pdf")}
                   >
                     Download PDF
                   </button>
                   <button
                     className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                    onClick={() => handleDownloadExam("txt")}
+                    onClick={() => handleDownloadExam(exam, "txt")}
                   >
                     Download TXT
                   </button>
                   <button
                     className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                    onClick={() => handleDownloadExam("docx")}
+                    onClick={() => handleDownloadExam(exam, "docx")}
                   >
                     Download DOCX
                   </button>
                   <button
                     className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                    onClick={() => handleDownloadExam("csv")}
+                    onClick={() => handleDownloadExam(exam, "csv")}
                   >
                     Download CSV
                   </button>
