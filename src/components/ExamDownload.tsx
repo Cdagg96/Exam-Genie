@@ -1008,7 +1008,7 @@ export async function DownloadAnswerKeyDOCX(exam: ExamDoc) {
       const answer = q.snapshot?.answer ?? "";
       const lines = answer.replace(/\r\n/g, "\n").split("\n"); // Handle multi-line answers
 
-      lines.forEach((line) => {
+      lines.forEach((line: string) => {
         paragraphs.push(
           new Paragraph({
             children: [
@@ -2131,7 +2131,7 @@ export async function generateAnswerKeyDOCXBlob(exam: ExamDoc): Promise<Blob> {
       const answer = q.snapshot?.answer ?? "";
       const lines = answer.replace(/\r\n/g, "\n").split("\n"); // Handle multi-line answers
 
-      lines.forEach((line) => {
+      lines.forEach((line: string) => {
         paragraphs.push(
           new Paragraph({
             children: [
