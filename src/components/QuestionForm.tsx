@@ -14,7 +14,7 @@ export default function BackgroundModal({
     onClose: () => void;
     onQuestionAdded?: (newQuestion: any) => void;
 }) {
-    if (!isOpen) return null;
+    
 
     // States for each of the form fields
     const [stem, setStem] = useState("");
@@ -78,6 +78,7 @@ export default function BackgroundModal({
         setCourseNumbersList([]);
     }
 }, [isOpen, user?._id]);
+    if (!isOpen) return null;
 
     // Update an MC choice
     const updateChoice = (index: number, value: string) => {
