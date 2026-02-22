@@ -228,7 +228,7 @@ export default function LoginModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className={`bg-white text-black rounded-2xl shadow-2xl w-[40rem] flex relative`} style={{ height: modalHeight }}>
+      <div className={`card-primary text-black rounded-2xl shadow-2xl w-[40rem] flex relative`} style={{ height: modalHeight }}>
 
         {/* Close button */}
         <button
@@ -248,7 +248,7 @@ export default function LoginModal({
           {/* If current modal is login, show Login Modal */}
           {currentModal === "login" ? (
             <>
-              <h2 className="text-4xl font-semibold mb-15 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">Login</h2>
+              <h2 className="text-4xl mb-10 text-blue-gradient">Login</h2>
 
               {/* Email Box */}
               <input
@@ -257,7 +257,7 @@ export default function LoginModal({
                 placeholder="Email"
                 value={loginData.email}
                 onChange={handleLoginChange}
-                className="w-3/4 rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 mb-4"
+                className="w-3/4 rounded-xl border-primary text-secondary px-3 py-2 mb-4"
               />
                 
               {/* Password Box */}
@@ -268,13 +268,13 @@ export default function LoginModal({
                   placeholder="Password"
                   value={loginData.password}
                   onChange={handleLoginChange}
-                  className="w-full rounded-xl border px-4 py-2 pr-10 focus:outline-none focus:ring-2 mb-4"
+                  className="w-full rounded-xl border-primary text-secondary px-4 py-2 pr-10 mb-4"
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPassword(prev => !prev)}
-                  className="absolute right-2 top-2/9 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-2 top-2/9 -translate-y-1/2 text-secondary hover:text-gray-700"
                 >
                   {showPassword ? (
                     //Display the open visibility icon
@@ -303,13 +303,13 @@ export default function LoginModal({
               {/* Sign In Button */}
               <button
                 onClick={handleLogin}
-                className="btn btn-primary-dark-blue w-3/4 mt-4 py-2 rounded-xl text-lg font-medium"
+                className="btn btn-primary-blue w-3/4 mt-4 py-2 rounded-xl text-lg font-medium"
               >
                 Sign In
               </button>
 
               {/* Sign Up */}
-              <div className="mt-4 text-sm text-gray-600">
+              <div className="mt-4 text-sm text-secondary">
                 Don't have an account?{" "}
                 <button
                   type="button"
@@ -328,7 +328,7 @@ export default function LoginModal({
             //If current modal is register, show Register Modal
           ) : (
             <>
-              <h2 className="text-4xl font-semibold mb-3 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">Register</h2>
+              <h2 className="text-4xl mb-3 text-blue-gradient">Register</h2>
               <div className="w-3/4 grid grid-cols-2 gap-2 mb-2">
                 <input
                   type="text"
@@ -336,7 +336,7 @@ export default function LoginModal({
                   placeholder="First Name"
                   value={registerData.firstName}
                   onChange={handleRegisterChange}
-                  className="rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
+                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2 mb-4"
                 />
                 <input
                   type="text"
@@ -344,7 +344,7 @@ export default function LoginModal({
                   placeholder="Last Name"
                   value={registerData.lastName}
                   onChange={handleRegisterChange}
-                  className="rounded-xl border px-4 py-2 focus:outline-none focus:ring-2"
+                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2 mb-4"
                 />
               </div>
 
@@ -354,7 +354,7 @@ export default function LoginModal({
                 placeholder="Phone Number"
                 value={registerData.phone}
                 onChange={handleRegisterChange}
-                className="w-3/4 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2 mb-2"
+                className="rounded-xl border w-3/4 rounded-xl border-primary text-secondary px-4 py-2 mb-2"
               />
 
               <input
@@ -363,7 +363,7 @@ export default function LoginModal({
                 placeholder="Email"
                 value={registerData.email}
                 onChange={handleRegisterChange}
-                className="w-3/4 rounded-xl border px-4 py-2 focus:outline-none focus:ring-2 mb-2"
+                className="rounded-xl border w-3/4 rounded-xl border-primary text-secondary px-4 py-2 mb-2"
               />
 
               <div className="w-3/4 relative">
@@ -373,13 +373,13 @@ export default function LoginModal({
                   placeholder="Password"
                   value={registerData.password}
                   onChange={handleRegisterChange}
-                  className="w-full rounded-xl border px-4 py-2 pr-10 focus:outline-none focus:ring-2 mb-2"
+                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2 mb-2"
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPassword(prev => !prev)}
-                  className="absolute right-2 top-4/10 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-2 top-4/10 -translate-y-1/2 text-secondary hover:text-gray-700"
                 >
                   {showPassword ? (
                     //Display the open visibility icon
@@ -397,8 +397,8 @@ export default function LoginModal({
               </div>
 
               {/* Proof Section */}
-              <div className="w-3/4 p-3 border rounded-lg bg-gray-50 mb-2">
-                <p className="text-xs font-medium text-gray-700 mb-1">
+              <div className="w-3/4 p-3 bg-primary border-primary rounded-lg mb-2">
+                <p className="text-xs font-medium text-primary mb-1">
                   Proof (provide either a link or upload a document to prove affiliation):
                 </p>
 
@@ -409,10 +409,10 @@ export default function LoginModal({
                   placeholder="Proof Link"
                   value={registerData.proofLink}
                   onChange={handleRegisterChange}
-                  className="w-full rounded-xl border px-3 py-1.5 focus:outline-none focus:ring-2 text-xs mb-1.5"
+                  className="w-full rounded-xl border-primary text-secondary px-3 py-1.5 focus:outline-none focus:ring-2 text-xs mb-1.5"
                 />
 
-                <div className="text-center text-sm text-gray-500">OR</div>
+                <div className="text-center text-sm text-primary">OR</div>
 
                 {/* File Upload */}
                 <div className="flex flex-col items-center">
@@ -421,9 +421,9 @@ export default function LoginModal({
                     type="file"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     onChange={handleFileChange}
-                    className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full text-xs text-secondary file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-secondary mt-1">
                     Upload PDF, DOC, DOCX, JPG, or PNG files
                   </p>
                   {registerData.proofFile && (
@@ -434,12 +434,12 @@ export default function LoginModal({
                 </div>
               </div>
 
-              <button onClick={handleRegister} className="btn btn-primary-dark-blue w-3/4 rounded-xl text-lg font-medium">
+              <button onClick={handleRegister} className="btn btn-primary-blue w-3/4 rounded-xl text-lg font-medium">
                 Register
               </button>
 
               {/* Sign In */}
-              <div className="mt-2 text-sm text-gray-600">
+              <div className="mt-2 text-sm text-secondary">
                 Already have an account?{" "}
                 <button
                   type="button"

@@ -4,9 +4,10 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import NavBar from "@/components/navbar";
-import { LightBackground } from "@/components/BackgroundModal";
+import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
 import toast from "react-hot-toast";
+import useTheme from "@/hooks/useTheme"
 
 export default function SettingsPage() {
     const { user, logout, updateUser } = useAuth();
@@ -26,6 +27,7 @@ export default function SettingsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState("profile"); //Profile info, Reset password, Delete account
+    const { isDark, toggleTheme } = useTheme();
 
     //makes sure that the email comes in valid format
     const isValidEmail = (email: string) => {
@@ -198,7 +200,7 @@ export default function SettingsPage() {
     //If not logged in
     if (!user) {
         return (
-            <LightBackground>
+            <Background>
                 <div className="items-center justify-items-center min-h-screen p-4">
                     <NavBar />
                     <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center mb-8 mx-auto w-full mt-10">
@@ -210,44 +212,50 @@ export default function SettingsPage() {
                         </p>
                     </div>
                 </div>
-            </LightBackground>
+            </Background>
         );
     }
 
     return (
-        <LightBackground>
+        <Background>
             <div className="items-center justify-items-center min-h-screen p-4">
                 <NavBar />
 
                 <div className="mt-10 w-full max-w-4xl">
-                    <h1 className="text-5xl text-center font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent pb-2">
+                    <h1 className="text-5xl text-blue-gradient py-3">
                         Settings
                     </h1>
-                    <p className="mt-3 text-center text-slate-600">
+                    <p className="mt-3 text-center text-secondary">
                         Manage your account settings and preferences
                     </p>
 
-                    <div className="mt-10 bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-
-                        <div className="flex border-b border-gray-200">
+                    <div className="mt-10 card-primary shadow-lg overflow-hidden">
+                        <div className="flex bg-secondary border border-slate-200 dark:border-black">
                             <button
                                 onClick={() => setActiveTab("profile")}
                                 className={`flex-1 py-4 px-6 text-sm font-medium transition-colors
-                                    ${activeTab === "profile" ? "text-blue-600 border-b-2 border-blue-600" : "text-slate-600 hover:text-stone-800"}`}
+                                    ${activeTab === "profile" ? "bg-sky-300 dark:bg-[#111827] text-primary" : "text-secondary hover:bg-secondary"}`}
                             >
                                 Profile Information
                             </button>
                             <button
+                                onClick={() => setActiveTab("preferences")}
+                                className={`flex-1 px-4 py-3 text-sm font-medium transition
+                                    ${activeTab === "preferences" ? "bg-sky-300 dark:bg-[#111827] text-primary" : "text-secondary hover:bg-secondary"}`}
+                            >
+                                Preferences
+                            </button>
+                            <button
                                 onClick={() => setActiveTab("password")}
                                 className={`flex-1 py-4 px-6 text-sm font-medium transition-colors
-                                    ${activeTab === "password" ? "text-blue-600 border-b-2 border-blue-600" : "text-slate-600 hover:text-stone-800"}`}
+                                    ${activeTab === "password" ? "bg-sky-300 dark:bg-[#111827] text-primary" : "text-secondary hover:bg-secondary"}`}
                             >
                                 Reset Password
                             </button>
                             <button
                                 onClick={() => setActiveTab("delete")}
                                 className={`flex-1 py-4 px-6 text-sm font-medium transition-colors
-                                    ${activeTab === "delete" ? "text-red-600 border-b-2 border-red-600" : "text-slate-600 hover:text-stone-800"}`}
+                                    ${activeTab === "delete" ? "bg-sky-300 dark:bg-[#111827] text-primary" : "text-secondary hover:bg-secondary"}`}
                             >
                                 Delete Account
                             </button>
@@ -258,7 +266,7 @@ export default function SettingsPage() {
                             <form onSubmit={handleProfileUpdate} className="p-6 space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm text-secondary mb-2">
                                             First Name
                                         </label>
                                         <input
@@ -266,13 +274,13 @@ export default function SettingsPage() {
                                             name="firstName"
                                             value={formData.firstName}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                                            className="w-full px-4 py-2 border-primary bg-primary text-primary"
                                             required
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm text-secondary mb-2">
                                             Last Name
                                         </label>
                                         <input
@@ -280,13 +288,13 @@ export default function SettingsPage() {
                                             name="lastName"
                                             value={formData.lastName}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                                            className="w-full px-4 py-2 border-primary bg-primary text-primary"
                                             required
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm text-secondary mb-2">
                                             Phone
                                         </label>
                                         <input
@@ -294,13 +302,13 @@ export default function SettingsPage() {
                                             name="phone"
                                             value={formData.phone}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                                            className="w-full px-4 py-2 border-primary bg-primary text-primary"
                                             required
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm text-secondary mb-2">
                                             Email
                                         </label>
                                         <input
@@ -308,7 +316,7 @@ export default function SettingsPage() {
                                             name="email"
                                             value={formData.email}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                                            className="w-full px-4 py-2 border-primary bg-primary text-primary"
                                             required
                                         />
                                     </div>
@@ -318,12 +326,22 @@ export default function SettingsPage() {
                                     <button
                                         type="submit"
                                         disabled={isLoading}
-                                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-xl shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-6 py-2 btn btn-primary-blue"
                                     >
                                         {isLoading ? "Saving..." : "Save Changes"}
                                     </button>
                                 </div>
                             </form>
+                        )}
+
+                        {/* Preferences Tab */}
+                        {activeTab === "preferences" && (
+                            <div className="p-6 space-y-6">
+                                {/* Dark mode toggle button */}
+                                <button onClick={toggleTheme} className="btn btn-ghost rounded-full text-primary card-secondary shadow-lg" >
+                                    {isDark ? "Turn on light mode" : "Turn on dark mode"}
+                                </button>
+                            </div>
                         )}
 
                         {/* Password Tab */}
@@ -401,13 +419,13 @@ export default function SettingsPage() {
                     <div className="mt-6 text-center">
                         <Link
                             href="/profile"
-                            className="text-sm text-slate-600 hover:text-blue-600 transition"
+                            className="text-sm text-secondary hover:text-blue-600 transition"
                         >
                             &larr; Back to Profile
                         </Link>
                     </div>
                 </div>
             </div>
-        </LightBackground>
+        </Background>
     );
 }

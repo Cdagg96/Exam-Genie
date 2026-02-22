@@ -12,6 +12,7 @@ import type { Question } from "@/types/question";
 import type { ExamQuestionItem } from "@/types/exam";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useAuth } from "@/components/AuthContext";
+import { Background } from "@/components/BackgroundModal"
 
 const POINTS_BY_TYPE: Record<string, number> = {
   MC: 1,
@@ -362,242 +363,241 @@ export default function EditExamPage() {
 
   // Otherwise, display the exam editing interface
   return (
-    <div className="min-h-screen w-full bg-[#F8FAFC] flex flex-col items-center py-10 px-4 font-serif">
-      {/* X icon in the top right corner (returns to past exams) */}
-      <button
-        onClick={handleClose}
-        className="absolute right-8 top-6 text-3xl leading-none text-gray-500 hover:text-black"
-        aria-label="Close"
-      >
-        &times;
-      </button>
+    <Background>
+      <div className="min-h-screen w-full flex flex-col items-center py-10 px-4 font-serif">
+        {/* X icon in the top right corner (returns to past exams) */}
+        <button
+          onClick={handleClose}
+          className="absolute right-8 top-6 text-3xl leading-none text-gray-500 hover:text-black"
+          aria-label="Close"
+        >
+          &times;
+        </button>
 
-      {/* Paper outline that goes around the exam content */}
-      <div className="relative bg-white border border-gray-300 shadow-md rounded-lg w-full max-w-[8.5in] p-10">
-        {/* Name in the top left corner */}
-        <div className="mb-4 flex justify-start">
-          <span className="text-sm text-gray-600">Name: ________________</span>
-        </div>
-
-        {/* Header (always displayed currently) */}
-        <header className="mb-6 border-b pb-4 text-center">
-          <div className="text-sm text-gray-600">Department of {exam.subject}</div>
-          <h1 className="mt-1 text-2xl font-bold">{exam.title}</h1>
-          <div className=" mt-1 text-sm text-gray-600">{exam.courseNum}</div>
-          <div className="text-[13px] text-gray-600">
-            Time: {exam.timeLimitMin} minutes • Total Points: {exam.totalPoints}
+        {/* Paper outline that goes around the exam content */}
+        <div className="relative bg-white border border-gray-300 shadow-md rounded-lg w-full max-w-[8.5in] p-10">
+          {/* Name in the top left corner */}
+          <div className="mb-4 flex justify-start">
+            <span className="text-sm text-gray-600">Name: ________________</span>
           </div>
-        </header>
 
-        {/* Instructions information */}
-        <section className="mb-6 text-center rounded-lg border p-4 text-sm leading-6 print:break-inside-avoid">
-          <h2 className="mb-1 font-semibold uppercase tracking-wide text-gray-700">Instructions</h2>
-          <ul className="list-disc pl-5">
-            <li>Answer all questions in the space provided.</li>
-            <li>Show your work where applicable. Circle or clearly mark your final answer.</li>
-            <li>No unauthorized materials. Calculators allowed unless otherwise stated.</li>
-          </ul>
-        </section>
+          {/* Header (always displayed currently) */}
+          <header className="mb-6 border-b pb-4 text-center">
+            <div className="text-sm text-gray-600">Department of {exam.subject}</div>
+            <h1 className="mt-1 text-2xl font-bold">{exam.title}</h1>
+            <div className=" mt-1 text-sm text-gray-600">{exam.courseNum}</div>
+            <div className="text-[13px] text-gray-600">
+              Time: {exam.timeLimitMin} minutes • Total Points: {exam.totalPoints}
+            </div>
+          </header>
 
-        {/* Drag and Drop Instructions */}
-        <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800 print:hidden text-center">
-          <p>Drag questions using the handle (☰) to reorder them. A blue box shows where the question will be placed. You can add questions in between, above, or below existing ones. Remember to click "Save Exam" to keep your changes.</p>
-        </div>
+          {/* Instructions information */}
+          <section className="mb-6 text-center rounded-lg border p-4 text-sm leading-6 print:break-inside-avoid">
+            <h2 className="mb-1 font-semibold uppercase tracking-wide text-gray-700">Instructions</h2>
+            <ul className="list-disc pl-5">
+              <li>Answer all questions in the space provided.</li>
+              <li>Show your work where applicable. Circle or clearly mark your final answer.</li>
+              <li>No unauthorized materials. Calculators allowed unless otherwise stated.</li>
+            </ul>
+          </section>
 
-        {/* Questions */}
-        <main className="font-serif">
-          <div className="space-y-6">
-            {/* Top drop zone - before first question */}
-            <div
-              onDragOver={(e) => handleDragOver(e, 0)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, 0)}
-              className={`h-5 mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === 0
-                ? 'bg-blue-100 border-blue-500'
-                : 'border-transparent'
-                }`}
-            />
-            {/* Render each question */}
-            {exam.questions?.map((q, index) => {
-              const points = q.points ?? 1;
-              const isBeingDragged = draggedQuestion === q.questionId;
+          {/* Drag and Drop Instructions */}
+          <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800 print:hidden text-center">
+            <p>Drag questions using the handle (☰) to reorder them. A blue box shows where the question will be placed. You can add questions in between, above, or below existing ones. Remember to click "Save Exam" to keep your changes.</p>
+          </div>
 
-              return (
-                // For each question
-                <div key={q.questionId} className="relative group">
-                  {/* Question item */}
-                  <div className={`relative transition-all duration-200 rounded-lg ${isBeingDragged ? 'opacity-50' : 'bg-white'
-                    }`}>
-                    <div className="flex items-start gap-3">
-                      {/* Drag Handle - Only this part is draggable */}
-                      <div
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, q.questionId)}
-                        onDragEnd={handleDragEnd}
-                        className="cursor-move p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors mt-1"
-                        title="Drag to reorder"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="size-6"
+          {/* Questions */}
+          <main className="font-serif">
+            <div className="space-y-6">
+              {/* Top drop zone - before first question */}
+              <div
+                onDragOver={(e) => handleDragOver(e, 0)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, 0)}
+                className={`h-5 mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === 0
+                  ? 'bg-blue-100 border-blue-500'
+                  : 'border-transparent'
+                  }`}
+              />
+              {/* Render each question */}
+              {exam.questions?.map((q, index) => {
+                const points = q.points ?? 1;
+                const isBeingDragged = draggedQuestion === q.questionId;
+
+                return (
+                  // For each question
+                  <div key={q.questionId} className="relative group">
+                    {/* Question item */}
+                    <div className={`relative transition-all duration-200 rounded-lg ${isBeingDragged ? 'opacity-50' : 'bg-white'
+                      }`}>
+                      <div className="flex items-start gap-3">
+                        {/* Drag Handle - Only this part is draggable */}
+                        <div
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, q.questionId)}
+                          onDragEnd={handleDragEnd}
+                          className="cursor-move p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors mt-1"
+                          title="Drag to reorder"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"
-                          />
-                        </svg>
-                      </div>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-6"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"
+                            />
+                          </svg>
+                        </div>
 
-                      {/* Question Number and Content */}
-                      <div className="flex-1 flex items-start gap-3">
-                        {/* Question Number */}
-                        <span className="font-medium text-gray-700 mt-1">
-                          {index + 1}.
-                        </span>
+                        {/* Question Number and Content */}
+                        <div className="flex-1 flex items-start gap-3">
+                          {/* Question Number */}
+                          <span className="font-medium text-gray-700 mt-1">
+                            {index + 1}.
+                          </span>
 
-                        {/* Question Content */}
-                        <div className="flex-1">
-                          <div className="mb-2 flex items-start justify-between gap-4">
-                            <div className="font-medium leading-relaxed">
-                              {q.snapshot?.stem ?? "(Question text)"}
-                            </div>
-
-                            {/* Righthand side: points, edit, delete */}
-                            <div className="flex items-center gap-2 shrink-0">
-                              <div className="flex items-center gap-2">
-                                <label className="text-xs text-gray-600">Pts</label>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  className="w-16 rounded border px-2 py-0.5 text-xs text-gray-700"
-                                  value={points}
-                                  onChange={(e) => updateQuestionPoints(q.questionId, Number(e.target.value))}
-                                />
+                          {/* Question Content */}
+                          <div className="flex-1">
+                            <div className="mb-2 flex items-start justify-between gap-4">
+                              <div className="font-medium leading-relaxed">
+                                {q.snapshot?.stem ?? "(Question text)"}
                               </div>
-                              <button onClick={() => handleEditQuestion(q)}
-                                className="rounded border border-blue-300 text-blue-600 px-2 py-0.5 text-xs hover:bg-blue-50 transition"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setPendingDeleteQuestion(q);
-                                  setAlsoDeleteInBank(false);
-                                  setIsDeleteConfirmOpen(true);
-                                }}
-                                className="rounded border border-red-300 text-red-600 px-2 py-0.5 text-xs hover:bg-red-50 transition"
-                              >
-                                Delete
-                              </button>
+
+                              {/* Righthand side: points, edit, delete */}
+                              <div className="flex items-center gap-2 shrink-0">
+                                <div className="flex items-center gap-2">
+                                  <label className="text-xs text-gray-600">Pts</label>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    className="w-16 rounded border px-2 py-0.5 text-xs text-gray-700"
+                                    value={points}
+                                    onChange={(e) => updateQuestionPoints(q.questionId, Number(e.target.value))}
+                                  />
+                                </div>
+                                <button onClick={() => handleEditQuestion(q)}
+                                  className="rounded border border-blue-300 text-blue-600 px-2 py-0.5 text-xs hover:bg-blue-50 transition"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setPendingDeleteQuestion(q);
+                                    setAlsoDeleteInBank(false);
+                                    setIsDeleteConfirmOpen(true);
+                                  }}
+                                  className="rounded border border-red-300 text-red-600 px-2 py-0.5 text-xs hover:bg-red-50 transition"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
+
+                            {/* Type-specific */}
+                            {q.type === "MC" && (
+                              <ul className="ml-4 list-[upper-alpha] space-y-1 pl-4">
+                                {(q.snapshot?.choices ?? []).map((c: any, idx: number) => (
+                                  <li key={idx} className="leading-7 text-[15px]">
+                                    {c.text ?? c.label}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+
+                            {q.type === "TF" && (
+                              <div className="ml-1 text-[15px]">
+                                <span className="mr-4">Circle one:</span>
+                                <span className="inline-block px-2 py-0.5 mr-2">True</span>
+                                <span className="inline-block px-2 py-0.5">False</span>
+                              </div>
+                            )}
+
+                            {q.type === "Essay" && (
+                              <div className="mt-3 space-y-3">
+                                {Array.from({ length: q.snapshot?.blankLines ?? 4 }).map((_, idx) => (
+                                  <div key={idx} className="h-6 w-full border-b" />
+                                ))}
+                              </div>
+                            )}
+
+                            {q.type === "Code" && (
+                              <div className="mt-3 border border-gray-300 bg-gray-50 rounded-md">
+                                <div className="h-40" />
+                              </div>
+                            )}
                           </div>
-
-                          {/* Type-specific */}
-                          {q.type === "MC" && (
-                            <ul className="ml-4 list-[upper-alpha] space-y-1 pl-4">
-                              {(q.snapshot?.choices ?? []).map((c: any, idx: number) => (
-                                <li key={idx} className="leading-7 text-[15px]">
-                                  {c.text ?? c.label}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-
-                          {q.type === "TF" && (
-                            <div className="ml-1 text-[15px]">
-                              <span className="mr-4">Circle one:</span>
-                              <span className="inline-block px-2 py-0.5 mr-2">True</span>
-                              <span className="inline-block px-2 py-0.5">False</span>
-                            </div>
-                          )}
-
-                          {q.type === "Essay" && (
-                            <div className="mt-3 space-y-3">
-                              {Array.from({ length: q.snapshot?.blankLines ?? 4 }).map((_, idx) => (
-                                <div key={idx} className="h-6 w-full border-b" />
-                              ))}
-                            </div>
-                          )}
-
-                          {q.type === "Code" && (
-                            <div className="mt-3 border border-gray-300 bg-gray-50 rounded-md">
-                              <div className="h-40" />
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
+
+                    {/* Drop zone between questions */}
+                    {index < exam.questions.length - 1 && (
+                      <div
+                        onDragOver={(e) => handleDragOver(e, index + 1)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index + 1)}
+                        className={`h-5 mt-3 -mb-2 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === index + 1
+                          ? 'bg-blue-100 border-blue-500'
+                          : 'border-transparent'
+                          }`}
+                      />
+                    )}
                   </div>
+                );
+              })}
 
-                  {/* Drop zone between questions */}
-                  {index < exam.questions.length - 1 && (
-                    <div
-                      onDragOver={(e) => handleDragOver(e, index + 1)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, index + 1)}
-                      className={`h-5 mt-3 -mb-2 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === index + 1
-                        ? 'bg-blue-100 border-blue-500'
-                        : 'border-transparent'
-                        }`}
-                    />
-                  )}
-                </div>
-              );
-            })}
+              {/* Bottom drop zone - after last question */}
+              <div
+                onDragOver={(e) => handleDragOver(e, exam.questions.length)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, exam.questions.length)}
+                className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === (exam.questions?.length ?? 0)
+                  ? 'bg-blue-100 border-blue-500'
+                  : 'border-transparent'
+                  }`}
+              />
+            </div>
+          </main>
 
-            {/* Bottom drop zone - after last question */}
-            <div
-              onDragOver={(e) => handleDragOver(e, exam.questions.length)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, exam.questions.length)}
-              className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === (exam.questions?.length ?? 0)
-                ? 'bg-blue-100 border-blue-500'
-                : 'border-transparent'
-                }`}
-            />
-          </div>
-        </main>
+          {/* Bottom Buttons */}
+          <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 font-serif">
+            <div className="flex gap-3">
+              <button onClick={() => setIsQuestionFormOpen(true)} className="px-3 py-2 btn btn-ghost">
+                + Add New Question
+              </button>
+              <button onClick={() => setIsExistingPickerOpen(true)} className="px-3 py-2 btn btn-ghost">
+                + Add Existing Question
+              </button>
+              <button onClick={() => setIsAnswerKeyOpen(true)} className="px-3 py-2 btn btn-ghost">
+                View Answer Key
+              </button>
+            </div>
 
-        {/* Bottom Buttons */}
-        <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 font-serif">
-          <div className="flex gap-3">
-            <button onClick={() => setIsQuestionFormOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
-              + Add New Question
-            </button>
-            <button
-              onClick={() => setIsExistingPickerOpen(true)}
-              className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
+            <div className="flex gap-3">
+              <button
+                onClick={handleClose}
+                className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
               >
-              + Add Existing Question
-            </button>
-            <button onClick={() => setIsAnswerKeyOpen(true)} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
-              View Answer Key
-            </button>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleClose}
-              className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
-            >
-              Cancel
-            </button>
-            <button onClick={handleSaveExam} disabled={isSaving} className="rounded-lg bg-stone-800 px-5 py-2 text-sm text-white shadow hover:opacity-90">
-              {isSaving ? "Saving..." : "Save Exam"}
-            </button>
+                Cancel
+              </button>
+              <button onClick={handleSaveExam} disabled={isSaving} className="btn btn-primary-blue">
+                {isSaving ? "Saving..." : "Save Exam"}
+              </button>
+            </div>
           </div>
         </div>
+        <ConfirmationModal isOpen={isDeleteConfirmOpen} onClose={closeDeleteConfirm} onConfirm={handleConfirmDeleteQuestion} type="question" isLoading={isDeleting} text={pendingDeleteQuestion?.snapshot?.stem ?? ""} showAlsoDeleteInBank={true} alsoDeleteInBank={alsoDeleteInBank} onAlsoDeleteInBankChange={setAlsoDeleteInBank} />
+        <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
+        <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
+        <AddExistingQuestionModal isOpen={isExistingPickerOpen} onClose={() => setIsExistingPickerOpen(false)} onAddSelected={handleExistingQuestionsAdded} excludeIds={new Set((exam.questions ?? []).map(q => q.questionId))}/>
+        {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} />}
       </div>
-      <ConfirmationModal isOpen={isDeleteConfirmOpen} onClose={closeDeleteConfirm} onConfirm={handleConfirmDeleteQuestion} type="question" isLoading={isDeleting} text={pendingDeleteQuestion?.snapshot?.stem ?? ""} showAlsoDeleteInBank={true} alsoDeleteInBank={alsoDeleteInBank} onAlsoDeleteInBankChange={setAlsoDeleteInBank} />
-      <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
-      <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
-      <AddExistingQuestionModal isOpen={isExistingPickerOpen} onClose={() => setIsExistingPickerOpen(false)} onAddSelected={handleExistingQuestionsAdded} excludeIds={new Set((exam.questions ?? []).map(q => q.questionId))}/>
-      {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} />}
-    </div>
+    </Background>
   );
 }

@@ -4,7 +4,7 @@ import NavBar from "@/components/navbar";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import SelectBox from "@/components/SelectBox";
-import { LightBackground } from "@/components/BackgroundModal";
+import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
 
 
@@ -56,15 +56,15 @@ export default function ContactPage() {
   }
 
   return (
-    <LightBackground>
+    <Background>
       <div className="flex flex-col justify-between min-h-screen p-4 text-center">
         <header>
           <NavBar />
         </header>
         <main className="flex flex-col items-center justify-center pt-8">
           {/* Prompt */}
-          <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">Contact Us</h1>
-          <p className="text-gray-600 mb-8 text-lg max-w-2xl">
+          <h1 className="text-4xl text-blue-gradient mb-4">Contact Us</h1>
+          <p className="text-secondary mb-8 text-lg max-w-2xl">
             Want to report a issue? Please do not hesitate to contact us directly. Thank you for helping make Exam Genie better.
           </p>
 
@@ -83,15 +83,15 @@ export default function ContactPage() {
 
 
           {/* Contact Form Card */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 w-full border border-gray-100">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
+          <div className="card-primary rounded-2xl shadow-lg p-8 w-full border border-gray-100">
+            <h2 className="text-2xl font-semibold text-primary mb-6 text-left">
               Report an Issue
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
 
               {/* Issue Type */}
               <div className="space-y-2 text-left">
-                <label className="flex items-center text-sm font-medium text-gray-700">
+                <label className="flex items-center text-sm font-medium text-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 mr-2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                   </svg>
@@ -113,7 +113,7 @@ export default function ContactPage() {
 
               {/* Message Field */}
               <div className="space-y-2">
-                <label htmlFor="message" className="flex items-center text-sm font-medium text-gray-700">
+                <label htmlFor="message" className="flex items-center text-sm font-medium text-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 mr-2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                   </svg>
@@ -147,7 +147,7 @@ export default function ContactPage() {
             {/* Next Steps */}
             {user && (
               <div className="mt-12 pt-8 border-t border-gray-100">
-                <h3 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
+                <h3 className="text-2xl font-semibold text-primary mb-6 text-left">
                   What happens after you report?
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -194,7 +194,7 @@ export default function ContactPage() {
           </div>
 
           {/* Additional Info */}
-          <div className="mt-8 text-center text-gray-600 max-w-2xl">
+          <div className="mt-8 text-center text-secondary max-w-2xl">
             <p className="mb-2">
               Have additional questions or need immediate assistance?
             </p>
@@ -207,6 +207,6 @@ export default function ContactPage() {
           </div>
         </main>
       </div>
-    </LightBackground>
+    </Background>
   );
 }

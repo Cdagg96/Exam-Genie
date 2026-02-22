@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import NavBar from "@/components/navbar";
-import { LightBackground } from "@/components/BackgroundModal";
+import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
 import { signOut } from "next-auth/react"; 
 
@@ -46,20 +46,20 @@ export default function ProfilePage() {
   };
 
   return (
-    <LightBackground>
+    <Background>
       <div className="items-center justify-items-center min-h-screen p-4">
         <NavBar />
 
         <div className="mt-10 w-full max-w-4xl">
-          <h1 className="text-5xl text-center font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-5xl text-center text-blue-gradient">
             Profile
           </h1>
-          <p className="mt-3 text-center text-slate-600">
+          <p className="mt-3 text-center text-secondary">
             View your account info and manage settings.
           </p>
 
           {/* Main profile card */}
-          <div className="mt-10 bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+          <div className="mt-10 p-8 card-primary">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               {/* Avatar + info */}
               <div className="flex items-center gap-4">
@@ -68,10 +68,10 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <div className="text-2xl font-semibold text-stone-800">
+                  <div className="text-2xl font-semibold text-primary">
                     {getFullName() || "Unknown User"}
                   </div>
-                  <div className="text-sm text-slate-600">
+                  <div className="text-sm text-secondary">
                     {(user as any)?.email || ""}
                   </div>
 
@@ -82,7 +82,7 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/settings"
-                  className="btn btn-ghost rounded-2xl shadow w-40 h-11 flex items-center justify-center"
+                  className="btn btn-ghost w-40 h-11"
                 >
                   Settings
                 </Link>
@@ -90,7 +90,7 @@ export default function ProfilePage() {
                 {user ? (
                   <button
                     onClick={handleSignOut}
-                    className="w-40 h-11 text-white bg-gray-800 hover:bg-gray-900 text-sm rounded-2xl shadow flex items-center justify-center"
+                    className="btn btn-primary-blue w-40 h-11"
                   >
                     Sign Out
                   </button>
@@ -110,56 +110,56 @@ export default function ProfilePage() {
 
             {/* Info blocks */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-gray-200 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
+              <div className="border-primary p-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
                   Status
                 </div>
-                <div className="mt-1 text-sm text-stone-800">
+                <div className="mt-1 text-sm text-secondary">
                   {user ? "Signed in" : "Signed out"}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-gray-200 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
+              <div className="border-primary p-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
                   Role
                 </div>
-                <div className="mt-1 text-sm text-stone-800">
+                <div className="mt-1 text-sm text-secondary">
                   {((user as any)?.role || "Guest").charAt(0).toUpperCase() + ((user as any)?.role || "Guest").slice(1)}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-gray-200 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
+              <div className="border-primary p-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
                   First Name
                 </div>
-                <div className="mt-1 text-sm text-stone-800">
+                <div className="mt-1 text-sm text-secondary">
                   {(user as any)?.firstName || "N/A"}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-gray-200 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
+              <div className="border-primary p-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
                   Last Name
                 </div>
-                <div className="mt-1 text-sm text-stone-800">
+                <div className="mt-1 text-sm text-secondary">
                   {(user as any)?.lastName || "N/A"}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-gray-200 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
+              <div className="border-primary p-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
                   Phone
                 </div>
-                <div className="mt-1 text-sm text-stone-800">
+                <div className="mt-1 text-sm text-secondary">
                   {(user as any)?.phone || "N/A"}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-gray-200 p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">
+              <div className="border-primary p-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
                   Date Joined
                 </div>
-                <div className="mt-1 text-sm text-stone-800">
+                <div className="mt-1 text-sm text-secondary">
                   {formatDateJoined((user as any)?.createdOn)}
                 </div>
               </div>
@@ -187,26 +187,26 @@ export default function ProfilePage() {
           </div>
 
           {/* Quick links card */}
-          <div className="mt-8 bg-white rounded-2xl shadow-md p-6">
-            <h2 className="text-xl font-semibold text-stone-800">
+          <div className="card-primary mt-8 p-6">
+            <h2 className="text-xl font-semibold text-primary">
               Quick Links
             </h2>
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
                 href="../exam_gen/"
-                className="btn btn-ghost rounded-2xl shadow w-44 h-11 flex items-center justify-center"
+                className="btn btn-ghost w-44 h-11 flex items-center justify-center"
               >
                 Create Test
               </Link>
               <Link
                 href="../data_view/"
-                className="btn btn-ghost rounded-2xl shadow w-44 h-11 flex items-center justify-center"
+                className="btn btn-ghost w-44 h-11 flex items-center justify-center"
               >
                 View Questions
               </Link>
               <Link
                 href="../past_exams/"
-                className="btn btn-ghost rounded-2xl shadow w-44 h-11 flex items-center justify-center"
+                className="btn btn-ghost w-44 h-11 flex items-center justify-center"
               >
                 Past Exams
               </Link>
@@ -214,6 +214,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </LightBackground>
+    </Background>
   );
 }
