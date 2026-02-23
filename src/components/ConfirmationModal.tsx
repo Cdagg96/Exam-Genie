@@ -7,7 +7,7 @@ interface ConfirmationModalProps {
     onConfirm: () => void;
     text?: string;
     isLoading?: boolean;
-    type?: 'question' | 'exam';
+    type?: 'question' | 'exam' | 'unsaved';
     showAlsoDeleteInBank?: boolean;
     alsoDeleteInBank?: boolean;
     onAlsoDeleteInBankChange?: (val: boolean) => void;
@@ -27,15 +27,27 @@ export default function ConfirmationModal({
     if (!isOpen) return null;
 
     // pick the messages/values based on type of deletion
-    const deleteStatement = type === 'question' ? 'Delete Question' : 'Delete Exam';
-    const confirmationMessage = type === 'question'
-        ? 'Are you sure you want to delete this question? This action cannot be undone.'
-        : 'Are you sure you want to delete this exam? This action cannot be undone.';
+    const title =
+        type === "question" ? "Delete Question" :
+            type === "exam" ? "Delete Exam" :
+                "Unsaved Changes";
 
-    const deletionType = type === 'question' ? 'Question' : 'Exam';
-    const buttonText = isLoading
-        ? type === 'question' ? 'Deleting Question...' : 'Deleting Exam...'
-        : type === 'question' ? 'Delete Question' : 'Delete Exam';
+    const message =
+        type === "question"
+            ? "Are you sure you want to delete this question? This action cannot be undone."
+            : type === "exam"
+                ? "Are you sure you want to delete this exam? This action cannot be undone."
+                : "You have unsaved changes. If you leave now, your changes will be lost.";
+
+    const primaryText =
+        isLoading
+            ? (type === "question" ? "Deleting Question..." :
+                type === "exam" ? "Deleting Exam..." :
+                    "Leaving...")
+            : (type === "question" ? "Delete Question" :
+                type === "exam" ? "Delete Exam" :
+                    "Leave Without Saving");
+    const deletionType = type === "question" ? "Question" : "Exam";
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
@@ -49,16 +61,16 @@ export default function ConfirmationModal({
                     &times;
                 </button>
 
-                <h1 className="text-2xl font-bold mb-4 text-center">{deleteStatement}</h1>
+                <h1 className="text-2xl font-bold mb-4 text-center">{title}</h1>
 
                 <div className="space-y-4">
                     {/* Message */}
                     <p className="text-secondary text-center">
-                        {confirmationMessage}
+                        {message}
                     </p>
 
                     {/* Question Display */}
-                    {text && (
+                    {type !== "unsaved" && text && (
                         <div className="border-primary rounded-lg p-4 bg-gray-50 text-center">
                             <h3 className="font-semibold text-gray-800 mb-2">{deletionType}</h3>
                             <p className="text-gray-700 whitespace-pre-wrap">{text}</p>
@@ -84,13 +96,23 @@ export default function ConfirmationModal({
 
                     {/* Action Buttons */}
                     <div className="flex justify-center gap-4 pt-4">
+                        {type === "unsaved" && (
+                            <button
+                                type="button"
+                                className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all"
+                                onClick={onClose}
+                                disabled={isLoading}
+                            >
+                                Contiune Editing
+                            </button>
+                        )}
                         <button
                             type="button"
-                            className={`px-6 py-2 text-white rounded-lg transition-all bg-red-600 hover:bg-red-700 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`px-6 py-2 rounded-lg transition-all ${ type === "unsaved" ? "border border-gray-300 hover:bg-gray-100" : "text-white bg-red-600 hover:bg-red-700"} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             onClick={onConfirm}
                             disabled={isLoading}
                         >
-                            {buttonText}
+                            {primaryText}
                         </button>
                     </div>
                 </div>

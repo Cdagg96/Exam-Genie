@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import toast from "react-hot-toast";
 import SelectBox from "@/components/SelectBox";
 import { Choice } from "@/types/question";
 
@@ -34,7 +33,7 @@ export default function EditQuestionModal({
     const [editInDb, setEditInDb] = useState(false);
 
     const getQuestionId = (q: any) => {
-        return ( q?.questionId || q?.question_id || q?.questionID || q?._id || q?.id || q?.question?._id || q?.question?.id || q?.snapshot?._id || q?.snapshot?.id || null);
+        return (q?.questionId || q?.question_id || q?.questionID || q?._id || q?.id || q?.question?._id || q?.question?.id || q?.snapshot?._id || q?.snapshot?.id || null);
     };
 
     // Update an MC choice
@@ -200,27 +199,14 @@ export default function EditQuestionModal({
 
         try {
             // For exam editing: just update local state, NO API call
+            // question bank edits are queued in edit_exam page
             console.log("Updating question in exam with data:", data);
-            if (editInDb) {
-                const qid = getQuestionId(question);
 
-                if (!qid) {
-                    toast.error("Cannot update Question Bank: missing question id");
-                } else {
-                    const res = await fetch(`/api/questions?id=${encodeURIComponent(qid)}`, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(data),
-                    });
-                    if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        throw new Error(err?.error || "Failed to update question in database");
-                    }
-
-                    toast.success("Updated in Question Bank");
-                }
-            }
-            onQuestionUpdated(data);
+            onQuestionUpdated({
+                ...data,
+                alsoUpdateInBank: editInDb,
+                bankId: getQuestionId(question),
+            });
             onClose();
         } catch (error) {
             console.error(error);
@@ -244,7 +230,7 @@ export default function EditQuestionModal({
 
                 <h1 className="text-2xl font-bold text-blue-gradient mb-4 text-center">Edit Question in Exam</h1>
 
-                
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Question Stem */}
                     <div>
@@ -440,7 +426,7 @@ export default function EditQuestionModal({
                             </select>
                         </div>
                     )}
-                    
+
                     {/* Edit in DB Check Box*/}
                     <div className="flex items-center gap-2">
                         <input
