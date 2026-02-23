@@ -1,14 +1,69 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import NavBar from "@/components/navbar";
 import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
 import { signOut } from "next-auth/react"; 
 
+interface UserData {
+  _id: string;
+  email: string;
+  role: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  createdOn: string;
+  updatedOn?: string;
+}
+
+
 export default function ProfilePage() {
   const { user } = useAuth(); 
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+
+      try {
+        //Get user ID
+        const userId = (user as any)?.id || (user as any)?._id;
+       
+        if (!userId) {
+          throw new Error('User ID not found');
+        }
+
+
+        const response = await fetch(`/api/user/profile?userId=${userId}`);
+       
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch user data');
+        }
+
+
+        const data = await response.json();
+        setUserData(data.user || data);
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+
+    fetchUserData();
+  }, [user]);
+
 
   const handleSignOut = async () => {
     // This signs out of NextAuth (clears cookies + session)
@@ -34,15 +89,20 @@ export default function ProfilePage() {
 
   //Get full name from firstName and lastName
   const getFullName = () => {
-    if (!user) return "Unknown User";
+    if (!userData) return "Unknown User";
     
-    if ((user as any).firstName && (user as any).lastName) {
-      return `${(user as any).firstName} ${(user as any).lastName}`;
-    } else if ((user as any).name) {
-      return (user as any).name;
+    if (userData.firstName && userData.lastName) {
+      return `${userData.firstName} ${userData.lastName}`;
     } else {
       return "Unknown User";
     }
+  };
+
+  //Get initials for avatar
+  const getInitials = () => {
+    if (!userData) return "U";
+    return (userData.firstName?.charAt(0)?.toUpperCase() || '') +
+           (userData.lastName?.charAt(0)?.toUpperCase() || '') || "U";
   };
 
   return (
@@ -64,15 +124,15 @@ export default function ProfilePage() {
               {/* Avatar + info */}
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow">
-                  {user ? (user as any).firstName?.charAt(0).toUpperCase() + (user as any).lastName?.charAt(0).toUpperCase() || "U" : "U"}
+                  {userData ? getInitials() : "U"}
                 </div>
 
                 <div>
                   <div className="text-2xl font-semibold text-primary">
-                    {getFullName() || "Unknown User"}
+                    {userData ? getFullName() : "Unknown User"}
                   </div>
                   <div className="text-sm text-secondary">
-                    {(user as any)?.email || ""}
+                    {userData?.email || "N/A"}
                   </div>
 
                 </div>
@@ -87,7 +147,7 @@ export default function ProfilePage() {
                   Settings
                 </Link>
 
-                {user ? (
+                {userData ? (
                   <button
                     onClick={handleSignOut}
                     className="btn btn-primary-blue w-40 h-11"
@@ -124,7 +184,7 @@ export default function ProfilePage() {
                   Role
                 </div>
                 <div className="mt-1 text-sm text-secondary">
-                  {((user as any)?.role || "Guest").charAt(0).toUpperCase() + ((user as any)?.role || "Guest").slice(1)}
+                  {userData?.role ? userData.role.charAt(0).toUpperCase() + userData.role.slice(1) : "Guest"}
                 </div>
               </div>
 
@@ -133,7 +193,7 @@ export default function ProfilePage() {
                   First Name
                 </div>
                 <div className="mt-1 text-sm text-secondary">
-                  {(user as any)?.firstName || "N/A"}
+                  {userData?.firstName || "N/A"}
                 </div>
               </div>
 
@@ -142,7 +202,7 @@ export default function ProfilePage() {
                   Last Name
                 </div>
                 <div className="mt-1 text-sm text-secondary">
-                  {(user as any)?.lastName || "N/A"}
+                  {userData?.lastName || "N/A"}
                 </div>
               </div>
 
@@ -151,7 +211,7 @@ export default function ProfilePage() {
                   Phone
                 </div>
                 <div className="mt-1 text-sm text-secondary">
-                  {(user as any)?.phone || "N/A"}
+                  {userData?.phone || "N/A"}
                 </div>
               </div>
 
@@ -160,7 +220,7 @@ export default function ProfilePage() {
                   Date Joined
                 </div>
                 <div className="mt-1 text-sm text-secondary">
-                  {formatDateJoined((user as any)?.createdOn)}
+                  {formatDateJoined(userData?.createdOn)}
                 </div>
               </div>
             </div>
@@ -179,7 +239,7 @@ export default function ProfilePage() {
               </span>
             </div>
 
-            {!user && (
+            {!userData && (
               <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
                 You're not logged in. Please log in to view stats.
               </div>

@@ -9,6 +9,17 @@ import { useAuth } from "@/components/AuthContext";
 import toast from "react-hot-toast";
 import useTheme from "@/hooks/useTheme"
 
+interface UserData {
+  _id: string;
+  email: string;
+  role: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  createdOn: string;
+  updatedOn?: string;
+}
+
 export default function SettingsPage() {
     const { user, logout, updateUser } = useAuth();
     const router = useRouter();
@@ -28,6 +39,7 @@ export default function SettingsPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState("profile"); //Profile info, Reset password, Delete account
     const { isDark, toggleTheme } = useTheme();
+    const [userData, setUserData] = useState<UserData | null>(null);
 
     //makes sure that the email comes in valid format
     const isValidEmail = (email: string) => {
@@ -54,16 +66,47 @@ export default function SettingsPage() {
 
     //Load user data
     useEffect(() => {
-        if (user) {
-            setFormData(prev => ({
-                ...prev,
-                firstName: (user as any).firstName || "N/A",
-                lastName: (user as any).lastName || "N/A",
-                phone: (user as any).phone || "N/A",
-                email: (user as any).email || "N/A"
-            }));
-        }
+        const fetchUserData = async () => {
+            if (!user) return;
+
+
+            try {
+                const userId = (user as any)?._id || (user as any)?.id;
+               
+                if (!userId) {
+                    console.error('User ID not found');
+                    return;
+                }
+
+
+                const response = await fetch(`/api/user/profile?userId=${userId}`);
+               
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user data');
+                }
+
+
+                const data = await response.json();
+                setUserData(data.user || data);
+               
+                //Set form data from API response
+                setFormData(prev => ({
+                    ...prev,
+                    firstName: (data.user?.firstName || data?.firstName) || "",
+                    lastName: (data.user?.lastName || data?.lastName) || "",
+                    phone: (data.user?.phone || data?.phone) || "",
+                    email: (data.user?.email || data?.email) || ""
+                }));
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                toast.error("Failed to load user data");
+            }
+        };
+
+
+        fetchUserData();
     }, [user]);
+
 
     //Handle input changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
