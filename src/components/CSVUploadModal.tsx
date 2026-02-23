@@ -54,7 +54,7 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
         const csvContent = `stem,type,difficulty,topics,subject,courseNum,answer,blankLines,lines,choiceA,choiceB,choiceC,choiceD,choiceE,correctAnswer
 "The keyword used to define a function in Python is ________.","FIB",1,"Python Syntax","Computer Science","CS2401","def",1,"","","","","","",""
 "Write a Python function that returns the square of a number.","Code",1,"Python Coding","Computer Science","CS2401","def square(num):\\n    return num * num","","1","","","","","","",""
-"Explain what version control is and why it is essential in software development.","Essay",1,"software engineering","Computer Science","","Version control systems like Git track changes in code, enabling collaboration and maintaining history.","","1","","","","","","",""
+"Explain what version control is and why it is essential in software development.","Essay",1,"software engineering","Computer Science","CS2401","Version control systems like Git track changes in code, enabling collaboration and maintaining history.","","1","","","","","","",""
 "Which data structure operates on a First-In, First-Out (FIFO) principle?","MC",3,"data structures","Computer Science","CS101","","","","Stack","Queue","Heap","","","B"
 "JavaScript is a statically typed language.","TF",1,"programming","Computer Science","CS101","","","","True","False","","","","B"
 `;
@@ -96,8 +96,8 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
                             <li><strong>Type</strong> - Question type: MC, TF, FIB, Essay, Code (required)</li>
                             <li><strong>Difficulty</strong> - Number from 1-5 (required)</li>
                             <li><strong>Topics</strong> - Comma-separated topics (required)</li>
-                            <li><strong>Subject</strong> - Subject area (optional)</li>
-                            <li><strong>CourseNum</strong> - Course number (optional)</li>
+                            <li><strong>Subject</strong> - Subject area (required)</li>
+                            <li><strong>CourseNum</strong> - Course number (required)</li>
                             <li><strong>Choice A, Choice B, Choice C, ect</strong> - Choices for MC/TF questions (max 5 choices)</li>
                             <li><strong>Answer</strong> - Answer text for FIB, Essay, and Code questions</li>
                             <li><strong>BlankLines</strong> - Number of blank lines for FIB questions</li>

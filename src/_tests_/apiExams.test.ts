@@ -18,27 +18,28 @@ const {
     // Exams Collection
     const fakeExams = [
         {
-        _id: "69094a2c5bd7abae970d1fb9",
-        title: "Big Exam",
-        timeLimitMin: 60,
-        difficulty: "mixed",
-        totalPoints: 2,
-        questions: [
-            { questionId: "68f39166f8b09cb6a1df1afe", type: "TF", points: 1 },
-            { questionId: "68f3914cf8b09cb6a1df1afd", type: "TF", points: 1 },
-        ],
-        lastUsed: null,
-        createdAt: "2025-11-04T00:34:52.219Z",
-        updatedAt: "2025-11-04T00:34:52.219Z",
+            _id: "69094a2c5bd7abae970d1fb9",
+            title: "Big Exam",
+            timeLimitMin: 60,
+            difficulty: "mixed",
+            totalPoints: 2,
+            questions: [
+                { questionId: "68f39166f8b09cb6a1df1afe", type: "TF", points: 1 },
+                { questionId: "68f3914cf8b09cb6a1df1afd", type: "TF", points: 1 },
+            ],
+            lastUsed: null,
+            createdAt: "2025-11-04T00:34:52.219Z",
+            updatedAt: "2025-11-04T00:34:52.219Z",
         },
     ];
 
+    const questionsUpdateManyMock = vi.fn().mockResolvedValue({ modifiedCount: 1 });
     const toArrayMock = vi.fn().mockResolvedValue(fakeExams);
-    const sortMock = vi.fn().mockReturnValue({toArray: toArrayMock})
+    const sortMock = vi.fn().mockReturnValue({ toArray: toArrayMock })
     const findMock = vi.fn().mockReturnValue({ sort: sortMock, toArray: toArrayMock });
     const findOneMock = vi.fn().mockResolvedValue(fakeExams[0]);
     const deleteOneMock = vi.fn().mockResolvedValue({ deletedCount: 1 });
-    const insertOneMock = vi.fn().mockResolvedValue({ insertedId: "69094a2c5bd7abae970d1fb9"});
+    const insertOneMock = vi.fn().mockResolvedValue({ insertedId: "69094a2c5bd7abae970d1fb9" });
     const updateOneMock = vi.fn().mockResolvedValue({ modifiedCount: 1 });
     const examsCol = {
         find: findMock,
@@ -52,20 +53,21 @@ const {
     const questionsCountMock = vi.fn(async (_match?: any) => 10);
     const questionsAggregateMock = vi.fn((_pipeline?: any[]) => ({
         toArray: async () => [
-        { _id: "q1", type: "TF", difficulty: 1, stem: "Sun rises in the East?" },
-        { _id: "q2", type: "FIB", difficulty: 2, stem: "2 + 2 = _" },
-        { _id: "q3", type: "MC", difficulty: 3, stem: "What is the capital of France?" },
+            { _id: "q1", type: "TF", difficulty: 1, stem: "Sun rises in the East?" },
+            { _id: "q2", type: "FIB", difficulty: 2, stem: "2 + 2 = _" },
+            { _id: "q3", type: "MC", difficulty: 3, stem: "What is the capital of France?" },
         ],
     }));
 
     const questionsCol = {
         countDocuments: questionsCountMock,
         aggregate: questionsAggregateMock,
+        updateMany: questionsUpdateManyMock,
     };
 
     const collectionMock = vi.fn((name: string) => {
-        if(name === "exams") return examsCol;
-        if(name === "questions") return questionsCol;
+        if (name === "exams") return examsCol;
+        if (name === "questions") return questionsCol;
         throw new Error(`Unkown collection: ${name}`);
     });
 
@@ -73,7 +75,7 @@ const {
     const dbMock = { collection: collectionMock };
     const clientMock = { db: vi.fn().mockReturnValue(dbMock) };
 
-    return { findMock,findOneMock, toArrayMock, deleteOneMock,insertOneMock,updateOneMock, questionsCountMock, questionsAggregateMock, collectionMock, dbMock, clientMock };
+    return { findMock, findOneMock, toArrayMock, deleteOneMock, insertOneMock, updateOneMock, questionsCountMock, questionsAggregateMock, collectionMock, questionsUpdateManyMock, dbMock, clientMock };
 });
 
 // Mock mongo client
@@ -90,7 +92,7 @@ describe("GET /api/exams", () => {
     // Successful fetch of exams
     it("Returns exams successfully", async () => {
         const req = new Request("http://localhost/api/exams", { method: "GET" });
-        
+
         const res = await GET(req);
         const data = await res.json();
 
@@ -118,12 +120,14 @@ describe("GET /api/exams", () => {
             throw new Error("DB Failure");
         });
 
-        const res = await GET();
+        const req = new Request("http://localhost/api/exams", { method: "GET" });
+        const res = await GET(req);
         const data = await res.json();
 
         expect(res.status).toBe(500);
         expect(data.message).toBe("Error fetching exams");
     });
+
 });
 
 describe("DELETE /api/exams", () => {
@@ -133,7 +137,7 @@ describe("DELETE /api/exams", () => {
 
         const res = await DELETE(req);
         const data = await res.json();
-        
+
         expect(res.status).toBe(200);
         expect(data.ok).toBe(true);
         expect(data.message).toBe("Exam deleted successfully!");
@@ -161,7 +165,7 @@ describe("POST /api/exams", () => {
         // Confirm all the fields are collected properly
         expect(res.status).toBe(201);
         expect(data.ok).toBe(true);
-        
+
         expect(collectionMock).toHaveBeenCalledWith("exams");
         expect(insertOneMock).toHaveBeenCalledTimes(1);
     });
@@ -207,9 +211,9 @@ describe("PUT /api/exams", () => {
             timeLimitMin: 90,
             totalPoints: 5,
             questions: [
-                { 
-                    questionId: "68f39166f8b09cb6a1df1afe", 
-                    type: "MC", 
+                {
+                    questionId: "68f39166f8b09cb6a1df1afe",
+                    type: "MC",
                     points: 5,
                     snapshot: {
                         stem: "Updated question stem",
@@ -232,17 +236,19 @@ describe("PUT /api/exams", () => {
         expect(res.status).toBe(200);
         expect(data.ok).toBe(true);
         expect(data.message).toBe("Exam updated successfully");
-        
+
         // Verify the update was called with correct data
         expect(updateOneMock).toHaveBeenCalledTimes(1);
         expect(updateOneMock).toHaveBeenCalledWith(
             { _id: expect.any(Object) }, // ObjectId instance
-            { 
+            {
                 $set: {
                     title: "Updated Exam Title",
                     timeLimitMin: 90,
                     totalPoints: 3,
+                    totalPoints: 5, 
                     questions: updatedExamData.questions,
+                    lastUsed: expect.any(Date),
                     updatedAt: expect.any(Date)
                 }
             }

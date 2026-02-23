@@ -3,12 +3,49 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/libs/mongo';
 import { parse } from 'csv-parse/sync';
 
+
+const LETTERS = ["A", "B", "C", "D", "E"] as const;
+
+function normalizeMcRow(record: any) {
+    const raw = LETTERS.map((L) => String(record[`choice${L}`] ?? "").trim());
+
+    // detect gaps like: ["", "", "x", ...]
+    const hasGap = raw.some((v, i) => v === "" && raw.slice(i + 1).some(x => x !== ""));
+    if (!hasGap) return record;
+
+    const correct = String(record.correctAnswer ?? "").trim().toUpperCase();
+    const oldCorrectIndex = LETTERS.indexOf(correct as any);
+
+    const mapping = new Map<number, number>();
+    const packed: string[] = [];
+
+    raw.forEach((val, oldIdx) => {
+        if (val !== "") {
+            mapping.set(oldIdx, packed.length);
+            packed.push(val);
+        }
+    });
+
+
+    LETTERS.forEach((L, i) => {
+        record[`choice${L}`] = packed[i] ?? "";
+    });
+
+
+    if (oldCorrectIndex !== -1 && mapping.has(oldCorrectIndex)) {
+        record.correctAnswer = LETTERS[mapping.get(oldCorrectIndex)!];
+    }
+
+    return record;
+}
+
+
 export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;
         const userID = formData.get('userID') as string;
-        
+
         if (!file) {
             return NextResponse.json(
                 { error: 'No file provided' },
@@ -18,7 +55,7 @@ export async function POST(req: NextRequest) {
 
         const fileBuffer = await file.arrayBuffer();
         const fileContent = Buffer.from(fileBuffer).toString('utf-8');
-        
+
         //Parse CSV
         const records = parse(fileContent, {
             columns: true,
@@ -27,10 +64,24 @@ export async function POST(req: NextRequest) {
             relax_column_count: true,
         });
 
+        const isNonEmpty = (v: any) => String(v ?? "").trim() !== "";
+        const filteredRecords = records.filter((r: any) => {
+            const hasStem = isNonEmpty(r.stem);
+            const hasType = isNonEmpty(r.type);
+            const hasDifficulty = isNonEmpty(r.difficulty);
+            const hasTopics = isNonEmpty(r.topics);
+            const hasSubject = isNonEmpty(r.subject);
+            const hasCourseNum = isNonEmpty(r.courseNum);
+
+            return hasStem && hasType && hasDifficulty && hasTopics && hasSubject && hasCourseNum;
+        });
+
+        const ignoredCount = records.length - filteredRecords.length;
+
         const client = await clientPromise;
         const db = client.db(process.env.MONGODB_DB);
-        
-        const questionsToInsert = records.map((record: any) => {
+
+        const questionsToInsert = filteredRecords.map((record: any) => {
             //Base question structure
             const question: any = {
                 stem: record.stem,
@@ -54,8 +105,11 @@ export async function POST(req: NextRequest) {
             //Handle different question types
             if (record.type === 'MC') {
                 //Multiple Choice
+
+                record = normalizeMcRow(record);
+                const correct = String(record.correctAnswer ?? "").trim().toUpperCase();
                 question.choices = [];
-                
+
                 //Parse choices A, B, C
                 ['A', 'B', 'C', 'D', 'E'].forEach(letter => {
                     const choiceText = record[`choice${letter}`];
@@ -63,7 +117,7 @@ export async function POST(req: NextRequest) {
                         question.choices.push({
                             label: letter,
                             text: choiceText.trim(),
-                            isCorrect: record.correctAnswer === letter
+                            isCorrect: correct === letter
                         });
                     }
                 });
@@ -76,7 +130,7 @@ export async function POST(req: NextRequest) {
                         isCorrect: record.correctAnswer === "A" || record.correctAnswer === "True"
                     },
                     {
-                        label: "False", 
+                        label: "False",
                         text: "False",
                         isCorrect: record.correctAnswer === "B" || record.correctAnswer === "False"
                     }
@@ -110,6 +164,16 @@ export async function POST(req: NextRequest) {
                 );
             }
 
+            if (question.type === "MC") {
+                const correctCount = (question.choices ?? []).filter((c: any) => c.isCorrect).length;
+                if (correctCount !== 1) {
+                    return NextResponse.json(
+                        { error: "MC questions must have exactly one correctAnswer (A-E)." },
+                        { status: 400 }
+                    );
+                }
+            }
+
             //Validate question type
             const validTypes = ['MC', 'TF', 'FIB', 'Essay', 'Code'];
             if (!validTypes.includes(question.type)) {
@@ -136,12 +200,23 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        if (questionsToInsert.length === 0) {
+            return NextResponse.json({
+                message: "No questions imported",
+                importedCount: 0,
+                ignoredCount,
+                ignoredReason: "missing required fields",
+            }, { status: 200 });
+        }
+
         //Insert into database
         const result = await db.collection('questions').insertMany(questionsToInsert);
 
         return NextResponse.json({
             message: 'Questions imported successfully',
-            importedCount: result.insertedCount
+            importedCount: result.insertedCount,
+            ignoredCount,
+            ignoredReason: "missing required fields",
         });
 
     } catch (error) {

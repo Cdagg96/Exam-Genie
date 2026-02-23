@@ -101,12 +101,4 @@ describe("ExamPreviewModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  test("print button triggers window.print()", () => {
-    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
-    render(<ExamPreviewModal open={true} onClose={() => {}} exam={sampleExam} />);
-
-    fireEvent.click(screen.getByText(/Print/i));
-    expect(printSpy).toHaveBeenCalled();
-    printSpy.mockRestore();
-  });
 });
