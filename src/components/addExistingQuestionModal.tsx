@@ -193,7 +193,7 @@ export default function AddExistingQuestionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white text-black rounded-2xl shadow-2xl w-full max-w-3xl h-[85vh] flex flex-col overflow-hidden">
+      <div className="card-primary text-primary rounded-2xl shadow-2xl w-full max-w-3xl h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between border-b px-5 py-4">
           <h2 className="text-lg font-semibold">Add Existing Questions</h2>
@@ -274,23 +274,23 @@ export default function AddExistingQuestionModal({
             <div className="flex gap-2">
               <button
                 onClick={handleApplyFilters}
-                className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
+                className="btn btn-primary-blue"
                 disabled={loading}
               >
                 Apply Filters
               </button>
               <button
                 onClick={handleClearFilters}
-                className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
+                className="btn btn-ghost"
                 disabled={loading}
               >
                 Clear
               </button>
             </div>
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-primary">
               {filtersApplied ? "Filters applied" : "No filters"} • Selected:{" "}
-              <span className="font-medium text-gray-900">{selected.size}</span>
+              <span className="font-medium text-secondary">{selected.size}</span>
             </div>
           </div>
         </div>
@@ -298,9 +298,9 @@ export default function AddExistingQuestionModal({
         {/* Results */}
         <div className="p-5 overflow-y-auto flex-1">
           {loading ? (
-            <div className="text-gray-500">Loading questions...</div>
+            <div className="text-secondary">Loading questions...</div>
           ) : pageItems.length === 0 ? (
-            <div className="text-gray-500">No questions found.</div>
+            <div className="text-secondary">No questions found.</div>
           ) : (
             <div className="space-y-3">
               {pageItems.map((q) => {
@@ -308,7 +308,7 @@ export default function AddExistingQuestionModal({
                 return (
                   <div
                     key={q._id}
-                    className={`border rounded-xl p-3 transition ${checked ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
+                    className={`border rounded-xl p-3 transition ${checked ? "bg-gray-200 dark:bg-gray-400" : "hover:bg-gray-200 dark:hover:bg-gray-400"
                       }`}
                   >
                     <div className="flex items-start gap-3">
@@ -321,12 +321,12 @@ export default function AddExistingQuestionModal({
 
                       <div className="flex-1">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="font-medium leading-snug">{q.stem || "(No stem)"}</div>
-                          <span className="text-xs px-2 py-0.5 rounded border text-gray-700">
+                          <div className="font-medium text-primary leading-snug">{q.stem || "(No stem)"}</div>
+                          <span className="text-xs px-2 py-0.5 rounded border text-secondary">
                             {q.type}
                           </span>
                         </div>
-                        <div className="mt-1 text-xs text-gray-600">
+                        <div className="mt-1 text-xs text-secondary">
                           {q.subject} • {q.courseNum} • {(q.topics ?? []).slice(0, 3).join(", ")}
                           {(q.topics?.length ?? 0) > 3 ? "…" : ""}
                         </div>
@@ -341,17 +341,17 @@ export default function AddExistingQuestionModal({
           {/* Pagination */}
           <div className="mt-5 flex items-center justify-between">
             <button
-              className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition disabled:opacity-50"
+              className="btn btn-ghost"
               disabled={page <= 1 || loading}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
               Prev
             </button>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-primary">
               Page {page} / {totalPages}
             </div>
             <button
-              className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition disabled:opacity-50"
+              className="btn btn-ghost"
               disabled={page >= totalPages || loading}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             >
@@ -362,13 +362,13 @@ export default function AddExistingQuestionModal({
 
         {/* Footer */}
         <div className="border-t px-5 py-4 flex items-center justify-between">
-          <button onClick={onClose} className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition">
+          <button onClick={onClose} className="px-3 py-2 btn btn-ghost">
             Cancel
           </button>
           <button
             onClick={handleAddSelected}
             disabled={selected.size === 0}
-            className="rounded-lg bg-stone-800 px-5 py-2 text-sm text-white shadow hover:opacity-90 disabled:opacity-50"
+            className="px-3 py-2 btn btn-primary-blue"
           >
             Add Selected ({selected.size})
           </button>

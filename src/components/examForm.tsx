@@ -350,21 +350,21 @@ export default function ExamForm() {
     return (
         <div className="mx-auto w-full">
             <form onSubmit={handleSubmit} className="space-y-6">
-                <section className="bg-white rounded-2xl p-4 shadow-sm min-h-[1350px]">
-                    <h2 className="mb-3 text-lg font-semibold">General</h2>
+                <section className="bg-primary rounded-2xl p-4 min-h-[1350px]">
+                    <h2 className="mb-3 text-lg font-semibold text-primary">General</h2>
                     <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-2">
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Title</span>
+                            <span className="text-sm font-medium text-primary">Title</span>
                             <input
-                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
-                                placeholder="Midterm – Algorithms"
+                                className="border border-primary text-secondary px-3 py-3"
+                                placeholder="Midterm - Algorithms"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Difficulty</span>
+                            <span className="text-sm font-medium text-primary">Difficulty</span>
                             {/* Difficulty Filter */}
                             <SelectBox
                                 label=""
@@ -381,7 +381,7 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Subject</span>
+                            <span className="text-sm font-medium text-primary">Subject</span>
                             <SelectBox
                                 label=""
                                 options={subjects}
@@ -392,7 +392,7 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Course Number</span>
+                            <span className="text-sm font-medium text-primary">Course Number</span>
                             <SelectBox
                                 label=""
                                 options={courseNums}
@@ -403,11 +403,11 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">Time Limit (minutes)</span>
+                            <span className="text-sm font-medium text-primary">Time Limit (minutes)</span>
                             <input
                                 type="number"
                                 min={0}
-                                className="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2"
+                                className="border border-primary text-secondary px-3 py-3"
                                 placeholder="60"
                                 value={timeLimit || ""}
                                 onChange={(e) => setTimeLimit(Number(e.target.value))}
@@ -415,16 +415,16 @@ export default function ExamForm() {
                             />
                         </label>
                     </div>
-                    <h2 className="mb-3 mt-8 text-lg font-semibold">Allowed Question Types</h2>
-                    <p className="mb-3 text-sm text-gray-600">
+                    <h2 className="mb-3 mt-8 text-lg font-semibold text-primary">Allowed Question Types</h2>
+                    <p className="mb-3 text-sm text-secondary">
                         Set how many questions of each type you want. Use 0 to exclude a type.
                     </p>
                     <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-3">
                         {TYPES.map((t) => (
                             <label key={t.value} className="flex flex-col">
-                                <span className="text-sm font-medium">{t.label}</span>
+                                <span className="text-sm font-medium text-primary">{t.label}</span>
                                 {user && (
-                                    <span className="text-base text-gray-500">
+                                    <span className="text-base text-secondary">
                                         {availableCounts[t.value] ?? 0} questions available
                                     </span>
                                 )}
@@ -432,7 +432,7 @@ export default function ExamForm() {
                                     type="number"
                                     min={0}
                                     placeholder="0"
-                                    className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
+                                    className="border border-primary text-secondary px-3 py-3"
                                     value={typeCounts[t.value] || ""}
                                     onChange={e => setTypeCounts(prev => ({ ...prev, [t.value]: Number(e.target.value) }))}
                                 />
@@ -440,8 +440,8 @@ export default function ExamForm() {
                             </label>
                         ))}
                     </div>
-                    <h2 className="mb-3 mt-8 text-lg font-semibold">Point Values</h2>
-                    <p className="mb-3 text-sm text-gray-600">
+                    <h2 className="mb-3 mt-8 text-lg font-semibold text-primary">Point Values</h2>
+                    <p className="mb-3 text-sm text-secondary">
                         Multiple Choice / True False / FIB use fixed defaults. Essay / Code can be set here (and adjusted later in Edit Exam).
                     </p>
 
@@ -450,13 +450,13 @@ export default function ExamForm() {
                             const isFixed = t.value === "MC" || t.value === "TF" || t.value === "FIB";
                             return (
                                 <label key={t.value} className="flex flex-col gap-2">
-                                    <span className="text-sm font-medium">{t.label}</span>
+                                    <span className="text-sm font-medium text-primary">{t.label}</span>
 
                                     <input
                                         type="number"
                                         min={0}
                                         placeholder={isFixed ? undefined : "1"}
-                                        className="rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100"
+                                        className="border-primary text-secondary px-3 py-3 disabled:bg-gray-100"
                                         value={isFixed ? "1" : (pointsByType[t.value] ?? "")}
                                         disabled={isFixed}
                                         onChange={(e) => {
@@ -472,10 +472,10 @@ export default function ExamForm() {
                         })}
                     </div>
                     {/* Question Order */}
-                    <h2 className="mb-3 mt-8 text-lg font-semibold">Question Order</h2>
+                    <h2 className="mb-3 mt-8 text-lg font-semibold text-primary">Question Order</h2>
 
                     {/* Instructions */}
-                    <p className="mb-3 text-sm text-gray-600">
+                    <p className="mb-3 text-sm text-secondary">
                         Drag and drop the question types to set the order they will appear in the exam.
                     </p>
 
@@ -484,12 +484,12 @@ export default function ExamForm() {
                             <div className="max-w-md mx-auto">
                                 {/* If the user has not selected a question display more instructions */}
                                 {questionOrder.length === 0 ? (
-                                    <p className="text-center text-sm text-gray-600">
+                                    <p className="text-center text-sm text-secondary">
                                         Select at least one question type above.
                                     </p>
                                 ) : (
                                     // Start displaying the drag and drop box 
-                                    <div className="rounded-xl border p-6 focus:outline-none focus:ring-2 bg-gray-100">
+                                    <div className="border border-primary text-secondary px-3 py-3">
                                         <div className="space-y-3">
                                             { /* Render each question type in the current user order */}
                                             {questionOrder.map((type) => (
@@ -535,18 +535,18 @@ export default function ExamForm() {
                                                         setHoveredType(null);
                                                     }}
                                                     className={
-                                                        `relative cursor-move rounded-xl border bg-white px-4 py-3 shadow flex items-center justify-center text-sm select-none transition-all hover:shadow-md
+                                                        `relative cursor-move rounded-xl border bg-secondary px-4 py-3 shadow flex items-center justify-center text-sm select-none transition-all hover:shadow-md
                                                         ${draggedType === type ? "opacity-50 scale-105 z-10" : ""}
                                                         ${hoveredType === type && draggedType ? "ring-1 ring-black" : ""}
                                                     `}
                                                 >
                                                     { /* Display the priority on the left of box */ }
-                                                    <span className="absolute left-3 font-medium">
+                                                    <span className="absolute left-3 font-medium text-primary">
                                                         {questionOrder.indexOf(type) + 1}
                                                     </span>
                                                     
                                                     { /* Display the question type name */ }
-                                                    <span className="font-medium">
+                                                    <span className="font-medium text-primary">
                                                         {TYPES.find(t => t.value === type)?.label}
                                                     </span>
                                                     

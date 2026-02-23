@@ -12,7 +12,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { useAuth } from "@/components/AuthContext";
-import { LightBackground } from "@/components/BackgroundModal";
+import { Background } from "@/components/BackgroundModal";
 import { Question } from "@/types/question";
 import CSVUploadModal from "@/components/CSVUploadModal";
 
@@ -368,16 +368,16 @@ export default function DatabaseActionPage() {
     };
 
     return (
-        <LightBackground>
+        <Background>
             <div className="flex flex-col justify-between min-h-screen p-4 text-center">
                 <header>
                     <NavBar />
                 </header>
                 <main className="flex flex-col items-center justify-center pt-8">
-                    <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
+                    <h1 className="text-4xl mb-4 text-blue-gradient">
                         Question Bank
                     </h1>
-                    <p className="text-gray-600 mb-8 text-lg max-w-2xl">
+                    <p className="text-secondary mb-8 text-lg max-w-2xl">
                         Manage and view all questions in the database. Filter by topic, difficulty, or type to find specific questions.
                     </p>
 
@@ -394,8 +394,8 @@ export default function DatabaseActionPage() {
                     )}
 
                     {/* Filtering Section */}
-                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
+                    <div className="card-primary p-6 mb-8 w-full">
+                        <h2 className="text-2xl text-primary mb-6 text-left">
                             Filter Questions
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -466,7 +466,7 @@ export default function DatabaseActionPage() {
                             />
 
                             <div className="text-left">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm text-primary mb-2">
                                     Last Used
                                 </label>
                                 <div className="relative" ref={setCalendarAnchorEl}>
@@ -475,7 +475,7 @@ export default function DatabaseActionPage() {
                                         placeholder="Ex: 01/01/2025"
                                         value={dateInputValue}
                                         onChange={(e) => handleDateInputChange(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                                        className="w-full border-primary text-secondary px-4 py-3 pr-12"
                                     />
                                     <button
                                         type="button"
@@ -527,10 +527,10 @@ export default function DatabaseActionPage() {
 
                         {/* Filter Actions */}
                         <div className="flex justify-end space-x-4 mt-8">
-                            <button onClick={handleClearFilters} className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                            <button onClick={handleClearFilters} className="px-6 py-3 btn btn-ghost">
                                 Clear Filters
                             </button>
-                            <button onClick={handleApplyFilters} className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5" disabled={!user}>
+                            <button onClick={handleApplyFilters} className="px-6 py-3 btn btn-primary-blue" disabled={!user}>
                                 Apply Filters
                             </button>
                         </div>
@@ -546,7 +546,7 @@ export default function DatabaseActionPage() {
                             Prev
                         </button>
 
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <div className="flex items-center gap-2 text-sm text-primary">
                             <span>Page</span>
 
                             <span>{page}</span>
@@ -575,7 +575,7 @@ export default function DatabaseActionPage() {
                         </button>
 
                         <select
-                            className="border rounded-xl px-2 py-1 text-sm"
+                            className="border border-primary bg-primary rounded-xl px-2 py-1 text-sm text-primary"
                             value={limit}
                             onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
                         >
@@ -592,36 +592,36 @@ export default function DatabaseActionPage() {
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
                         <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
-                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0">
+                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 dark:bg-gradient-to-r dark:from-slate-700 dark:to-slate-800 sticky top-0">
                                     <tr>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Question
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Type
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Difficulty
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Topic
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Subject
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Course Number
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200 max-w-72">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200 max-w-72">
                                             Choices
                                         </th>
-                                        <th className="px-6 py-4text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200 max-w-72">
+                                        <th className="px-6 py-4text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200 max-w-72">
                                             Answer
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Last Used
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
@@ -631,18 +631,18 @@ export default function DatabaseActionPage() {
                                         //Questions Loading
                                         <tr>
                                             <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">Loading questions</div>
+                                                <div className="text-secondary text-lg">Loading questions</div>
                                             </td>
                                         </tr>
                                     ) : error ? (
                                         //Error while loading questions
                                         <tr>
                                             <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">Error Loading questions</div>
+                                                <div className="text-secondary text-lg">Error Loading questions</div>
                                                 <div className="text-red-400 text-sm mt-2">{error}</div>
                                                 <button
                                                     onClick={fetchQuestionsWithFilters}
-                                                    className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
+                                                    className="mt-4 px-4 py-2 bg-gray-800 text-secondary rounded-lg hover:bg-gray-900 transition-colors">
                                                     Retry
                                                 </button>
                                             </td>
@@ -651,52 +651,52 @@ export default function DatabaseActionPage() {
                                         //Not logged in
                                         <tr>
                                             <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">Please log in to view your questions</div>
+                                                <div className="text-secondary text-lg">Please log in to view your questions</div>
                                             </td>
                                         </tr>
                                     ) : filteredQuestions.length == 0 ? (
                                         //No questions
                                         <tr>
                                             <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">No questions found</div>
-                                                <div className="text-gray-400 text-sm mt-2">Add a question to get started</div>
+                                                <div className="text-secondary text-lg">No questions found</div>
+                                                <div className="text-secondary text-sm mt-2">Add a question to get started</div>
                                             </td>
                                         </tr>
                                     ) : (
                                         //Questions data
                                         filteredQuestions.map((question, index) => (
-                                            <tr key={question._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                            <tr key={question._id} className={index % 2 === 0 ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-800'}>
+                                                <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
                                                     <div className="truncate" title={question.stem}>
                                                         {question.stem}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {question.type}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {question.difficulty}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {formatTopics(question.topics)}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {question.subject || 'N/A'}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {question.courseNum || 'N/A'}
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
                                                     <div className="truncate" title={formatChoices(question.choices)}>
                                                         {formatChoices(question.choices)}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 max-w-72">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200 max-w-72">
                                                     <div className="truncate" title={formatAnswers(question)}>
                                                         {formatAnswers(question)}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {question.lastUsed ? new Date(question.lastUsed).toLocaleDateString() : 'Never'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -719,7 +719,7 @@ export default function DatabaseActionPage() {
                     {/* Add Question Button and Import*/}
                     <div className="mt-12 flex justify-center">
                         <div>
-                            <button className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)} disabled={!user}>
+                            <button className="px-12 py-5 btn btn-ghost text-xl flex items-center gap-2" onClick={() => setIsQuestionFormOpen(true)} disabled={!user}>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                 </svg>
@@ -727,11 +727,7 @@ export default function DatabaseActionPage() {
                             </button>
                         </div>
                         <div className="pl-6">
-                            <button
-                                className="px-12 py-5 bg-gray-800 text-white text-xl font-bold rounded-2xl hover:bg-gray-900 transition-all duration-300 shadow-2xl transform hover:-translate-y-1 hover:shadow-3xl flex items-center gap-2"
-                                onClick={handleImportClick}
-                                disabled={!user}
-                            >
+                            <button className="px-12 py-5 btn btn-ghost text-xl flex items-center gap-2" onClick={handleImportClick} disabled={!user}>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                                 </svg>
@@ -770,7 +766,7 @@ export default function DatabaseActionPage() {
                     isLoading={importLoading}
                 />
             </div>
-        </LightBackground>
+        </Background>
 
     );
 }

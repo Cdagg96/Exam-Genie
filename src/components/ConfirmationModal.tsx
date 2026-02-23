@@ -39,7 +39,7 @@ export default function ConfirmationModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-white text-black rounded-2xl shadow-2xl w-[40rem] p-6 relative overflow-hidden">
+            <div className="card-primary text-primary rounded-2xl shadow-2xl w-[40rem] p-6 relative overflow-hidden">
 
                 {/* Close button */}
                 <button
@@ -53,13 +53,13 @@ export default function ConfirmationModal({
 
                 <div className="space-y-4">
                     {/* Message */}
-                    <p className="text-gray-700 text-center">
+                    <p className="text-secondary text-center">
                         {confirmationMessage}
                     </p>
 
                     {/* Question Display */}
                     {text && (
-                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 text-center">
+                        <div className="border-primary rounded-lg p-4 bg-gray-50 text-center">
                             <h3 className="font-semibold text-gray-800 mb-2">{deletionType}</h3>
                             <p className="text-gray-700 whitespace-pre-wrap">{text}</p>
                         </div>
@@ -76,7 +76,7 @@ export default function ConfirmationModal({
                                 disabled={isLoading}
                                 className="h-4 w-4"
                             />
-                            <label htmlFor="alsoDeleteInBank" className="text-sm text-gray-700">
+                            <label htmlFor="alsoDeleteInBank" className="text-sm text-secondary">
                                 Delete question from question bank
                             </label>
                         </div>

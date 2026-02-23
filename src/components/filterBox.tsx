@@ -159,10 +159,9 @@ export default function FilterBox({
     //Filter box using reference for detecting clicks
     <div className="text-left" ref={filterBoxRef}>
       {page === "questionForm" ? (
-        <label className="block text-sm font-medium text-gray-700">
-        </label>
+        <label className="block text-sm text-primary"></label>
       ) : (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm text-primary mb-2">
           {label}
         </label>
       )}
@@ -176,7 +175,7 @@ export default function FilterBox({
           onFocus={inputFocus}
           onBlur={inputBlur}
           placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-text"
+          className="w-full px-4 py-3 border-primary bg-primary text-secondary flex justify-between items-center"
         />
 
         {/* Clear button (X) when there's text */}
@@ -210,7 +209,7 @@ export default function FilterBox({
 
         {/* Dropdown choices */}
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+          <div className="absolute border-primary bg-primary text-secondary z-50 w-full mt-1 max-h-60 overflow-auto">
             { /* Render filtered options if any exist, otherwise display a message for no options found */}
             {filteredOptions.length > 0 ? (
               <>
@@ -220,7 +219,7 @@ export default function FilterBox({
                   <div
                     key={option.value}
                     onClick={() => select(option)}
-                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${index === 0 ? 'rounded-t-xl' : ''
+                    className={`px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${index === 0 ? 'rounded-t-xl' : ''
                       } ${index === filteredOptions.length - 1 && !shouldShowCustomOption ? 'rounded-b-xl' : ''
                       } ${filteredOptions.length === 1 && !shouldShowCustomOption ? 'rounded-xl' : ''
                       }`}
@@ -235,14 +234,14 @@ export default function FilterBox({
                   ) && (
                     <div
                       onClick={handleUseCustom}
-                      className="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors bg-blue-50 text-blue-600 rounded-b-xl border-t border-gray-200"
+                      className="px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors bg-blue-50 text-blue-600 rounded-b-xl border-t border-gray-200"
                     >
                       Use custom: "{inputValue}"
                     </div>
                   )}
               </>
             ) : page !== "questionForm" ? (
-              <div className="px-4 py-3 text-gray-500 rounded-xl">
+              <div className="px-4 py-3 text-secondary rounded-xl">
                 No options found
               </div>
             ) : null}

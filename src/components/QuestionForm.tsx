@@ -212,7 +212,7 @@ export default function BackgroundModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-            <div className="bg-white text-black rounded-2xl shadow-2xl w-160 max-h-[80vh] overflow-y-auto p-6 relative overflow-hidden">
+            <div className="card-primary text-primary rounded-2xl shadow-2xl w-160 max-h-[80vh] overflow-y-auto p-6 relative overflow-hidden">
 
                 {/* Close button */}
                 <button
@@ -222,13 +222,13 @@ export default function BackgroundModal({
                     &times;
                 </button>
 
-                <h1 className="text-2xl font-bold mb-4 text-center">Add a Question</h1>
+                <h1 className="text-2xl text-blue-gradient font-bold mb-4 text-center">Add a Question</h1>
 
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Question Stem */}
                     <input
-                        className="border px-4 py-3 w-full rounded-xl"
+                        className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
                         placeholder="Question"
                         value={stem}
                         onChange={(e) => setStem(e.target.value)}
@@ -252,7 +252,7 @@ export default function BackgroundModal({
 
                     {/* Question difficulty */}
                     <input
-                        className="border px-4 py-3 w-full rounded-xl"
+                        className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
                         type="number"
                         placeholder="Difficulty (1-5)"
                         value={difficulty || ""}
@@ -264,7 +264,7 @@ export default function BackgroundModal({
 
                     {/* Question topic(s) */}
                     <input
-                        className="border px-4 py-3 w-full rounded-xl"
+                        className="border-primary px-4 py-3 w-full rounded-xl"
                         placeholder="Topic(s) (comma separated)"
                         value={topics}
                         onChange={(e) => setTopics(e.target.value)}
@@ -344,7 +344,7 @@ export default function BackgroundModal({
                     {/* True/False options */}
                     {type === "TF" && (
                         <div className="mt-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-primary mb-2">
                                 Correct answer
                             </label>
                             <div className="flex gap-2">
@@ -352,7 +352,7 @@ export default function BackgroundModal({
                                     type="button"
                                     onClick={() => setCorrect("True")}
                                     className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
-                                    ${correctAnswer === "True" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
+                                    ${correctAnswer === "True" ? "btn btn-primary-blue" : "btn btn-ghost"}`}
                                 >
                                     True
                                 </button>
@@ -360,7 +360,7 @@ export default function BackgroundModal({
                                     type="button"
                                     onClick={() => setCorrect("False")}
                                     className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
-                                    ${correctAnswer === "False" ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-100"}`}
+                                    ${correctAnswer === "False" ? "btn btn-primary-blue" : "btn btn-ghost"}`}
                                 >
                                     False
                                 </button>
@@ -371,7 +371,7 @@ export default function BackgroundModal({
                     {/* Essay/Code only have one "option" box */}
                     {(type === "Essay" || type === "Code") && (
                         <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-primary mb-2">
                                 Correct answer
                             </label>
                             <textarea
@@ -381,12 +381,12 @@ export default function BackgroundModal({
                                 onChange={(e) => setExAnswer(e.target.value)}
                                 required
                             />
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-primary mb-2">
                                 Number of blank lines
                             </label>
                             <input
                                 type="number"
-                                className="border px-4 py-3 w-full rounded-xl"
+                                className="border text-secondary px-4 py-3 w-full rounded-xl"
                                 value={blankLines}
                                 onChange={(e) => setBlankLines(Number(e.target.value))}
                                 required
@@ -397,7 +397,7 @@ export default function BackgroundModal({
                     {/* FIB only have one "option" box and one blank line*/}
                     {(type == "FIB") && (
                         <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-primary mb-2">
                                 Correct answer
                             </label>
                             <input
@@ -414,7 +414,7 @@ export default function BackgroundModal({
                         <label className="block">
                             Correct answer:
                             <select
-                            className="border p-2 ml-2 rounded"
+                            className="border-primary bg-primary p-2 ml-2 rounded"
                             value={correctAnswer}
                             onChange={(e) => setCorrect(e.target.value)}
                             required
@@ -432,7 +432,7 @@ export default function BackgroundModal({
                     <div className="flex justify-center">
                         <button
                             type="submit"
-                            className="px-6 py-3 text-sm font-medium btn btn-primary-dark-blue"
+                            className="btn btn-primary-blue"
                         >
                             Add Question
                         </button>

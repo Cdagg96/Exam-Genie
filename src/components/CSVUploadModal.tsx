@@ -73,7 +73,7 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden max-h-[90vh] overflow-y-auto relative">
+            <div className="card-primary rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden max-h-[90vh] overflow-y-auto relative">
                 {/* Close button */}
                 <button
                     onClick={onClose}
@@ -83,12 +83,12 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
                     &times;
                 </button>
                 <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-800">Upload Questions from CSV</h2>
+                    <h2 className="text-2xl font-bold text-blue-gradient">Upload Questions from CSV</h2>
                 </div>
                 {/* Instructions */}
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-3">CSV Format Instructions</h3>
-                    <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
+                <div className="mb-6 ">
+                    <h3 className="text-lg font-semibold text-primary mt-3">CSV Format Instructions</h3>
+                    <div className="rounded-lg p-4 text-sm text-secondary">
                         <p className="mb-2">Your CSV file should include the following row at the top:</p>
                         <p>stem, type, difficulty, topics, subject, courseNum, answer, blankLines, lines, choiceA, choiceB, choiceC, correctAnswer</p>
                         <ul className="list-disc list-inside space-y-1 mb-3">
@@ -122,10 +122,10 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
                         <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                         </svg>
-                        <p className="mt-2 text-sm text-gray-600">
+                        <p className="mt-2 text-sm text-primary">
                             {file ? file.name : "Drag and drop your CSV file here, or click to select"}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">Only CSV files are accepted</p>
+                        <p className="text-xs text-secondary mt-1">Only CSV files are accepted</p>
                     </div>
                     <input
                         id="csv-file-input"
@@ -144,11 +144,11 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
                 )}
 
                 {/* Bottom Buttons */}
-                <div className="m-6 flex flex-col sm:flex-row justify-between items-center gap-4 font-serif">
+                <div className="m-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex gap-3">
                         <button
                             onClick={downloadTemplate}
-                            className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
+                            className="btn btn-ghost"
                         >
                             Download Template
                         </button>
@@ -156,7 +156,7 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
+                            className="btn btn-ghost"
                             disabled={isLoading}
                         >
                             Cancel
@@ -164,7 +164,7 @@ export default function CSVUploadModal({ isOpen, onClose, onUpload, isLoading }:
                         <button
                             onClick={handleUpload}
                             disabled={!file || isLoading}
-                            className="rounded-lg bg-stone-800 px-5 py-2 text-sm text-white shadow hover:opacity-90"
+                            className="btn btn-primary-blue"
                         >
                             {isLoading ? "Uploading..." : "Upload Questions"}
                         </button>

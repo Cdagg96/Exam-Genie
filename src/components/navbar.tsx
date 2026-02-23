@@ -20,7 +20,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="w-full h-20 bg-white flex items-center justify-between px-10 rounded-2xl shadow-md">
+      <div className="w-full h-20 card-primary flex items-center justify-between px-10 rounded-2xl shadow-md">
         <Link href="/">
           <Image
             className="rounded-full"
@@ -31,10 +31,10 @@ export default function Navbar() {
           />
         </Link>
         <div className="flex items-center space-x-8">
-          <Link href="../data_view/" className="text-stone-800 hover:text-black">Questions</Link>
-          <Link href="../exam_gen/" className="text-stone-800 hover:text-black">Generator</Link>
-          <Link href="../past_exams/" className="text-stone-800 hover:text-black">Exams</Link>
-          <Link href="../contact/" className="text-stone-800 hover:text-black">Contact</Link>
+          <Link href="../data_view/" className="text-secondary hover:text-primary">Questions</Link>
+          <Link href="../exam_gen/" className="text-secondary hover:text-primary">Generator</Link>
+          <Link href="../past_exams/" className="text-secondary hover:text-primary">Exams</Link>
+          <Link href="../contact/" className="text-secondary hover:text-primary">Contact</Link>
 
           {/* Profile Icon */}
           <div className="relative group py-1">
@@ -52,19 +52,17 @@ export default function Navbar() {
             <div
               className="
                 absolute right-0 top-10 z-50
-                w-48 rounded-2xl bg-white shadow-md border border-gray-100 p-2
+                w-48 rounded-2xl card-primary p-2
 
                 opacity-0 invisible
                 group-hover:opacity-100 group-hover:visible
                 transition-opacity duration-150
               "
             >
-
-
               {!user ? (
                 <button
                   onClick={() => setIsLoginOpen(true)}
-                  className="w-full text-left px-4 py-2 rounded-xl hover:bg-gray-100 text-stone-800"
+                  className="w-full text-left px-4 py-2 rounded-xl hover:bg-secondary text-primary"
                 >
                   Sign in
                 </button>
@@ -72,23 +70,23 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/profile"
-                    className="block px-4 py-2 rounded-xl hover:bg-gray-100 text-stone-800"
+                    className="block px-4 py-2 rounded-xl hover:bg-secondary text-primary"
                   >
                     Profile
                   </Link>
 
                   <Link
                     href="/settings"
-                    className="block px-4 py-2 rounded-xl hover:bg-gray-100 text-stone-800"
+                    className="block px-4 py-2 rounded-xl hover:bg-secondary text-primary"
                   >
                     Settings
                   </Link>
 
-                  <div className="my-1 h-px bg-gray-200" />
+                  <div className="my-1 h-px border-primary" />
 
                   <button
                     onClick={handleSignOut}
-                    className="w-full text-left px-4 py-2 rounded-xl hover:bg-gray-100 text-red-600"
+                    className="w-full text-left px-4 py-2 rounded-xl hover:bg-secondary text-red-600"
                   >
                     Sign out
                   </button>
@@ -96,9 +94,6 @@ export default function Navbar() {
               )}
             </div>
           </div>
-
-
-
         </div>
       </div>
       

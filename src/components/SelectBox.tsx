@@ -63,7 +63,7 @@ export default function SelectBox({
   return (
     <div className="text-left" ref={selectBoxRef}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm text-primary mb-2">
           {label}
         </label>
       )}
@@ -71,12 +71,10 @@ export default function SelectBox({
       {/* Container for "input" box and dropdown */}
       <div className="relative">
         {/* Visible selection box */}
-        <div className="w-full px-4 py-3 border border-gray-900 rounded-xl bg-white text-gray-800
-                     focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent
-                     transition-all cursor-pointer flex justify-between items-center"
+        <div className="w-full px-4 py-3 border-primary text-secondary flex justify-between items-center"
           onClick={() => setIsOpen(!isOpen)}
         >
-          <span className={selectedLabel ? '' : 'text-gray-400'}>
+          <span className={selectedLabel ? '' : 'text-secondary'}>
             {selectedLabel || placeholder}
           </span>
 
@@ -100,14 +98,13 @@ export default function SelectBox({
         {/* Dropdown menu */}
         {isOpen && (
           <div
-            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl 
-                       shadow-lg max-h-60 overflow-auto"
+            className="absolute border-primary bg-primary text-secondary z-10 w-full mt-1 max-h-60 overflow-auto"
           >
             {options.map((option, index) => (
               <div
                 key={`${option.value}-${index}`   }
                 onClick={() => handleSelect(option)}
-                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                className={`px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                   index === 0 ? 'rounded-t-xl' : ''
                 } ${index === options.length - 1 ? 'rounded-b-xl' : ''}`}
               >

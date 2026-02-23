@@ -9,7 +9,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Link from "next/link";
-import { LightBackground } from "@/components/BackgroundModal";
+import { Background } from "@/components/BackgroundModal";
 import SelectBox from "@/components/SelectBox";
 import FilterBox from "@/components/filterBox";
 import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV, downloadExamPackage } from "@/components/ExamDownload"
@@ -272,17 +272,17 @@ export default function PastExams() {
     };
 
     return (
-        <LightBackground>
+        <Background>
             <div className="flex flex-col justify-between min-h-screen p-4 text-center">
                 <header>
                     <NavBar />
                 </header>
 
                 <main className="flex flex-col items-center justify-center pt-8">
-                    <h1 className="text-4xl font-bold bg-linear-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent mb-4">
+                    <h1 className="text-4xl font-bold text-blue-gradient mb-4">
                         Generated Exams
                     </h1>
-                    <p className="text-gray-600 mb-8 text-lg max-w-2xl">
+                    <p className="text-secondary mb-8 text-lg max-w-2xl">
                         Manage and view all your previously generated exams.
                     </p>
                     {/* Not logged in message */}
@@ -297,8 +297,8 @@ export default function PastExams() {
                         </div>
                     )}
                     {/* Filtering Section */}
-                    <div className="relative z-30 bg-white rounded-2xl shadow-lg p-6 mb-8 w-full border border-gray-100">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-left">
+                    <div className="card-primary p-6 mb-8 w-full">
+                        <h2 className="text-2xl text-primary mb-6 text-left">
                             Filter Exams
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -365,14 +365,14 @@ export default function PastExams() {
                             />
 
                             <div className="text-left">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm text-primary mb-2">
                                     Last Used
                                 </label>
                                 <div className="relative" ref={setCalendarAnchorEl}>
                                     <input
                                         type="text"
                                         placeholder="Ex: 01/01/2025"
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                                        className="w-full border-primary text-secondary px-4 py-3 pr-12"
                                         value={dateInputValue}
                                         onChange={(e) => handleDateInputChange(e.target.value)}
                                     />
@@ -425,17 +425,10 @@ export default function PastExams() {
 
                         {/* Filter Actions */}
                         <div className="flex justify-end space-x-4 mt-8">
-                            <button
-                                onClick={handleClearFilters}
-                                className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
-                            >
+                            <button onClick={handleClearFilters} className="px-6 py-3 btn btn-ghost">
                                 Clear Filters
                             </button>
-                            <button
-                                onClick={handleApplyFilters}
-                                className="px-6 py-3 text-sm font-medium text-white bg-gray-800 rounded-xl hover:bg-gray-900 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
-                                disabled={!user}
-                            >
+                            <button onClick={handleApplyFilters} className="px-6 py-3 btn btn-primary-blue" disabled={!user}>
                                 Apply Filters
                             </button>
                         </div>
@@ -445,30 +438,30 @@ export default function PastExams() {
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
                         <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
-                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 sticky top-0 z-20">
+                                <thead className="bg-linear-to-r from-blue-50 to-cyan-50 dark:bg-gradient-to-r dark:from-slate-700 dark:to-slate-800 sticky top-0 z-20">
                                     <tr>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Exam Title
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Subject
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Course Number
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Difficulty
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Total Points
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Date Created
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Last Used
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Actions
                                         </th>
                                     </tr>
@@ -478,18 +471,18 @@ export default function PastExams() {
                                         // Exams loading
                                         <tr>
                                             <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">Loading exams</div>
+                                                <div className="text-secondary text-lg">Loading exams</div>
                                             </td>
                                         </tr>
                                     ) : error ? (
                                         // Error while loading exams
                                         <tr>
                                             <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">Error loading exams</div>
+                                                <div className="text-secondary text-lg">Error loading exams</div>
                                                 <div className="text-red-400 text-sm mt-2">{error}</div>
                                                 <button
                                                     onClick={fetchExams}
-                                                    className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
+                                                    className="mt-4 px-4 py-2 bg-gray-800 text-secondary rounded-lg hover:bg-gray-900 transition-colors">
                                                     Retry
                                                 </button>
                                             </td>
@@ -498,52 +491,52 @@ export default function PastExams() {
                                         // Not logged in
                                         <tr>
                                             <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">Please log in to view your past exams</div>
+                                                <div className="text-secondary text-lg">Please log in to view your past exams</div>
                                             </td>
                                         </tr>
                                     ) : filteredExams.length === 0 ? (
                                         // No exams
                                         <tr>
                                             <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-gray-400 text-lg">No exams found</div>
-                                                <div className="text-gray-400 text-sm mt-2">Generate exams to see them listed here.</div>
+                                                <div className="text-secondary text-lg">No exams found</div>
+                                                <div className="text-secondary text-sm mt-2">Generate exams to see them listed here.</div>
                                             </td>
                                         </tr>
                                     ) : (
                                         // Exams data
                                         filteredExams.map((exam, index) => (
-                                            <tr key={exam._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                            <tr key={exam._id} className={index % 2 === 0 ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-800'}>
+                                                <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
                                                     <div className="truncate" title={exam.title}>
                                                         {exam.title}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     <div className="truncate" title={exam.title}>
                                                         {exam.subject ? exam.subject : "N/A"}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     <div className="truncate" title={exam.title}>
                                                         {exam.courseNum ? exam.courseNum : "N/A"}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {exam.difficulty
                                                         ? exam.difficulty
                                                         : "N/A"}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {exam.totalPoints
                                                         ? exam.totalPoints
                                                         : "N/A"}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {exam.createdAt
                                                         ? new Date(exam.createdAt).toLocaleDateString() // Format date based on user's locale
                                                         : "N/A"}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                     {exam.lastUsed
                                                         ? new Date(exam.lastUsed).toLocaleDateString()
                                                         : "Never"}
@@ -584,7 +577,7 @@ export default function PastExams() {
                                                             </button>
 
                                                             {openDownloadMenuId === exam._id && (
-                                                                <div className="absolute right-0 top-full mt-2 w-35 rounded-lg border bg-white shadow-lg text-sm z-10 overflow-hidden">
+                                                                <div className="absolute right-0 top-full mt-2 w-35 rounded-lg border bg-primary border-primary shadow-lg text-sm z-10 overflow-hidden">
                                                                     <button
                                                                         className="block w-full px-3 py-2 text-left hover:bg-gray-100"
                                                                         onClick={() => handleDownloadExam(exam, "pdf")}
@@ -633,6 +626,6 @@ export default function PastExams() {
                     type="exam"
                 />
             </div>
-        </LightBackground>
+        </Background>
     );
 }
