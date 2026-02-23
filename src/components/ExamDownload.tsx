@@ -427,7 +427,7 @@ export async function DownloadExamDOCX(exam: ExamDoc) {
               size: 20,
             }),
           ],
-          spacing: { after: 200 },
+          spacing: { after: 800 },
         })
       );
     }
@@ -1873,6 +1873,12 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
               size: 20,
             }),
           ],
+          spacing: { after: 200 },
+        })
+      );
+      paragraphs.push(
+        new Paragraph({
+          text: "",
           spacing: { after: 200 },
         })
       );
