@@ -22,6 +22,11 @@ const POINTS_BY_TYPE: Record<string, number> = {
   Code: 10,
 };
 
+//types for the queue of edits/deletes that they user can make
+type BankOp =
+  | { kind: "DELETE"; bankId: string }
+  | { kind: "EDIT"; bankId: string; payload: any };
+
 const normalizeType = (t: string) => {
   const x = (t || "").trim();
   if (x === "MC" || x === "TF" || x === "FIB" || x === "Essay" || x === "Code") return x;
@@ -50,10 +55,13 @@ export default function EditExamPage() {
   const [pendingDeleteQuestion, setPendingDeleteQuestion] = useState<any>(null);
   const [alsoDeleteInBank, setAlsoDeleteInBank] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [isUnsavedConfirmOpen, setIsUnsavedConfirmOpen] = useState(false);
+  const [bankOps, setBankOps] = useState<BankOp[]>([]);
 
   // Function to count the total points any time a point value is edited
   const recomputeTotalPoints = (questions: any[]) =>
-  questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0);
+    questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0);
 
   const updateQuestionPoints = (questionId: string, newPoints: number) => {
     if (!exam) return;
@@ -67,6 +75,7 @@ export default function EditExamPage() {
       questions,
       totalPoints: recomputeTotalPoints(questions),
     });
+    setDirty(true); //marked as unsaved change
   };
 
   // Drag and drop handlers
@@ -120,7 +129,7 @@ export default function EditExamPage() {
       ...exam,
       questions
     });
-
+    setDirty(true); //marked as unsaved
     setDropTarget(null);
   };
 
@@ -156,7 +165,14 @@ export default function EditExamPage() {
     if (id) fetchExam();
   }, [id, user?._id]);
 
-  const handleClose = () => router.push("/past_exams"); // Go back to past exams
+  // if the exam has been edited show the unsaved changes popup
+  const handleClose = () => {
+    if (dirty) {
+      setIsUnsavedConfirmOpen(true);   // show popup
+      return;
+    }
+    router.push("/past_exams");        // Go back to past exams page
+  };
 
   // this will add the question to the bottom of current exam
   // it will not save it if the exam is exited without saving 
@@ -175,6 +191,8 @@ export default function EditExamPage() {
       questions,
       totalPoints: recomputeTotalPoints(questions),
     });
+
+    setDirty(true); //marked as unsaved change
   };
 
   // this will delete the question 
@@ -187,6 +205,59 @@ export default function EditExamPage() {
   const getBankQuestionId = (q: any) => {
     return q?.questionId || q?.snapshot?._id || q?._id || null;
   };
+
+  //adds question in queue of unsaved changes marked for delete
+  const queueDeleteFromBank = (bankId: string) => {
+    setBankOps((ops) => {
+      // Replace any existing queued op for this question; DELETE wins
+      const filtered = ops.filter((o) => o.bankId !== bankId);
+      return [...filtered, { kind: "DELETE", bankId }];
+    });
+  };
+
+  // Queue an EDIT for Question Bank (ignored if DELETE already queued)
+  const queueEditToBank = (bankId: string, payload: any) => {
+    setBankOps((ops) => {
+      const hasDelete = ops.some((o) => o.bankId === bankId && o.kind === "DELETE");
+      if (hasDelete) return ops;
+
+      // replace any existing edit with a new edit with the new changes
+      const filtered = ops.filter((o) => !(o.bankId === bankId && o.kind === "EDIT"));
+      return [...filtered, { kind: "EDIT", bankId, payload }];
+    });
+  };
+
+  // Apply queued question bank operations (only run after Save Exam)
+  const applyBankOps = async () => {
+    for (const op of bankOps) {
+      if (op.kind === "DELETE") {
+        const res = await fetch(`/api/questions?id=${encodeURIComponent(op.bankId)}`, {
+          method: "DELETE",
+        });
+
+        // treat "not found" as success
+        if (!res.ok && res.status !== 404) {
+          const result = await res.json().catch(() => ({}));
+          throw new Error(result?.error || "Failed to delete from question bank");
+        }
+      }
+
+      if (op.kind === "EDIT") {
+        const res = await fetch(`/api/questions?id=${encodeURIComponent(op.bankId)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(op.payload),
+        });
+
+        if (!res.ok) {
+          const result = await res.json().catch(() => ({}));
+          throw new Error(result?.error || "Failed to update question bank");
+        }
+      }
+    }
+  };
+
+
   const handleConfirmDeleteQuestion = async () => {
     if (!exam || !pendingDeleteQuestion) return;
 
@@ -198,22 +269,15 @@ export default function EditExamPage() {
         questions,
         totalPoints: recomputeTotalPoints(questions),
       });
+      setDirty(true); //marked as unsaved
       if (alsoDeleteInBank) {
         const bankId = getBankQuestionId(pendingDeleteQuestion);
 
         if (!bankId) {
           toast.error("Missing question bank id — cannot delete from bank");
         } else {
-          const res = await fetch(`/api/questions?id=${encodeURIComponent(bankId)}`, {
-            method: "DELETE",
-          });
-
-          const result = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            throw new Error(result?.error || "Failed to delete from question bank");
-          }
-
-          toast.success("Deleted from Question Bank");
+          queueDeleteFromBank(bankId);
+          toast.success("Queued delete from Question Bank (will apply on Save Exam)");
         }
       }
 
@@ -257,6 +321,29 @@ export default function EditExamPage() {
       )
     });
 
+    //if the user selects the question to be deleted or edited from question bank
+    //gets the payload and adds it to the queue 
+    if (updatedQuestionData?.alsoUpdateInBank) {
+      const bankId = updatedQuestionData.bankId || getBankQuestionId(editingQuestion);
+
+      if (!bankId) {
+        toast.error("Missing question bank id — cannot queue edit");
+      } else {
+        const payload = {
+          stem: updatedQuestionData.stem,
+          type: updatedQuestionData.type ?? editingQuestion.type,
+          difficulty: updatedQuestionData.difficulty ?? editingQuestion.snapshot?.difficulty ?? 1,
+          topics: updatedQuestionData.topics ?? editingQuestion.snapshot?.topics ?? [],
+          choices: updatedQuestionData.choices ?? editingQuestion.snapshot?.choices ?? [],
+          answer: updatedQuestionData.answer ?? editingQuestion.snapshot?.answer ?? "",
+          blankLines: updatedQuestionData.blankLines ?? editingQuestion.snapshot?.blankLines ?? 1,
+        };
+
+        queueEditToBank(bankId, payload);
+        toast.success("Queued edit in Question Bank (will apply on Save Exam)");
+      }
+    }
+    setDirty(true); //marked as unsaved
     handleEditFormClose();
   };
 
@@ -279,7 +366,7 @@ export default function EditExamPage() {
           answer: q.answer ?? "",
           blankLines: 4,
         },
-    }));
+      }));
 
     const questions = [...(exam.questions ?? []), ...newExamQuestions]
     setExam({
@@ -287,9 +374,11 @@ export default function EditExamPage() {
       questions,
       totalPoints: recomputeTotalPoints(questions),
     });
+
+    setDirty(true); //marked as unsaved change
   };
 
-  //Saveing edits to exam
+  //Save exam changes, then apply queued Question Bank ops
   const handleSaveExam = async () => {
     if (!exam) return;
 
@@ -319,7 +408,20 @@ export default function EditExamPage() {
         if (refreshRes.ok) {
           const updatedExam = await refreshRes.json();
           setExam(updatedExam);
-          toast.success("Changes Saved!")
+          try {
+            if (bankOps.length > 0) {
+              await applyBankOps();
+              toast.success("Question Bank updated!");
+              setBankOps([]);
+            }
+
+            toast.success("Changes Saved!");
+            setDirty(false);
+          } catch (e: any) {
+            console.error(e);
+            toast.error(e?.message || "Saved exam, but failed updating Question Bank");
+            setDirty(true); //keep dirty
+          }
         }
       } else {
         console.error("Save failed:", result);
@@ -595,8 +697,18 @@ export default function EditExamPage() {
         <ConfirmationModal isOpen={isDeleteConfirmOpen} onClose={closeDeleteConfirm} onConfirm={handleConfirmDeleteQuestion} type="question" isLoading={isDeleting} text={pendingDeleteQuestion?.snapshot?.stem ?? ""} showAlsoDeleteInBank={true} alsoDeleteInBank={alsoDeleteInBank} onAlsoDeleteInBankChange={setAlsoDeleteInBank} />
         <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
         <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
-        <AddExistingQuestionModal isOpen={isExistingPickerOpen} onClose={() => setIsExistingPickerOpen(false)} onAddSelected={handleExistingQuestionsAdded} excludeIds={new Set((exam.questions ?? []).map(q => q.questionId))}/>
+        <AddExistingQuestionModal isOpen={isExistingPickerOpen} onClose={() => setIsExistingPickerOpen(false)} onAddSelected={handleExistingQuestionsAdded} excludeIds={new Set((exam.questions ?? []).map(q => q.questionId))} />
         {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} />}
+        <ConfirmationModal
+          isOpen={isUnsavedConfirmOpen}
+          onClose={() => setIsUnsavedConfirmOpen(false)}  // stay on page
+          onConfirm={() => {
+            setIsUnsavedConfirmOpen(false);
+            setDirty(false);
+            router.push("/past_exams");     //leave without saveing
+          }}
+          type="unsaved"
+        />
       </div>
     </Background>
   );
