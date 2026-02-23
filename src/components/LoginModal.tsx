@@ -248,7 +248,7 @@ export default function LoginModal({
           {/* If current modal is login, show Login Modal */}
           {currentModal === "login" ? (
             <>
-              <h2 className="text-4xl mb-10 text-blue-gradient">Login</h2>
+              <h2 className="text-4xl mb-10 p-2 text-blue-gradient">Login</h2>
 
               {/* Email Box */}
               <input
@@ -328,7 +328,7 @@ export default function LoginModal({
             //If current modal is register, show Register Modal
           ) : (
             <>
-              <h2 className="text-4xl mb-3 text-blue-gradient">Register</h2>
+              <h2 className="text-4xl mb-3 p-2 text-blue-gradient">Register</h2>
               <div className="w-3/4 grid grid-cols-2 gap-2 mb-2">
                 <input
                   type="text"
