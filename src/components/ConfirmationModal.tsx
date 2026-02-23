@@ -103,7 +103,7 @@ export default function ConfirmationModal({
                                 onClick={onClose}
                                 disabled={isLoading}
                             >
-                                Contiune Editing
+                                Continue Editing
                             </button>
                         )}
                         <button
