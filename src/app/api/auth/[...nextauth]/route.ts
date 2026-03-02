@@ -22,15 +22,23 @@ const handler = NextAuth({
         const db = client.db(process.env.MONGODB_DB);
         const user = await db.collection("users").findOne({ email });
 
-        if (!user) return null;
+        if (!user) {
+          throw new Error("Email not found");
+        }
 
-        // Block disabled accounts (adjust value if you use Active/Enabled/etc.)
-        // if (user.status && user.status !== "Active") {
-        //   return null;
-        // }
+        //Check user status
+        if (user.status === "Pending") {
+          throw new Error("Your account is pending approval.");
+        }
+        
+        if (user.status === "Denied") {
+          throw new Error("Your registration has been denied.");
+        }
 
         const ok = await bcrypt.compare(password, user.password);
-        if (!ok) return null;
+        if (!ok) {
+          throw new Error("Incorrect password");
+        }
 
         // IMPORTANT: return a "safe" user object (no password)
         return {

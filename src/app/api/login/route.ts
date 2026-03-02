@@ -33,6 +33,29 @@ export async function POST(req:Request) {
             );
         }
 
+        //Check user status before allowing login
+        if (user.status === "Pending") {
+            return NextResponse.json(
+                { 
+                    ok: false, 
+                    message: "Your account is pending approval.",
+                    status: "Pending" 
+                },
+                { status: 403 }
+            );
+        }
+
+        if (user.status === "Denied") {
+            return NextResponse.json(
+                { 
+                    ok: false, 
+                    message: "Your registration was denied.",
+                    status: "Denied" 
+                },
+                { status: 403 }
+            );
+        }
+
         const userData = {
             _id: user._id.toString(),
             email: user.email,

@@ -1,6 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
 import clientPromise from "@/libs/mongo";
 import bcrypt from "bcryptjs"; //for password hashing
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
     try {
@@ -76,7 +79,7 @@ export async function POST(req: Request) {
             proofFile: fileData,
             createdOn: new Date(),
             domain: ".edu",
-            status: "Disabled"
+            status: "Pending"
         };
 
 
@@ -94,6 +97,90 @@ export async function POST(req: Request) {
         }
 
         const result = await db.collection("users").insertOne(body);
+
+        let proofContent = '';
+
+        //If they submit a link
+        if (proofLink) {
+            proofContent = `
+                    <p style="font-size: 16px; color: #1e3a8a; font-weight: 600;">Proof Link:</p>
+                    <p style="font-size: 16px; background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 15px; border-radius: 6px;">
+                        <a href="${proofLink}" target="_blank" style="color: #2563eb; text-decoration: none;">${proofLink}</a>
+                    </p>
+                `;
+        }
+
+        //If the submit a file
+        if (fileData) {
+            const fileUrl = `${process.env.NEXTAUTH_URL}/api/admin/view-document/${result.insertedId}`;
+            proofContent = `
+                    <p style="font-size: 16px; color: #1e3a8a; font-weight: 600;">Proof Document:</p>
+                    <p style="font-size: 16px; background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 15px; border-radius: 6px;">
+                        <strong>File Name:</strong> ${fileData.fileName}<br>
+                        <a href="${fileUrl}" target="_blank" style="display: inline-block; margin-top: 10px; background: #2563eb; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none;">View Document</a>
+                    </p>
+                `;
+        }
+
+        //Check if Resend API key is correct
+        if (!process.env.RESEND_API_KEY) {
+            return NextResponse.json(
+                {
+                    error: 'Email service is not configured',
+                    success: false
+                },
+                { status: 500 }
+            );
+        }
+
+        //Base URL for approve/deny buttons
+        const baseUrl = process.env.NEXTAUTH_URL;
+
+        //Send email to admin 
+        const { data, error } = await resend.emails.send({
+            from: 'Exam Genie <onboarding@resend.dev>',
+            to: ['tgen57485@gmail.com'],
+            subject: `New Teacher Registration: ${firstName} ${lastName}`,
+            html: `
+                    <div style="font-family: 'Inter', Arial, sans-serif; background: #f3f8ff; padding: 40px; border-radius: 12px;">
+                        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+                            
+                            <div style="background: linear-gradient(to right, #60a5fa, #22d3ee, #2563eb); padding: 20px;">
+                                <h1 style="margin: 0; font-size: 28px; text-align: center; font-weight: 700; color: white;">
+                                    New Teacher Registration
+                                </h1>
+                            </div>
+
+                            <div style="padding: 30px;">
+                                <p style="font-size: 16px; color: #1e3a8a; font-weight: 600;">Teacher Information:</p>
+                                <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                                    <p style="margin: 5px 0;"><strong>Name:</strong> ${firstName} ${lastName}</p>
+                                    <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+                                    <p style="margin: 5px 0;"><strong>Phone:</strong> ${phone}</p>
+                                    <p style="margin: 5px 0;"><strong>Registration Date:</strong> ${new Date().toLocaleString()}</p>
+                                </div>
+
+                                ${proofContent}
+
+                                <div style="text-align: center; margin: 30px 0;">
+                                    <a href="${baseUrl}/api/admin/update-user-status/${result.insertedId}?action=Approved" 
+                                       style="background: #10b981; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-right: 10px; display: inline-block;">
+                                        Approve
+                                    </a>
+                                    <a href="${baseUrl}/api/admin/update-user-status/${result.insertedId}?action=Denied" 
+                                       style="background: #ef4444; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block;">
+                                        Deny
+                                    </a>
+                                </div>
+
+                                <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
+                                    Click Approve to activate this teacher's account or Deny to reject the registration.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `,
+        });
 
         return NextResponse.json(
             { ok: true, message: "User Registration Successful!", insertedId: result.insertedId },
