@@ -4,10 +4,10 @@ import { ObjectId } from 'mongodb';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const userId  = params.userId;
+    const { userId } = await params;
 
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
