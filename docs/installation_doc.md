@@ -46,11 +46,15 @@ npm install resend
 npm install react-hot-toast
 ```
 
+---
+
 ## Install jsPDF
 
 ```bash
 npm install jspdf
 ```
+
+---
 
 ## Install for Calendar Component
 
@@ -60,11 +64,15 @@ npm install @mui/x-date-pickers dayjs
 npm install @emotion/react @emotion/styled
 ```
 
+---
+
 ## Install for Testing
 
 ```bash
 npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
 ```
+
+---
 
 ## Install for Password Hashing
 
@@ -72,19 +80,34 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-
 npm install bcryptjs
 ```
 
+---
+
 ## Install for CSV Parsing
 
 ```bash
 npm install csv-parse
 ```
+
+---
+
 ## Install for DOCX Downloading
 
 ```bash
 npm install docx file-saver
 ```
+
+---
+
 ## Install for Zip Folder 
 
 ```bash
 npm install jszip
 ```
 
+---
+
+## Install for Next-Auth
+
+```bash
+npm install next-auth
+```
