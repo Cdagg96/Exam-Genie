@@ -1,10 +1,10 @@
 "use client";
-import React, {useState, useRef} from "react";
+import React, { useState, useRef } from "react";
 import type { ExamDoc } from "@/types/exam";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV, downloadExamPackage } from "@/components/ExamDownload"
-type DownloadFormat = "pdf" | "txt" | "csv" | "docx"; 
+type DownloadFormat = "pdf" | "txt" | "csv" | "docx";
 export default function ExamPreviewModal({
   open, onClose, exam,
 }: { open: boolean; onClose: () => void; exam: ExamDoc | null }) {
@@ -14,6 +14,67 @@ export default function ExamPreviewModal({
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  type TipTapNode = any;
+
+function renderTipTap(node: TipTapNode, key = "n"): React.ReactNode {
+  if (!node) return null;
+
+  if (node.type === "doc") {
+    return (node.content ?? []).map((c: any, i: number) => (
+      <React.Fragment key={`${key}-doc-${i}`}>{renderTipTap(c, `${key}-${i}`)}</React.Fragment>
+    ));
+  }
+
+  if (node.type === "paragraph") {
+    const align = node.attrs?.textAlign as ("left" | "center" | "right" | undefined);
+    return (
+      <p key={`${key}-p`} className="mb-2" style={align ? { textAlign: align } : undefined}>
+        {(node.content ?? []).map((c: any, i: number) => (
+          <React.Fragment key={`${key}-p-${i}`}>{renderTipTap(c, `${key}-p-${i}`)}</React.Fragment>
+        ))}
+      </p>
+    );
+  }
+
+  if (node.type === "bulletList") {
+    return (
+      <ul key={`${key}-ul`} className="list-disc pl-5">
+        {(node.content ?? []).map((c: any, i: number) => (
+          <React.Fragment key={`${key}-ul-${i}`}>{renderTipTap(c, `${key}-ul-${i}`)}</React.Fragment>
+        ))}
+      </ul>
+    );
+  }
+
+  if (node.type === "listItem") {
+    return (
+      <li key={`${key}-li`} className="mb-1">
+        {(node.content ?? []).map((c: any, i: number) => (
+          <React.Fragment key={`${key}-li-${i}`}>{renderTipTap(c, `${key}-li-${i}`)}</React.Fragment>
+        ))}
+      </li>
+    );
+  }
+
+  if (node.type === "text") {
+    const marks = node.marks ?? [];
+    const isBold = marks.some((m: any) => m.type === "bold");
+    const fontSize = marks.find((m: any) => m.type === "textStyle")?.attrs?.fontSize as string | undefined;
+
+    return (
+      <span
+        key={`${key}-t`}
+        className={isBold ? "font-bold" : undefined}
+        style={fontSize ? { fontSize } : undefined}
+      >
+        {node.text ?? ""}
+      </span>
+    );
+  }
+
+  return null;
+}
 
   const handleDownloadExam = async (exam: ExamDoc, format: DownloadFormat) => {
     try {
@@ -43,7 +104,7 @@ export default function ExamPreviewModal({
       toast.success('Individual files downloaded', { id: 'download-fallback' });
     }
   };
-    
+
 
   //Scroll to top
   const scrollToTop = () => {
@@ -59,65 +120,67 @@ export default function ExamPreviewModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 print:bg-transparent">
       <div className="relative max-h-[90vh] w-full max-w-[8.5in] rounded-2xl bg-white shadow-2xl overflow-hidden
                       print:static print:max-h-none print:w-[8.5in] print:rounded-none print:shadow-none print:p-10">
-          <div ref={scrollContainerRef} className="max-h-[90vh] overflow-y-auto p-8 scroll-stable scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent">
-            {/* Close (X) */}
-            <button
-              onClick={onClose}
-              className="absolute right-4 top-4 text-3xl leading-none text-gray-500 hover:text-black print:hidden"
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <div className="mb-4 flex justify-between items-center font-serif">
-              <span className="text-sm text-gray-600">
-                Name: ________________
-              </span>
-              <span className="text-4xl text-gray-600 font-medium rounded-lg border border-gray-600 pl-15 pr-2 py-1">
-                /{exam.totalPoints}
-              </span>
+        <div ref={scrollContainerRef} className="max-h-[90vh] overflow-y-auto p-8 scroll-stable scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent">
+          {/* Close (X) */}
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 text-3xl leading-none text-gray-500 hover:text-black print:hidden"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+          <div className="mb-4 flex justify-between items-center font-serif">
+            <span className="text-sm text-gray-600">
+              Name: ________________
+            </span>
+            <span className="text-4xl text-gray-600 font-medium rounded-lg border border-gray-600 pl-15 pr-2 py-1">
+              /{exam.totalPoints}
+            </span>
+          </div>
+
+          {/* Header */}
+          <header className="mb-6 border-b pb-4 text-center font-serif">
+            <div className="text-sm text-gray-600">Department of {exam.subject}</div>
+            <h1 className="mt-1 text-2xl font-bold">{exam.title}</h1>
+            <div className=" mt-1 text-sm text-gray-600">{exam.courseNum}</div>
+            <div className="text-[13px] text-gray-600">
+              Time: {exam.timeLimitMin} minutes&nbsp;&nbsp;•&nbsp;&nbsp;Total Points: {exam.totalPoints}
             </div>
+          </header>
+          <section className="mb-6 rounded-lg border p-4 text-sm leading-6 print:break-inside-avoid font-serif">
+            {exam.instructionsDoc ? renderTipTap(exam.instructionsDoc) : ( 
+              <>
+                <p className="mb-2 text-center font-bold" style={{ fontSize: "18px" }}>INSTRUCTIONS</p>
+                <ul className="list-disc pl-5">
+                  <li>Answer all questions in the space provided.</li>
+                  <li>Show your work where applicable. Circle or clearly mark your final answer.</li>
+                  <li>No unauthorized materials. Calculators allowed unless otherwise stated.</li>
+                </ul>
+              </>
+            )}
+          </section>
 
-            {/* Header */}
-            <header className="mb-6 border-b pb-4 text-center font-serif">
-              <div className="text-sm text-gray-600">Department of {exam.subject}</div>
-              <h1 className="mt-1 text-2xl font-bold">{exam.title}</h1>
-              <div className=" mt-1 text-sm text-gray-600">{exam.courseNum}</div>
-              <div className="text-[13px] text-gray-600">
-                Time: {exam.timeLimitMin} minutes&nbsp;&nbsp;•&nbsp;&nbsp;Total Points: {exam.totalPoints}
-              </div>
-            </header>
-
-            {/* Instructions */}
-            <section className="mb-6 rounded-lg border p-4 text-sm leading-6 print:break-inside-avoid font-serif">
-              <h2 className="mb-1 font-semibold uppercase tracking-wide text-gray-700">Instructions</h2>
-              <ul className="list-disc pl-5">
-                <li>Answer all questions in the space provided.</li>
-                <li>Show your work where applicable. Circle or clearly mark your final answer.</li>
-                <li>No unauthorized materials. Calculators allowed unless otherwise stated.</li>
-              </ul>
-            </section>
-
-            {/* Questions */}
-            <main className="font-serif">
-              <ol className="list-decimal space-y-6 pl-6">
-                {exam.questions
-                  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                  .map((q, i) => {
-                    const points = q.points ?? 1;
-                    const prevType = i > 0 ? exam.questions[i-1].type : null;
-                    const showTypeHeader = prevType !== q.type;
-                    return (
-                      <React.Fragment key={q.questionId}>
+          {/* Questions */}
+          <main className="font-serif">
+            <ol className="list-decimal space-y-6 pl-6">
+              {exam.questions
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map((q, i) => {
+                  const points = q.points ?? 1;
+                  const prevType = i > 0 ? exam.questions[i - 1].type : null;
+                  const showTypeHeader = prevType !== q.type;
+                  return (
+                    <React.Fragment key={q.questionId}>
                       {/* Show section header */}
                       {showTypeHeader && (
                         <div className="mb-4 -ml-6">
                           <div className="flex items-center gap-3 pb-4">
                             <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
-                              {q.type === "MC" ? "Multiple Choice" : 
-                              q.type === "TF" ? "True/False" :
-                              q.type === "FIB" ? "Fill in the Blank" :
-                              q.type === "Essay" ? "Essay" : 
-                              q.type === "Code" ? "Coding" : "Questions"}
+                              {q.type === "MC" ? "Multiple Choice" :
+                                q.type === "TF" ? "True/False" :
+                                  q.type === "FIB" ? "Fill in the Blank" :
+                                    q.type === "Essay" ? "Essay" :
+                                      q.type === "Code" ? "Coding" : "Questions"}
                             </span>
                             <div className="h-px flex-1 bg-gray-300"></div>
                           </div>
@@ -165,7 +228,7 @@ export default function ExamPreviewModal({
                         {q.type === "Essay" && (
                           <div className="mt-3 space-y-3 pb-4 font-serif">
                             {Array.from({ length: q.snapshot?.blankLines ?? 4 }).map((_, idx) => (
-                            <div key={idx} className="h-6 w-full border-b" />
+                              <div key={idx} className="h-6 w-full border-b" />
                             ))}
                           </div>
                         )}
@@ -178,36 +241,36 @@ export default function ExamPreviewModal({
                           </div>
                         )}
                       </li>
-                      </React.Fragment>
-                    );
-                  })}
-              </ol>
-            </main>
+                    </React.Fragment>
+                  );
+                })}
+            </ol>
+          </main>
 
-            {/* Footer actions */}
-            <div className="mt-8 flex justify-end gap-2 print:hidden">
-              {/* <button
+          {/* Footer actions */}
+          <div className="mt-8 flex justify-end gap-2 print:hidden">
+            {/* <button
                 className="rounded-lg border px-3 py-1.5 hover:bg-black hover:text-white"
                 onClick={() => window.print()}
               >
                 Print
               </button> */}
-              {/* Edit Exam Navigation Button */}
-              <button
-                onClick={() => {
-                  //Close preview modal
-                  onClose();
-                  //Go to edit_exam page
-                  router.push(`/edit_exam/${exam._id}`);
-                }}
-                className="rounded-lg border px-3 py-1.5 hover:bg-black hover:text-white flex items-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
-                Edit Exam
-              </button>
-              {/* Download menu */}
+            {/* Edit Exam Navigation Button */}
+            <button
+              onClick={() => {
+                //Close preview modal
+                onClose();
+                //Go to edit_exam page
+                router.push(`/edit_exam/${exam._id}`);
+              }}
+              className="rounded-lg border px-3 py-1.5 hover:bg-black hover:text-white flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              </svg>
+              Edit Exam
+            </button>
+            {/* Download menu */}
             <div className="relative">
               <button
                 onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
@@ -259,29 +322,29 @@ export default function ExamPreviewModal({
                 </div>
               )}
             </div>
-            </div>
           </div>
-          {/* Back to Top Button */}
-          <button
-            onClick={scrollToTop}
-            className="absolute left-1/2 transform -translate-x-1/2 bottom-4 bg-white border border-gray-300 rounded-full px-4 py-2 shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 print:hidden z-10"
+        </div>
+        {/* Back to Top Button */}
+        <button
+          onClick={scrollToTop}
+          className="absolute left-1/2 transform -translate-x-1/2 bottom-4 bg-white border border-gray-300 rounded-full px-4 py-2 shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 print:hidden z-10"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-4 h-4"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              strokeWidth={2} 
-              stroke="currentColor" 
-              className="w-4 h-4"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" 
-              />
-            </svg>
-            Back to Top
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"
+            />
+          </svg>
+          Back to Top
+        </button>
       </div>
     </div>
   );

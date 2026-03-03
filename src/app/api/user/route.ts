@@ -6,6 +6,65 @@ export async function POST(req: Request) {
     try {
         const formData = await req.formData();
 
+        //the document that stores the users prefered instructions
+        //makes sure every new user gets the default
+        const defaultTipTapDoc = {
+            type: "doc",
+            content: [
+                {
+                    type: "paragraph",
+                    content: [
+                        {
+                            type: "text",
+                            text: "INSTRUCTIONS",
+                            marks: [
+                                { type: "bold" },
+                                { type: "textStyle", attrs: { fontSize: "18px" } },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    type: "bulletList",
+                    content: [
+                        {
+                            type: "listItem",
+                            content: [
+                                {
+                                    type: "paragraph",
+                                    content: [
+                                        { type: "text", text: "Answer all questions in the space provided." },
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            type: "listItem",
+                            content: [
+                                {
+                                    type: "paragraph",
+                                    content: [
+                                        { type: "text", text: "Show your work where applicable. Circle or clearly mark your final answer." },
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            type: "listItem",
+                            content: [
+                                {
+                                    type: "paragraph",
+                                    content: [
+                                        { type: "text", text: "No unauthorized materials. Calculators allowed unless otherwise stated." },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+
         //Extract form fields
         const role = "teacher";
         const firstName = formData.get("firstName") as string;
@@ -15,6 +74,14 @@ export async function POST(req: Request) {
         const password = formData.get("password") as string;
         const proofLink = formData.get("proofLink") as string;
         const proofFile = formData.get("proofFile") as File | null;
+        //will be the prefered instuctions for all exams
+        const instructionPrefs = {
+            examGeneration: {
+                editor: "tiptap",
+                content: defaultTipTapDoc,
+                updatedAt: new Date(),
+            },
+        };
 
         // validate the data coming in
         if (!role || !email || !password || !firstName || !lastName || !phone || (!proofLink && !proofFile)) {
@@ -72,6 +139,7 @@ export async function POST(req: Request) {
             phone,
             email,
             password: hashedPassword,
+            instructionPrefs,
             proofLink: proofLink || null,
             proofFile: fileData,
             createdOn: new Date(),

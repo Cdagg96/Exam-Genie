@@ -8,16 +8,24 @@ import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
 import toast from "react-hot-toast";
 import useTheme from "@/hooks/useTheme"
+import InstructionEditor from "@/components/InstructionEditor";
 
 interface UserData {
-  _id: string;
-  email: string;
-  role: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  createdOn: string;
-  updatedOn?: string;
+    _id: string;
+    email: string;
+    role: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    createdOn: string;
+    updatedOn?: string;
+    instructionPrefs?: {
+        examGeneration?: {
+            editor: "tiptap";
+            content: any; // TipTap JSON
+            updatedAt?: string;
+        };
+    };
 }
 
 export default function SettingsPage() {
@@ -40,6 +48,9 @@ export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("profile"); //Profile info, Reset password, Delete account
     const { isDark, toggleTheme } = useTheme();
     const [userData, setUserData] = useState<UserData | null>(null);
+
+    //for saving users prefered instructions
+    const [isSavingInstructions, setIsSavingInstructions] = useState(false);
 
     //makes sure that the email comes in valid format
     const isValidEmail = (email: string) => {
@@ -72,7 +83,7 @@ export default function SettingsPage() {
 
             try {
                 const userId = (user as any)?._id || (user as any)?.id;
-               
+
                 if (!userId) {
                     console.error('User ID not found');
                     return;
@@ -80,7 +91,7 @@ export default function SettingsPage() {
 
 
                 const response = await fetch(`/api/user/profile?userId=${userId}`);
-               
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch user data');
                 }
@@ -88,7 +99,7 @@ export default function SettingsPage() {
 
                 const data = await response.json();
                 setUserData(data.user || data);
-               
+
                 //Set form data from API response
                 setFormData(prev => ({
                     ...prev,
@@ -106,6 +117,30 @@ export default function SettingsPage() {
 
         fetchUserData();
     }, [user]);
+
+
+    //handle saving instructions 
+    const handleSaveInstructions = async (content: any) => {
+        setIsSavingInstructions(true);
+        try {
+            const userId = (user as any)?._id || (user as any)?.id;
+
+            const res = await fetch("/api/user/instructions", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, content }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.message || "Failed");
+
+            toast.success("Instructions saved");
+        } catch (e) {
+            toast.error("Failed to save instructions");
+        } finally {
+            setIsSavingInstructions(false);
+        }
+    };
 
 
     //Handle input changes
@@ -380,6 +415,12 @@ export default function SettingsPage() {
                         {/* Preferences Tab */}
                         {activeTab === "preferences" && (
                             <div className="p-6 space-y-6">
+                                <InstructionEditor
+                                    initialContent={userData?.instructionPrefs?.examGeneration?.content}
+                                    onSave={handleSaveInstructions}
+                                    isSaving={isSavingInstructions}
+                                    showSaveButton={true}
+                                />
                                 {/* Dark mode toggle button */}
                                 <button onClick={toggleTheme} className="btn btn-ghost rounded-full text-primary card-secondary shadow-lg" >
                                     {isDark ? "Turn on light mode" : "Turn on dark mode"}

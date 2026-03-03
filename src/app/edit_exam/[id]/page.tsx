@@ -13,6 +13,7 @@ import type { ExamQuestionItem } from "@/types/exam";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useAuth } from "@/components/AuthContext";
 import { Background } from "@/components/BackgroundModal"
+import InstructionEditor from "@/components/InstructionEditor";
 
 const POINTS_BY_TYPE: Record<string, number> = {
   MC: 1,
@@ -397,6 +398,7 @@ export default function EditExamPage() {
           timeLimitMin: exam.timeLimitMin,
           totalPoints: exam.totalPoints,
           questions: exam.questions,
+          instructionsDoc: exam.instructionsDoc,
         }),
       });
 
@@ -494,13 +496,17 @@ export default function EditExamPage() {
           </header>
 
           {/* Instructions information */}
-          <section className="mb-6 text-center rounded-lg border p-4 text-sm leading-6 print:break-inside-avoid">
-            <h2 className="mb-1 font-semibold uppercase tracking-wide text-gray-700">Instructions</h2>
-            <ul className="list-disc pl-5">
-              <li>Answer all questions in the space provided.</li>
-              <li>Show your work where applicable. Circle or clearly mark your final answer.</li>
-              <li>No unauthorized materials. Calculators allowed unless otherwise stated.</li>
-            </ul>
+          <section className="mb-6 rounded-lg border p-4 text-sm leading-6 print:break-inside-avoid">
+            <InstructionEditor
+              initialContent={exam.instructionsDoc}
+              resetKey={String(exam._id)}
+              forceLight
+              showSaveButton={false}
+              onChange={(content) => {
+                setExam((prev) => prev ? { ...prev, instructionsDoc: content } : prev);
+                setDirty(true);
+              }}
+            />
           </section>
 
           {/* Drag and Drop Instructions */}
