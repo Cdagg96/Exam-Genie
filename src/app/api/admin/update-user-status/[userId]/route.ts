@@ -47,62 +47,12 @@ export async function GET(
 
     //If no user was found, return an error page
     if (result.matchedCount === 0) {
-      return new NextResponse(`
-        <html>
-          <head><title>User Not Found</title></head>
-          <body style="font-family: Arial, sans-serif; background: #f3f8ff; display: flex; justify-content: center; align-items: center; height: 100vh;">
-            <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center;">
-              <h1 style="color: #ef4444; margin-bottom: 20px;">User Not Found</h1>
-              <p style="color: #6b7280;">The user you're trying to '${action}' doesn't exist.</p>
-            </div>
-          </body>
-        </html>
-      `, {
-        status: 404,
-        headers: { 'Content-Type': 'text/html' },
-      });
+      return NextResponse.redirect(new URL('/admin/error?reason=user-not-found', request.url));
     }
 
-    //Appoved or Denied confirmation page
-    const isApprove = action === 'Approved';
-    return new NextResponse(`
-      <html>
-        <head><title>User ${isApprove ? 'Approved' : 'Denied'}</title></head>
-        <body style="font-family: Arial, sans-serif; background: #f3f8ff; display: flex; justify-content: center; align-items: center; height: 100vh;">
-          <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center;">
-            <h1 style="color: ${isApprove ? '#10b981' : '#ef4444'}; margin-bottom: 20px;">
-              ${isApprove ? 'User Approved Successfully!' : 'User Denied'}
-            </h1>
-            <p style="color: #6b7280; margin-bottom: 30px;">
-              ${isApprove 
-                ? 'The teacher\'s account has been approved.' 
-                : 'The teacher\'s registration has been denied.'}
-            </p>
-            <a href="/" style="background: #3b82f6; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none;">Return to Home</a>
-          </div>
-        </body>
-      </html>
-    `, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html' },
-    });
+    return NextResponse.redirect(new URL(`/admin/result?status=${action.toLowerCase()}`, request.url));
 
   } catch (error) {
-    //Error page
-    console.error('Error updating user status:', error);
-    return new NextResponse(`
-      <html>
-        <head><title>Error</title></head>
-        <body style="font-family: Arial, sans-serif; background: #f3f8ff; display: flex; justify-content: center; align-items: center; height: 100vh;">
-          <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center;">
-            <h1 style="color: #ef4444; margin-bottom: 20px;">Error</h1>
-            <p style="color: #6b7280;">Failed to update user status. Please try again.</p>
-          </div>
-        </body>
-      </html>
-    `, {
-      status: 500,
-      headers: { 'Content-Type': 'text/html' },
-    });
+    return NextResponse.redirect(new URL('/admin/error?reason=server-error', request.url));
   }
 }
