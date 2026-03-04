@@ -3,6 +3,7 @@ import React, { useState, useRef } from "react";
 import type { ExamDoc } from "@/types/exam";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { renderTipTap } from "@/components/renderTipTap";
 import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV, downloadExamPackage } from "@/components/ExamDownload"
 type DownloadFormat = "pdf" | "txt" | "csv" | "docx";
 export default function ExamPreviewModal({
@@ -15,66 +16,6 @@ export default function ExamPreviewModal({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  type TipTapNode = any;
-
-function renderTipTap(node: TipTapNode, key = "n"): React.ReactNode {
-  if (!node) return null;
-
-  if (node.type === "doc") {
-    return (node.content ?? []).map((c: any, i: number) => (
-      <React.Fragment key={`${key}-doc-${i}`}>{renderTipTap(c, `${key}-${i}`)}</React.Fragment>
-    ));
-  }
-
-  if (node.type === "paragraph") {
-    const align = node.attrs?.textAlign as ("left" | "center" | "right" | undefined);
-    return (
-      <p key={`${key}-p`} className="mb-2" style={align ? { textAlign: align } : undefined}>
-        {(node.content ?? []).map((c: any, i: number) => (
-          <React.Fragment key={`${key}-p-${i}`}>{renderTipTap(c, `${key}-p-${i}`)}</React.Fragment>
-        ))}
-      </p>
-    );
-  }
-
-  if (node.type === "bulletList") {
-    return (
-      <ul key={`${key}-ul`} className="list-disc pl-5">
-        {(node.content ?? []).map((c: any, i: number) => (
-          <React.Fragment key={`${key}-ul-${i}`}>{renderTipTap(c, `${key}-ul-${i}`)}</React.Fragment>
-        ))}
-      </ul>
-    );
-  }
-
-  if (node.type === "listItem") {
-    return (
-      <li key={`${key}-li`} className="mb-1">
-        {(node.content ?? []).map((c: any, i: number) => (
-          <React.Fragment key={`${key}-li-${i}`}>{renderTipTap(c, `${key}-li-${i}`)}</React.Fragment>
-        ))}
-      </li>
-    );
-  }
-
-  if (node.type === "text") {
-    const marks = node.marks ?? [];
-    const isBold = marks.some((m: any) => m.type === "bold");
-    const fontSize = marks.find((m: any) => m.type === "textStyle")?.attrs?.fontSize as string | undefined;
-
-    return (
-      <span
-        key={`${key}-t`}
-        className={isBold ? "font-bold" : undefined}
-        style={fontSize ? { fontSize } : undefined}
-      >
-        {node.text ?? ""}
-      </span>
-    );
-  }
-
-  return null;
-}
 
   const handleDownloadExam = async (exam: ExamDoc, format: DownloadFormat) => {
     try {

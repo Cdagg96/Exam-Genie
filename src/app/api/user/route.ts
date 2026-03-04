@@ -2,6 +2,31 @@ import { NextResponse, NextRequest } from "next/server";
 import clientPromise from "@/libs/mongo";
 import bcrypt from "bcryptjs"; //for password hashing
 
+//function for eaiser viewing of instructions in mongo
+//stores it as preview
+function tiptapToPreview(doc: any): string {
+  if (!doc?.content) return "";
+
+  const lines: string[] = [];
+
+  for (const node of doc.content) {
+    if (node.type === "paragraph") {
+      const text = (node.content ?? []).map((c: any) => c.text ?? "").join("");
+      if (text.trim()) lines.push(text.trim());
+    }
+
+    if (node.type === "bulletList") {
+      for (const item of node.content ?? []) {
+        const para = item.content?.find((n: any) => n.type === "paragraph");
+        const text = (para?.content ?? []).map((c: any) => c.text ?? "").join("");
+        if (text.trim()) lines.push(`• ${text.trim()}`);
+      }
+    }
+  }
+
+  return lines.join("\n");
+}
+
 export async function POST(req: Request) {
     try {
         const formData = await req.formData();
@@ -74,11 +99,13 @@ export async function POST(req: Request) {
         const password = formData.get("password") as string;
         const proofLink = formData.get("proofLink") as string;
         const proofFile = formData.get("proofFile") as File | null;
+        const defaultPreview = tiptapToPreview(defaultTipTapDoc);
         //will be the prefered instuctions for all exams
         const instructionPrefs = {
             examGeneration: {
                 editor: "tiptap",
                 content: defaultTipTapDoc,
+                preview: defaultPreview,
                 updatedAt: new Date(),
             },
         };

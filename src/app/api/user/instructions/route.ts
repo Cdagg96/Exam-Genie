@@ -2,6 +2,30 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/libs/mongo";
 import { ObjectId } from "mongodb";
 
+//function for eaiser viewing in mongo
+//stores it as preview
+function tiptapToPlainText(doc: any): string {
+  if (!doc?.content) return "";
+
+  const lines: string[] = [];
+
+  for (const node of doc.content) {
+    if (node.type === "paragraph") {
+      const text = node.content?.map((c: any) => c.text || "").join("") ?? "";
+      lines.push(text);
+    }
+
+    if (node.type === "bulletList") {
+      for (const item of node.content ?? []) {
+        const text = item.content?.[0]?.content?.map((c: any) => c.text || "").join("") ?? "";
+        lines.push("• " + text);
+      }
+    }
+  }
+
+  return lines.join("\n");
+}
+
 export async function PUT(req: Request) {
   try {
     const { userId, content } = await req.json();
@@ -21,13 +45,14 @@ export async function PUT(req: Request) {
 
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
-
+    const preview = tiptapToPlainText(content);
     const result = await db.collection("users").updateOne(
       { _id: new ObjectId(userId) },
       {
         $set: {
           "instructionPrefs.examGeneration.editor": "tiptap",
           "instructionPrefs.examGeneration.content": content,
+          "instructionPrefs.examGeneration.preview": preview,
           "instructionPrefs.examGeneration.updatedAt": new Date(),
           updatedOn: new Date(),
         },

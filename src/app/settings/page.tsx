@@ -415,16 +415,22 @@ export default function SettingsPage() {
                         {/* Preferences Tab */}
                         {activeTab === "preferences" && (
                             <div className="p-6 space-y-6">
+                                {/* Instruction editor*/}
                                 <InstructionEditor
                                     initialContent={userData?.instructionPrefs?.examGeneration?.content}
                                     onSave={handleSaveInstructions}
                                     isSaving={isSavingInstructions}
                                     showSaveButton={true}
                                 />
-                                {/* Dark mode toggle button */}
-                                <button onClick={toggleTheme} className="btn btn-ghost rounded-full text-primary card-secondary shadow-lg" >
-                                    {isDark ? "Turn on light mode" : "Turn on dark mode"}
-                                </button>
+                                <div className="border-t pt-4">
+                                    {/* Dark mode toggle button */}
+                                    <div className="text-sm font-medium text-secondary mb-3">
+                                        Page Theme
+                                    </div>
+                                    <button onClick={toggleTheme} className="btn btn-ghost rounded-full text-primary card-secondary shadow-lg" >
+                                        {isDark ? "Turn on light mode" : "Turn on dark mode"}
+                                    </button>
+                                </div>
                             </div>
                         )}
 

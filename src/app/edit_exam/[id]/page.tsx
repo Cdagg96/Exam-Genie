@@ -14,6 +14,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useAuth } from "@/components/AuthContext";
 import { Background } from "@/components/BackgroundModal"
 import InstructionEditor from "@/components/InstructionEditor";
+import { renderTipTap } from "@/components/renderTipTap";
 
 const POINTS_BY_TYPE: Record<string, number> = {
   MC: 1,
@@ -59,6 +60,7 @@ export default function EditExamPage() {
   const [dirty, setDirty] = useState(false);
   const [isUnsavedConfirmOpen, setIsUnsavedConfirmOpen] = useState(false);
   const [bankOps, setBankOps] = useState<BankOp[]>([]);
+  const [isEditingInstructions, setIsEditingInstructions] = useState(false);
 
   // Function to count the total points any time a point value is edited
   const recomputeTotalPoints = (questions: any[]) =>
@@ -497,16 +499,49 @@ export default function EditExamPage() {
 
           {/* Instructions information */}
           <section className="mb-6 rounded-lg border p-4 text-sm leading-6 print:break-inside-avoid">
-            <InstructionEditor
-              initialContent={exam.instructionsDoc}
-              resetKey={String(exam._id)}
-              forceLight
-              showSaveButton={false}
-              onChange={(content) => {
-                setExam((prev) => prev ? { ...prev, instructionsDoc: content } : prev);
-                setDirty(true);
-              }}
-            />
+            <div className="flex items-center justify-between mb-2">
+
+              {!isEditingInstructions && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingInstructions(true)}
+                  className="ml-auto rounded-lg border px-3 py-1.5 text-sm hover:bg-gray-100"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {!isEditingInstructions ? (
+              <div className="text-center font-serif">
+                {exam.instructionsDoc ? renderTipTap(exam.instructionsDoc) : (
+                  <p className="text-gray-500">No instructions.</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <InstructionEditor
+                  initialContent={exam.instructionsDoc}
+                  resetKey={String(exam._id)}
+                  forceLight
+                  showSaveButton={false}
+                  onChange={(content) => {
+                    setExam((prev) => (prev ? { ...prev, instructionsDoc: content } : prev));
+                    setDirty(true);
+                  }}
+                />
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingInstructions(false)}
+                    className="rounded-lg border px-3 py-1.5 text-sm hover:bg-gray-100"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Drag and Drop Instructions */}
