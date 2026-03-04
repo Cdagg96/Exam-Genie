@@ -9,7 +9,7 @@ export default async function ResultPage({
   return (
     <>
       <head>
-        <title>User {isApprove ? 'Approved' : 'Denied'}</title>
+        <title>{`User ${isApprove ? 'Approved' : 'Denied'}`}</title>
       </head>
       <div style={{ fontFamily: 'Arial, sans-serif', background: '#f3f8ff', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <div style={{ background: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center' }}>
