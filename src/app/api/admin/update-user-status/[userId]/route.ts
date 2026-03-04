@@ -15,20 +15,7 @@ export async function GET(
 
     //Validate action
     if (!action || !['Approved', 'Denied'].includes(action)) {
-      return new NextResponse(`
-        <html>
-          <head><title>Invalid Action</title></head>
-          <body style="font-family: Arial, sans-serif; background: #f3f8ff; display: flex; justify-content: center; align-items: center; height: 100vh;">
-            <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center;">
-              <h1 style="color: #ef4444; margin-bottom: 20px;">Invalid Action</h1>
-              <p style="color: #6b7280;">Please specify either 'Approved' or 'Denied' as an action.</p>
-            </div>
-          </body>
-        </html>
-      `, {
-        status: 400,
-        headers: { 'Content-Type': 'text/html' },
-      });
+      return NextResponse.redirect(new URL('/admin/error?reason=invalid-action', request.url));
     }
 
     //Connect to the database
