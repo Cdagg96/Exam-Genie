@@ -45,7 +45,9 @@ User Manual Project [GitHub] (https://github.com/senior-design-25-26/bagd/blob/m
 
   - CSV Parsing- csv-parse
 
-  - Next-Auth
+  - Authenticator- Next-Auth
+
+  - Document Editor- TipTap
 
 ## License (if any)
 No license asof now
