@@ -111,3 +111,11 @@ npm install jszip
 ```bash
 npm install next-auth
 ```
+
+---
+
+## Install for TipTap
+
+```bash
+npm i @tiptap/react @tiptap/starter-kit @tiptap/extension-text-style
+```
