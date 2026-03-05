@@ -37,6 +37,16 @@ export async function DELETE(req: Request) {
             );
         }
 
+        //Delete user's questions
+        const questionsResult = await db.collection("questions").deleteMany({
+            userID: userId
+        });
+
+        //Delete user's exams
+        const examsResult = await db.collection("exams").deleteMany({
+            userID: userId
+        });
+
         //Delete user
         const result = await db.collection("users").deleteOne({
             _id: new ObjectId(userId)
@@ -51,7 +61,13 @@ export async function DELETE(req: Request) {
 
         return NextResponse.json({
             ok: true,
-            message: "Account deleted successfully"
+            message: "Account deleted successfully",
+            signOut: true,
+            deletedData: {
+                user: result.deletedCount,
+                questions: questionsResult.deletedCount,
+                exams: examsResult.deletedCount
+            }
         }, { status: 200 });
 
     } catch (error) {
