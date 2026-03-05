@@ -93,7 +93,7 @@ export default function LoginModal({
     });
 
     if (!res?.ok) {
-      toast.error("Login failed. Check your email/password.");
+      toast.error("Login failed. " + (res?.error || ""));
       return;
     }
 
@@ -139,7 +139,20 @@ export default function LoginModal({
       toast.error("Please enter a valid phone number.");
       return;
     }
-    if (!registerData.email || !registerData.password || (!registerData.proofLink && !registerData.proofFile) || !registerData.firstName || !registerData.lastName || !registerData.phone) {
+
+    //Check if at least one proof method is provided
+    if (!registerData.proofLink && !registerData.proofFile) {
+      toast.error("Please provide either a proof link or upload a document.");
+      return;
+    }
+
+    //Check if both proof methods are provided
+    if (registerData.proofLink && registerData.proofFile) {
+      toast.error("Please provide only one proof method (either a link or a file).");
+      return;
+    }
+
+    if (!registerData.email || !registerData.password || !registerData.firstName || !registerData.lastName || !registerData.phone) {
       //Show error if not all fields are filled out
       toast.error("Not all registration fields are filled out.");
     } else {
@@ -168,26 +181,26 @@ export default function LoginModal({
         if (!res.ok) {
           toast.error(data.message || "Registration failed.");
         } else {
-          toast.success("Registration successful! Signing you in...");
+          toast.success("Registration successful! Your account is pending approval. You will receive an email once approved.");
 
-          const loginResult = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: registerData.email,
-              password: registerData.password
-            }),
-          });
+          // const loginResult = await fetch("/api/login", {
+          //   method: "POST",
+          //   headers: { "Content-Type": "application/json" },
+          //   body: JSON.stringify({
+          //     email: registerData.email,
+          //     password: registerData.password
+          //   }),
+          // });
 
-          const loginData = await loginResult.json();
+          // const loginData = await loginResult.json();
 
-          //If login after registration fails, show error
-          if (!loginResult.ok) {
-            toast.error(loginData.message || "Login after registration failed.");
-          } else {
-            //Successful login after registration
-            login(loginData.user); //Update auth context
-          }
+          // //If login after registration fails, show error
+          // if (!loginResult.ok) {
+          //   toast.error(loginData.message || "Login after registration failed.");
+          // } else {
+          //   //Successful login after registration
+          //   login(loginData.user); //Update auth context
+          // }
 
           setRegisterData({ role: "", email: "", password: "", proofLink: "", proofFile: null, firstName: "", lastName: "", phone: "" }); //Clear the form
           if (fileInputRef.current) {
@@ -336,7 +349,7 @@ export default function LoginModal({
                   placeholder="First Name"
                   value={registerData.firstName}
                   onChange={handleRegisterChange}
-                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2 mb-4"
+                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2"
                 />
                 <input
                   type="text"
@@ -344,7 +357,7 @@ export default function LoginModal({
                   placeholder="Last Name"
                   value={registerData.lastName}
                   onChange={handleRegisterChange}
-                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2 mb-4"
+                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2"
                 />
               </div>
 
