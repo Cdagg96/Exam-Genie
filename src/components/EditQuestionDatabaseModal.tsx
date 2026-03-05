@@ -331,13 +331,28 @@ export default function EditQuestionModal({
                             </div>
                             ))}
 
-                            <button
-                            type="button"
-                            onClick={addChoice}
-                            className="text-blue-600 hover:underline text-sm"
-                            >
-                            + Add Choice
-                            </button>
+                            {/*Add Choice button disappears after 5 choices and shows a message when maximum is reached */}
+                            {choices.length < 5 && (
+                                <div className="flex justify-center">
+                                    <button
+                                        type="button"
+                                        onClick={addChoice}
+                                        className="text-blue-600 hover:underline text-sm flex items-center gap-1 hover:text-blue-800 transition-colors"
+                                    >
+                                        + Add Choice ({choices.length}/5)
+                                    </button> 
+                                </div>
+                            )}
+                            {choices.length >= 5 && (
+                                <div className="flex justify-center">
+                                    <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                        </svg>
+                                        Maximum of 5 choices reached
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -429,9 +444,11 @@ export default function EditQuestionModal({
                                 required
                                 disabled={loading}
                             >
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
+                               {choices.map(choice => (
+                                <option key={choice.label} value={choice.label}>
+                                {choice.label}
+                                </option>
+                                ))} 
                             </select>
                         </div>
                     )}
