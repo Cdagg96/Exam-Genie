@@ -9,6 +9,7 @@ import { useAuth } from "@/components/AuthContext";
 import toast from "react-hot-toast";
 import useTheme from "@/hooks/useTheme"
 import InstructionEditor from "@/components/InstructionEditor";
+import { signOut } from "next-auth/react";
 
 interface UserData {
     _id: string;
@@ -80,7 +81,6 @@ export default function SettingsPage() {
         const fetchUserData = async () => {
             if (!user) return;
 
-
             try {
                 const userId = (user as any)?._id || (user as any)?.id;
 
@@ -89,13 +89,11 @@ export default function SettingsPage() {
                     return;
                 }
 
-
                 const response = await fetch(`/api/user/profile?userId=${userId}`);
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch user data');
                 }
-
 
                 const data = await response.json();
                 setUserData(data.user || data);
@@ -113,7 +111,6 @@ export default function SettingsPage() {
                 toast.error("Failed to load user data");
             }
         };
-
 
         fetchUserData();
     }, [user]);
@@ -257,10 +254,9 @@ export default function SettingsPage() {
 
             if (response.ok) {
                 toast.success("Account deleted successfully");
-                router.replace("/");
-                setTimeout(() => {
-                    logout();
-                }, 100);
+                if (data.signOut) {
+                    await signOut({ callbackUrl: '/' });
+                }
             } else {
                 toast.error("Failed to delete account");
                 setShowDeleteConfirm(false);
