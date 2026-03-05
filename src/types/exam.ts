@@ -25,6 +25,7 @@ export type ExamDoc = {
   difficulty: string;
   totalPoints: number;
   questions: ExamQuestionItem[];
+  instructionsDoc?: any;
 };
 
 // What you actually get from Mongo (adds timestamps / lastUsed)
