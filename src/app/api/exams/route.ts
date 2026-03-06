@@ -128,15 +128,42 @@ export async function GET(req: Request) {
             try {
                 //Parse the MM-DD-YYYY format from the frontend
                 const [month, day, year] = lastUsed.split('-').map(Number);
-
-                //Create date range for the entire day
+                
+                //Get filter type (default to 'before' if not specified)
+                const filterType = searchParams.get('lastUsedFilterType') || 'before';
+                
+                //Create date range for the selected day
                 const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
                 const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
-
-                filter.lastUsed = {
-                    //$gte: startOfDay, 
-                    $lt: endOfDay
-                };
+                
+                if (filterType === 'before') {
+                    //Filter for dates before the selected day
+                    filter.lastUsed = { $lt: endOfDay };
+                } 
+                else if (filterType === 'after') {
+                    //Filter for dates after the selected day
+                    filter.lastUsed = { $gt: startOfDay };
+                }
+                else if (filterType === 'range') {
+                    //Filter for dates between start and end
+                    const lastUsedEnd = searchParams.get('lastUsedEnd');
+                    
+                    if (lastUsedEnd) {
+                        const [endMonth, endDay, endYear] = lastUsedEnd.split('-').map(Number);
+                        const endOfRangeDay = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
+                        
+                        filter.lastUsed = {
+                            $gte: startOfDay,
+                            $lte: endOfRangeDay
+                        };
+                    } else {
+                        //If no end date provided, just use the single day
+                        filter.lastUsed = {
+                            $gt: startOfDay,
+                            $lt: endOfDay
+                        };
+                    }
+                }
             } catch (error) {
                 console.error('Error parsing lastUsed date:', error);
                 // If date parsing fails, don't apply the filter rather than throwing error

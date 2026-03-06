@@ -34,6 +34,11 @@ export default function DatabaseActionPage() {
     const [dateInputValue, setDateInputValue] = useState('');
     const [calendarOpen, setCalendarOpen] = useState(false);
     const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLDivElement | null>(null);
+    const [lastUsedFilterType, setLastUsedFilterType] = useState<'before' | 'after' | 'range'>('before');
+    const [lastUsedDateEnd, setLastUsedDateEnd] = useState<Dayjs | null>(null);
+    const [dateInputValueEnd, setDateInputValueEnd] = useState('');
+    const [calendarEndOpen, setCalendarEndOpen] = useState(false);
+    const [calendarEndAnchorEl, setCalendarEndAnchorEl] = useState<HTMLDivElement | null>(null);
     const { user } = useAuth();
     // Filter questions by logged-in user
     // If no user show all. Will proably need to be changed at somepoint 
@@ -77,7 +82,17 @@ export default function DatabaseActionPage() {
             if (selectedType) params.append('type', selectedType);
             if (selectedSubject) params.append('subject', selectedSubject);
             if (selectedCourseNum) params.append('courseNum', selectedCourseNum);
-            if (lastUsedDate) params.append('lastUsed', lastUsedDate.format('MM-DD-YYYY'));
+            
+            //Updated last used filter with type and end date
+            if (lastUsedDate) {
+                params.append('lastUsed', lastUsedDate.format('MM-DD-YYYY'));
+                params.append('lastUsedFilterType', lastUsedFilterType);
+                
+                if (lastUsedFilterType === 'range' && lastUsedDateEnd) {
+                    params.append('lastUsedEnd', lastUsedDateEnd.format('MM-DD-YYYY'));
+                }
+            }
+
             if (user?._id) params.append("userId", user._id)
 
             params.set('page', String(page))
@@ -132,7 +147,10 @@ export default function DatabaseActionPage() {
         setSelectedSubject('');
         setselectedCourseNum('');
         setLastUsedDate(null);
+        setLastUsedDateEnd(null);
         setDateInputValue('');
+        setDateInputValueEnd('');
+        setLastUsedFilterType('before');
         setFiltersApplied(false);
         setPage(1)
         fetchQuestionsWithFilters();
@@ -314,11 +332,30 @@ export default function DatabaseActionPage() {
         }
     };
 
+    const handleDateInputChangeEnd = (inputValue: string) => {
+        setDateInputValueEnd(inputValue);
+
+        //Try to parse it
+        const parsedDate = dayjs(inputValue, 'MM/DD/YYYY', true);
+        if (parsedDate.isValid()) {
+            setLastUsedDateEnd(parsedDate);
+        } else {
+            setLastUsedDateEnd(null);
+        }
+    };
+
     //Update when calendar is used
     const handleCalendarChange = (newValue: Dayjs | null) => {
         setLastUsedDate(newValue);
         setDateInputValue(newValue ? newValue.format('MM/DD/YYYY') : '');
         setCalendarOpen(false);
+    };
+
+    //Update when end calendar is used
+    const handleCalendarChangeEnd = (newValue: Dayjs | null) => {
+        setLastUsedDateEnd(newValue);
+        setDateInputValueEnd(newValue ? newValue.format('MM/DD/YYYY') : '');
+        setCalendarEndOpen(false);
     };
 
     //CSV import handler
@@ -466,13 +503,54 @@ export default function DatabaseActionPage() {
                             />
 
                             <div className="text-left">
-                                <label className="block text-sm text-primary mb-2">
-                                    Last Used
+                                {/* Filter Type Selector */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <label className="block text-sm text-primary whitespace-nowrap">
+                                        Last Used
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLastUsedFilterType('before')}
+                                        className={`px-3 py-1 text-sm rounded-xl transition-colors ${
+                                            lastUsedFilterType === 'before'
+                                                ? 'btn-primary-blue'
+                                                : 'btn-ghost'
+                                        }`}
+                                    >
+                                        Before
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLastUsedFilterType('after')}
+                                        className={`px-3 py-1 text-sm rounded-xl transition-colors ${
+                                            lastUsedFilterType === 'after'
+                                                ? 'btn-primary-blue'
+                                                : 'btn-ghost'
+                                        }`}
+                                    >
+                                        After
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLastUsedFilterType('range')}
+                                        className={`px-3 py-1 text-sm rounded-xl transition-colors ${
+                                            lastUsedFilterType === 'range'
+                                                ? 'btn-primary-blue'
+                                                : 'btn-ghost'
+                                        }`}
+                                    >
+                                        Range
+                                    </button>
+                                </div>
+
+                                {/* Start Date Picker */}
+                                <label className="block text-xs text-primary mb-1">
+                                        {lastUsedFilterType === 'range' ? 'Start Date' : ''}
                                 </label>
-                                <div className="relative" ref={setCalendarAnchorEl}>
+                                <div className="relative mb-2" ref={setCalendarAnchorEl}>
                                     <input
                                         type="text"
-                                        placeholder="Ex: 01/01/2025"
+                                        placeholder="Ex: MM/DD/YYYY"
                                         value={dateInputValue}
                                         onChange={(e) => handleDateInputChange(e.target.value)}
                                         className="w-full border-primary text-secondary px-4 py-3 pr-12"
@@ -486,6 +564,30 @@ export default function DatabaseActionPage() {
                                         </svg>
                                     </button>
                                 </div>
+
+                                {/* End Date Picker */}
+                                <label className="block text-xs text-primary mb-1">
+                                    {lastUsedFilterType === 'range' ? 'End Date' : ''}
+                                </label>
+                                {lastUsedFilterType === 'range' && (
+                                <div className="relative" ref={setCalendarEndAnchorEl}>
+                                    <input
+                                        type="text"
+                                        placeholder="MM/DD/YYYY"
+                                        value={dateInputValueEnd}
+                                        onChange={(e) => handleDateInputChangeEnd(e.target.value)}
+                                        className="w-full border-primary text-secondary px-4 py-3 pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                        onClick={() => setCalendarEndOpen(true)}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
                                         open={calendarOpen}
@@ -520,6 +622,42 @@ export default function DatabaseActionPage() {
                                             field: () => null,
                                         }}
                                     />
+                                    {/* End Date Picker */}
+                                    {lastUsedFilterType === 'range' && (
+                                        <DatePicker
+                                            open={calendarEndOpen}
+                                            onClose={() => setCalendarEndOpen(false)}
+                                            value={lastUsedDateEnd}
+                                            onChange={(newValue) => {
+                                                setLastUsedDateEnd(newValue);
+                                                setCalendarEndOpen(false);
+                                                handleCalendarChangeEnd(newValue);
+                                            }}
+                                            slotProps={{
+                                                popper: {
+                                                    anchorEl: calendarEndAnchorEl,
+                                                    placement: 'bottom-start',
+                                                    modifiers: [
+                                                        {
+                                                            name: 'flip',
+                                                            enabled: false,
+                                                        },
+                                                        {
+                                                            name: 'preventOverflow',
+                                                            enabled: true,
+                                                            options: {
+                                                                boundary: 'viewport',
+                                                                altBoundary: true,
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                            }}
+                                            slots={{
+                                                field: () => null,
+                                            }}
+                                        />
+                                    )}
                                 </LocalizationProvider>
                             </div>
                         </div>
