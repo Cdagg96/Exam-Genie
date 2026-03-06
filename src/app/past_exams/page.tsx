@@ -130,7 +130,6 @@ export default function PastExams() {
         fetchExams();
     }
 
-    // Fetch exams from MongoDB without filters
     const fetchExams = async () => {
         try {
             setLoading(true);
@@ -138,10 +137,17 @@ export default function PastExams() {
             if (!user?._id) {
                 setExams([]);
                 setFiltersApplied(false);
+                setTotalPages(1);
+                setTotal(0);
                 return;
             }
-            
-            const response = await fetch(`/api/exams?userID=${user._id}`, {
+
+            const queryParams = new URLSearchParams();
+            queryParams.append("userID", user._id);
+            queryParams.set("page", page.toString());
+            queryParams.set("limit", limit.toString());
+
+            const response = await fetch(`/api/exams?${queryParams.toString()}`, {
                 method: "GET",
             });
 
@@ -150,7 +156,9 @@ export default function PastExams() {
             }
 
             const data = await response.json();
-            setExams(data);
+            setExams(data.items ?? []);
+            setTotalPages(data.totalPages ?? 1);
+            setTotal(data.total ?? 0);
             setFiltersApplied(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
