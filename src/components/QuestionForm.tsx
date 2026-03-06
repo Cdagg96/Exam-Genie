@@ -224,8 +224,6 @@ export default function BackgroundModal({
                 {/* Scrollable body */}
                 <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2">
                     <h1 className="text-2xl text-blue-gradient font-bold mb-4 text-center">Add a Question</h1>
-
-
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Question Stem */}
                         <input
@@ -300,7 +298,7 @@ export default function BackgroundModal({
                                 {choices.map((choice, index) => (
                                 <div key={choice.label} className="flex gap-2">
                                     <input
-                                    className="border px-4 py-3 w-full rounded-xl"
+                                    className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
                                     placeholder={`Choice ${choice.label}`}
                                     value={choice.text}
                                     onChange={(e) => updateChoice(index, e.target.value)}
