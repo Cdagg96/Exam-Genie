@@ -70,6 +70,11 @@ export async function GET(req: Request) {
         const database = client.db(process.env.MONGODB_DB);
         const collection = database.collection('exams');
 
+        // Detect pagination presence (only paginate if these params exist)
+        const hasPage = searchParams.has("page");
+        const hasLimit = searchParams.has("limit");
+        const usePagination = hasPage || hasLimit;
+
         // Build filter object based on provided parameters
         const filter: any = {};
 
@@ -141,6 +146,36 @@ export async function GET(req: Request) {
                 console.error('Error parsing lastUsed date:', error);
                 // If date parsing fails, don't apply the filter rather than throwing error
             }
+        }
+        
+        if(usePagination){
+            // For pagination
+            const page = Math.max(1, Number(searchParams.get("page") ?? 1)); // Page number
+            const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") ?? 25))); // Exams per page
+            const skip = (page - 1) * limit; // Next/prev page
+
+            const exams = await collection.find(filter).sort({createdAt: -1, _id: -1}).skip(skip).limit(limit).toArray();
+
+            // Total count for pagination controls
+            const total = await collection.countDocuments(filter);
+            const totalPages = Math.max(1, Math.ceil(total / limit));
+
+            // Convert MongoDB ObjectId to string for serialization
+            const items = exams.map(exam => ({
+                ...exam,
+                _id: exam._id.toString()
+            }));
+            
+            return NextResponse.json(
+                {
+                    ok:true,
+                    items,
+                    page,
+                    limit,
+                    total,
+                    totalPages
+                }
+            );
         }
 
         // If ID was provided return a single exam

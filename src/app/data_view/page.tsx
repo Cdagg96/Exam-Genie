@@ -54,6 +54,7 @@ export default function DatabaseActionPage() {
 
     // Pagination variables
     const [page, setPage] = useState(1);
+    const [pageInput, setPageInput] = useState(page.toString());
     const [limit, setLimit] = useState(25);
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
@@ -154,6 +155,19 @@ export default function DatabaseActionPage() {
     useEffect(() => {
         setPage(1);
     }, [user?._id]);
+
+    // Loads the current number for pagination
+    useEffect(() => {
+        setPageInput(page.toString());
+    }, [page]);
+
+    // Guarantees the displayed number never exceeds the last page
+    useEffect(() => {
+        if (page > totalPages) {
+            setPage(totalPages);
+            setPageInput(totalPages.toString());
+        }
+    }, [totalPages]);
 
     //Creates a unique list of topics for the filter box
     useEffect(() => {
@@ -549,19 +563,36 @@ export default function DatabaseActionPage() {
                         <div className="flex items-center gap-2 text-sm text-primary">
                             <span>Page</span>
 
-                            <span>{page}</span>
+                            <input
+                                value={pageInput}
+                                maxLength={4}
+                                onChange={(e) => setPageInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    // Allow only digits, backspace, arrows, enter
+                                    if (!((e.key >= "0" && e.key <= "9") || ["Backspace", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key))) {
+                                        e.preventDefault(); 
+                                    }
 
-                            {/* <input
-                                min={1}
-                                max={totalPages}
-                                value={page}
-                                onChange={(e) => {
-                                const next = Number(e.target.value);
-                                if (Number.isNaN(next)) return;
-                                setPage(Math.max(1, Math.min(totalPages, next)));
+                                    // If the enter key is pressed, the input box is unhighlighted
+                                    if (e.key === "Enter") {
+                                        (e.target as HTMLInputElement).blur();
+                                    }
                                 }}
-                                className="w-16 rounded-xl border px-2 py-1 text-center"
-                            /> */}
+                                onBlur={() => {
+                                    const inputNum = Number(pageInput); 
+
+                                    // If the input is blank or not a number than default the page to the beginning
+                                    if (!pageInput || Number.isNaN(inputNum)) {
+                                        setPage(1);
+                                        setPageInput("1");
+                                    } else {
+                                        const newPageNum = Math.max(1, Math.min(totalPages, inputNum)); // Input can only fall between 1 and highest page
+                                        setPage(newPageNum); // Update page number
+                                        setPageInput(newPageNum.toString());
+                                    }
+                                }}
+                                className="w-12 rounded-xl border px-2 py-1 text-center"
+                            />
 
                             <span>of {totalPages}</span>
                         </div>
@@ -585,8 +616,6 @@ export default function DatabaseActionPage() {
                             <option value={100}>100</option>
                         </select>
                     </div>
-
-
 
                     {/* Questions Table */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
