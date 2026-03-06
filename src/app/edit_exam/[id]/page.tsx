@@ -421,6 +421,7 @@ export default function EditExamPage() {
 
             toast.success("Changes Saved!");
             setDirty(false);
+            router.push("/past_exams");
           } catch (e: any) {
             console.error(e);
             toast.error(e?.message || "Saved exam, but failed updating Question Bank");
@@ -474,7 +475,7 @@ export default function EditExamPage() {
         {/* X icon in the top right corner (returns to past exams) */}
         <button
           onClick={handleClose}
-          className="absolute right-8 top-6 text-3xl leading-none text-gray-500 hover:text-black"
+          className="fixed right-8 top-6 text-3xl leading-none text-gray-500 hover:text-black"
           aria-label="Close"
         >
           &times;

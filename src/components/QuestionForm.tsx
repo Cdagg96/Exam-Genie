@@ -212,232 +212,234 @@ export default function BackgroundModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-            <div className="card-primary text-primary rounded-2xl shadow-2xl w-160 max-h-[80vh] overflow-y-auto p-6 relative overflow-hidden">
+            <div className="card-primary text-black rounded-2xl shadow-2xl w-160 max-h-[90vh] p-6 flex flex-col relative overflow-hidden">
 
                 {/* Close button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-black hover:text-gray-500 text-3xl"
+                    className="absolute top-4 left-4 z-10 text-black hover:text-gray-500 text-3xl"
                 >
                     &times;
                 </button>
+                {/* Scrollable body */}
+                <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2">
+                    <h1 className="text-2xl text-blue-gradient font-bold mb-4 text-center">Add a Question</h1>
 
-                <h1 className="text-2xl text-blue-gradient font-bold mb-4 text-center">Add a Question</h1>
 
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Question Stem */}
+                        <input
+                            className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
+                            placeholder="Question"
+                            value={stem}
+                            onChange={(e) => setStem(e.target.value)}
+                            required
+                        />
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Question Stem */}
-                    <input
-                        className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
-                        placeholder="Question"
-                        value={stem}
-                        onChange={(e) => setStem(e.target.value)}
-                        required
-                    />
+                        {/* Question Type */}
+                        <SelectBox
+                            label=""
+                            placeholder="Select Question Type"
+                            options={[
+                                { value: "MC", label: "Multiple Choice" },
+                                { value: "TF", label: "True/False" },
+                                { value: "FIB", label: "Fill in the Blank" },
+                                { value: "Essay", label: "Essay" },
+                                { value: "Code", label: "Code" },
+                            ]}
+                            value={type}
+                            onSelect={(value) => setType(value)}
+                        />
 
-                    {/* Question Type */}
-                    <SelectBox
-                        label=""
-                        placeholder="Select Question Type"
-                        options={[
-                            { value: "MC", label: "Multiple Choice" },
-                            { value: "TF", label: "True/False" },
-                            { value: "FIB", label: "Fill in the Blank" },
-                            { value: "Essay", label: "Essay" },
-                            { value: "Code", label: "Code" },
-                        ]}
-                        value={type}
-                        onSelect={(value) => setType(value)}
-                    />
+                        {/* Question difficulty */}
+                        <input
+                            className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
+                            type="number"
+                            placeholder="Difficulty (1-5)"
+                            value={difficulty || ""}
+                            min={1}
+                            max={5}
+                            onChange={(e) => setDifficulty(Number(e.target.value))}
+                            required
+                        />
 
-                    {/* Question difficulty */}
-                    <input
-                        className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
-                        type="number"
-                        placeholder="Difficulty (1-5)"
-                        value={difficulty || ""}
-                        min={1}
-                        max={5}
-                        onChange={(e) => setDifficulty(Number(e.target.value))}
-                        required
-                    />
+                        {/* Question topic(s) */}
+                        <input
+                            className="border-primary px-4 py-3 w-full rounded-xl"
+                            placeholder="Topic(s) (comma separated)"
+                            value={topics}
+                            onChange={(e) => setTopics(e.target.value)}
+                            required
+                        />
 
-                    {/* Question topic(s) */}
-                    <input
-                        className="border-primary px-4 py-3 w-full rounded-xl"
-                        placeholder="Topic(s) (comma separated)"
-                        value={topics}
-                        onChange={(e) => setTopics(e.target.value)}
-                        required
-                    />
+                        {/* Question subject */}
+                        <FilterBox
+                            options={subjectsList}
+                            label="Subject"
+                            placeholder="Type or select subject"
+                            onSelect={(value) => setSubject(value)}
+                            value={subject}
+                            page="questionForm"
+                            allowCustom={true}
+                        />
 
-                    {/* Question subject */}
-                    <FilterBox
-                        options={subjectsList}
-                        label="Subject"
-                        placeholder="Type or select subject"
-                        onSelect={(value) => setSubject(value)}
-                        value={subject}
-                        page="questionForm"
-                        allowCustom={true}
-                    />
+                        {/* Question Course Number */}
+                        <FilterBox
+                            label="Course Number"
+                            placeholder="Type or select course number"
+                            options={courseNumbersList}
+                            value={courseNum}
+                            onSelect={(value) => setCourseNum(value)}
+                            page="questionForm"
+                            allowCustom={true}
+                        />
 
-                    {/* Question Course Number */}
-                    <FilterBox
-                        label="Course Number"
-                        placeholder="Type or select course number"
-                        options={courseNumbersList}
-                        value={courseNum}
-                        onSelect={(value) => setCourseNum(value)}
-                        page="questionForm"
-                        allowCustom={true}
-                    />
+                        {/* MC options */}
+                        {type === "MC" && (
+                            <div className="space-y-2">
+                                {choices.map((choice, index) => (
+                                <div key={choice.label} className="flex gap-2">
+                                    <input
+                                    className="border px-4 py-3 w-full rounded-xl"
+                                    placeholder={`Choice ${choice.label}`}
+                                    value={choice.text}
+                                    onChange={(e) => updateChoice(index, e.target.value)}
+                                    required
+                                    />
 
-                    {/* MC options */}
-                    {type === "MC" && (
-                        <div className="space-y-2">
-                            {choices.map((choice, index) => (
-                            <div key={choice.label} className="flex gap-2">
-                                <input
-                                className="border px-4 py-3 w-full rounded-xl"
-                                placeholder={`Choice ${choice.label}`}
-                                value={choice.text}
-                                onChange={(e) => updateChoice(index, e.target.value)}
-                                required
-                                />
+                                    <button
+                                    type="button"
+                                    onClick={() => removeChoice(index)}
+                                    className="px-3 text-red-500 hover:text-red-700"
+                                    >
+                                    ✕
+                                    </button>
+                                </div>
+                                ))}
 
-                                <button
-                                type="button"
-                                onClick={() => removeChoice(index)}
-                                className="px-3 text-red-500 hover:text-red-700"
-                                >
-                                ✕
-                                </button>
+                                {/*Add Choice button disappears after 5 choices and shows a message when maximum is reached */}
+                                {choices.length < 5 && (
+                                    <div className="flex justify-center">
+                                        <button
+                                            type="button"
+                                            onClick={addChoice}
+                                            className="text-blue-600 hover:underline text-sm flex items-center gap-1 hover:text-blue-800 transition-colors"
+                                        >
+                                            + Add Choice ({choices.length}/5)
+                                        </button> 
+                                    </div>
+                                )}
+                                {choices.length >= 5 && (
+                                    <div className="flex justify-center">
+                                        <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                            </svg>
+                                            Maximum of 5 choices reached
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            ))}
+                            )}
 
-                            {/*Add Choice button disappears after 5 choices and shows a message when maximum is reached */}
-                            {choices.length < 5 && (
-                                <div className="flex justify-center">
+                        {/* True/False options */}
+                        {type === "TF" && (
+                            <div className="mt-2">
+                                <label className="block text-primary mb-2">
+                                    Correct answer
+                                </label>
+                                <div className="flex gap-2">
                                     <button
                                         type="button"
-                                        onClick={addChoice}
-                                        className="text-blue-600 hover:underline text-sm flex items-center gap-1 hover:text-blue-800 transition-colors"
+                                        onClick={() => setCorrect("True")}
+                                        className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
+                                        ${correctAnswer === "True" ? "btn btn-primary-blue" : "btn btn-ghost"}`}
                                     >
-                                        + Add Choice ({choices.length}/5)
-                                    </button> 
+                                        True
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCorrect("False")}
+                                        className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
+                                        ${correctAnswer === "False" ? "btn btn-primary-blue" : "btn btn-ghost"}`}
+                                    >
+                                        False
+                                    </button>
                                 </div>
-                            )}
-                            {choices.length >= 5 && (
-                                <div className="flex justify-center">
-                                    <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                                        </svg>
-                                        Maximum of 5 choices reached
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                            </div>
                         )}
 
-                    {/* True/False options */}
-                    {type === "TF" && (
-                        <div className="mt-2">
-                            <label className="block text-primary mb-2">
-                                Correct answer
-                            </label>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setCorrect("True")}
-                                    className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
-                                    ${correctAnswer === "True" ? "btn btn-primary-blue" : "btn btn-ghost"}`}
-                                >
-                                    True
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setCorrect("False")}
-                                    className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
-                                    ${correctAnswer === "False" ? "btn btn-primary-blue" : "btn btn-ghost"}`}
-                                >
-                                    False
-                                </button>
+                        {/* Essay/Code only have one "option" box */}
+                        {(type === "Essay" || type === "Code") && (
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Correct answer
+                                </label>
+                                <textarea
+                                    className="border h-50 px-4 py-3 w-full rounded-xl"
+                                    placeholder="Type your answer here..."
+                                    value={extendedAnswer}
+                                    onChange={(e) => setExAnswer(e.target.value)}
+                                    required
+                                />
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Number of blank lines
+                                </label>
+                                <input
+                                    type="number"
+                                    className="border text-secondary px-4 py-3 w-full rounded-xl"
+                                    value={blankLines}
+                                    onChange={(e) => setBlankLines(Number(e.target.value))}
+                                    required
+                                />
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Essay/Code only have one "option" box */}
-                    {(type === "Essay" || type === "Code") && (
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-primary mb-2">
-                                Correct answer
-                            </label>
-                            <textarea
-                                className="border h-50 px-4 py-3 w-full rounded-xl"
-                                placeholder="Type your answer here..."
-                                value={extendedAnswer}
-                                onChange={(e) => setExAnswer(e.target.value)}
-                                required
-                            />
-                            <label className="block text-sm font-medium text-primary mb-2">
-                                Number of blank lines
-                            </label>
-                            <input
-                                type="number"
-                                className="border text-secondary px-4 py-3 w-full rounded-xl"
-                                value={blankLines}
-                                onChange={(e) => setBlankLines(Number(e.target.value))}
-                                required
-                            />
-                        </div>
-                    )}
+                        {/* FIB only have one "option" box and one blank line*/}
+                        {(type == "FIB") && (
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Correct answer
+                                </label>
+                                <input
+                                    className="border px-4 py-3 w-full rounded-xl"
+                                    value={fibAnswer}
+                                    onChange={(e) => setFIBAnswer(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        )}
 
-                    {/* FIB only have one "option" box and one blank line*/}
-                    {(type == "FIB") && (
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-primary mb-2">
-                                Correct answer
-                            </label>
-                            <input
-                                className="border px-4 py-3 w-full rounded-xl"
-                                value={fibAnswer}
-                                onChange={(e) => setFIBAnswer(e.target.value)}
+                        {/* MC correct answer*/}
+                        {type === "MC" && (
+                            <label className="block">
+                                Correct answer:
+                                <select
+                                className="border-primary bg-primary p-2 ml-2 rounded"
+                                value={correctAnswer}
+                                onChange={(e) => setCorrect(e.target.value)}
                                 required
-                            />
-                        </div>
-                    )}
+                                >
+                                {choices.map(choice => (
+                                    <option key={choice.label} value={choice.label}>
+                                    {choice.label}
+                                    </option>
+                                ))}
+                                </select>
+                            </label>
+                        )}
 
-                    {/* MC correct answer*/}
-                    {type === "MC" && (
-                        <label className="block">
-                            Correct answer:
-                            <select
-                            className="border-primary bg-primary p-2 ml-2 rounded"
-                            value={correctAnswer}
-                            onChange={(e) => setCorrect(e.target.value)}
-                            required
+
+                        <div className="flex justify-center">
+                            <button
+                                type="submit"
+                                className="btn btn-primary-blue"
                             >
-                            {choices.map(choice => (
-                                <option key={choice.label} value={choice.label}>
-                                {choice.label}
-                                </option>
-                            ))}
-                            </select>
-                        </label>
-                    )}
-
-
-                    <div className="flex justify-center">
-                        <button
-                            type="submit"
-                            className="btn btn-primary-blue"
-                        >
-                            Add Question
-                        </button>
-                    </div>
-                </form>
+                                Add Question
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
