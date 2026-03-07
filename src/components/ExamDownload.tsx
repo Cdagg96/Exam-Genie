@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import JSZip from 'jszip';
 import type { ExamDoc } from "@/types/exam";
 import { saveAs } from "file-saver";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle,} from "docx";
 import { before } from "node:test";
 type DownloadFormat = "pdf" | "txt" | "csv" | "docx";
 
@@ -1702,12 +1702,6 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
 
   const paragraphs: Paragraph[] = [];
 
-  const instructions = [
-    "Answer all questions in the space provided.",
-    "Show your work where applicable. Circle or clearly mark your final answer.",
-    "No unauthorized materials. Calculators allowed unless otherwise stated.",
-  ];
-
   // Name
   paragraphs.push(
     new Paragraph({
@@ -1717,6 +1711,18 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
           font: "Helvetica",
           size: 22, // 11pt
         }),
+        new TextRun({
+          text: "\t\t\t\t\t\t\t\t", 
+          font: "Helvetica",
+          size: 22,
+        }),
+        new TextRun({
+          text: ` /${exam.totalPoints}`,
+          font: "Helvetica",
+          size: 22,
+          bold: true,
+        }),
+
       ],
       spacing: { after: 200 },
     })
@@ -1728,6 +1734,7 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
       text: `Department of ${exam.subject || "Unknown Subject"
         }`,
       heading: HeadingLevel.HEADING_3,
+      alignment: AlignmentType.CENTER,
       spacing: { after: 100 },
     })
   );
@@ -1743,6 +1750,7 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
           size: 36, // 18pt
         }),
       ],
+      alignment: AlignmentType.CENTER,
       spacing: { after: 100 },
     })
   );
@@ -1756,8 +1764,39 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
           font: "Helvetica",
           size: 22,
         }),
+        new TextRun({
+          text: `\n`,
+          font: "Helvetica",
+          size: 22,
+        }),
+        new TextRun({
+          text: `_________________________________________________________________________`,
+          font: "Helvetica",
+          size: 22,
+        }),
       ],
+      alignment: AlignmentType.CENTER,
       spacing: { after: 300 },
+    })
+  );
+
+  //Top border of instructions
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "\n",
+          font: "Helvetica",
+          size: 24,
+        }),
+      ],
+      spacing: { after: 0 },
+      border: {
+        top: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+        left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+        right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+      },
+      indent: { left: 360, right: 360 },
     })
   );
 
@@ -1769,15 +1808,27 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
           text: "INSTRUCTIONS",
           bold: true,
           font: "Helvetica",
-          size: 22,
+          size: 24,
         }),
       ],
+      alignment: AlignmentType.CENTER,
       spacing: { after: 100 },
+      border: {
+        left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+        right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+      },
+      indent: { left: 360, right: 360 },
     })
   );
 
+  const instructions = [
+    "Answer all questions in the space provided.",
+    "Show your work where applicable. Circle or clearly mark your final answer.",
+    "No unauthorized materials. Calculators allowed unless otherwise stated.",
+  ];
+
   // Instructions bullets
-  instructions.forEach((inst) => {
+  instructions.forEach((inst, index) => {
     paragraphs.push(
       new Paragraph({
         children: [
@@ -1787,15 +1838,34 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
             size: 20,
           }),
         ],
-        spacing: { after: 50 },
+        spacing: { after: index === instructions.length - 1 ? 100 : 50 },
+        border: {
+          left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+          right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+        },
+        indent: { left: 360, right: 360 },
+        alignment: AlignmentType.CENTER,
       })
     );
   });
 
+  //Bottom border instruction paragraph
   paragraphs.push(
     new Paragraph({
-      text: "",
+      children: [
+        new TextRun({
+          text: "",
+          font: "Helvetica",
+          size: 20,
+        }),
+      ],
       spacing: { after: 200 },
+      border: {
+        bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+        left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+        right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+      },
+      indent: { left: 360, right: 360 },
     })
   );
 
@@ -1804,6 +1874,32 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
     const num = index + 1;
     const points = q.points ?? 1;
     const stem = q.snapshot?.stem ?? "(Question text)";
+    const prevType = index > 0 ? sortedQuestions[index - 1].type : null;
+    const showTypeHeader = prevType !== q.type;
+
+    //Section header if type changes
+    if (showTypeHeader) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: q.type === "MC" ? "Multiple Choice" :
+                    q.type === "TF" ? "True/False" :
+                    q.type === "FIB" ? "Fill in the Blank" :
+                    q.type === "Essay" ? "Essay" :
+                    q.type === "Code" ? "Coding" : "Questions",
+              font: "Helvetica",
+              size: 20,
+              bold: true,
+            }),
+          ],
+          spacing: { before: 400, after: 100 },
+          border: {
+            bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+          },
+        })
+      );
+    }
 
     // Stem
     paragraphs.push(
@@ -1868,7 +1964,7 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
         new Paragraph({
           children: [
             new TextRun({
-              text: "Circle one:  [ ] True    [ ] False",
+              text: "Circle one:  True    False",
               font: "Helvetica",
               size: 20,
             }),
@@ -1902,7 +1998,7 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
           new Paragraph({
             children: [
               new TextRun({
-                text: "______________________________________________________",
+                text: "_________________________________________________________________________________",
                 font: "Helvetica",
                 size: 20,
               }),
@@ -1925,7 +2021,7 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
         new Paragraph({
           children: [
             new TextRun({
-              text: "// Write your code below:",
+              text: "Write your code below:",
               font: "Helvetica",
               size: 20,
             }),
@@ -1933,14 +2029,31 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
           spacing: { after: 100 },
         })
       );
-      for (let i = 0; i < 6; i++) {
-        paragraphs.push(
-          new Paragraph({
-            text: "",
-            spacing: { after: 50 },
-          })
-        );
-      }
+      paragraphs.push(
+        new Paragraph({
+          spacing: { 
+            before: 100,
+            after: 400,
+            line: 1300, 
+          },
+          border: {
+            top: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+            bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+            left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+            right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+          },
+          shading: {
+            fill: "F5F5F5",
+          },
+          children: [
+            new TextRun({
+              text: "\n\n\n",
+              font: "Helvetica",
+              size: 20,
+            }),
+          ],
+        })
+      );
     }
   });
 
