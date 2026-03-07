@@ -138,11 +138,11 @@ export async function GET(req: Request) {
                 
                 if (filterType === 'before') {
                     //Filter for dates before the selected day
-                    filter.lastUsed = { $lt: endOfDay };
+                    filter.lastUsed = { $lt: startOfDay };
                 } 
                 else if (filterType === 'after') {
                     //Filter for dates after the selected day
-                    filter.lastUsed = { $gt: startOfDay };
+                    filter.lastUsed = { $gt: endOfDay };
                 }
                 else if (filterType === 'range') {
                     //Filter for dates between start and end
