@@ -674,9 +674,12 @@ export default function PastExams() {
                                                         : "N/A"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {exam.lastUsed
-                                                        ? new Date(exam.lastUsed).toLocaleDateString()
-                                                        : "Never"}
+                                                    {exam.lastUsed 
+                                                        ? (() => {
+                                                            const [year, month, day] = new Date(exam.lastUsed).toISOString().split('T')[0].split('-');
+                                                            return `${month}/${day}/${year}`;
+                                                        })()
+                                                        : 'Never'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <div className="flex items-center justify-center gap-4">

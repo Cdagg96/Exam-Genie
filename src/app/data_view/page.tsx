@@ -835,7 +835,12 @@ export default function DatabaseActionPage() {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {question.lastUsed ? new Date(question.lastUsed).toLocaleDateString() : 'Never'}
+                                                    {question.lastUsed 
+                                                        ? (() => {
+                                                            const [year, month, day] = new Date(question.lastUsed).toISOString().split('T')[0].split('-');
+                                                            return `${month}/${day}/${year}`;
+                                                        })()
+                                                        : 'Never'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => handleEditClick(question)}>
