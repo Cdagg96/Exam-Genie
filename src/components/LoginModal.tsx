@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthContext";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import { signIn } from "next-auth/react";
+import StatusModal from "./StatusModal";
 
 export default function LoginModal({
   isOpen,
@@ -15,6 +16,9 @@ export default function LoginModal({
 
   //State to switch between login and register modals (default to login)
   const [currentModal, setCurrentModal] = useState<"login" | "register">("login");
+  
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [userStatus, setUserStatus] = useState<'Pending' | 'Denied' | null>(null);
 
   //Login states
   const [loginData, setLoginData] = useState({
@@ -84,6 +88,28 @@ export default function LoginModal({
     if (!isValidEmail(loginData.email)) {
       toast.error("Please enter a valid email address.");
       return;
+    }
+
+    //Check to see users status
+    try {
+      const statusRes = await fetch(`/api/user/status?email=${encodeURIComponent(loginData.email)}`);
+      
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        
+        //If user is found, check their status and show popup if needed
+        if (statusData.status === 'Pending') {
+          setUserStatus('Pending');
+          setShowStatusModal(true);
+          return;
+        } else if (statusData.status === 'Denied') {
+          setUserStatus('Denied');
+          setShowStatusModal(true);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Status check failed:", error);
     }
 
     const res = await signIn("credentials", {
@@ -181,7 +207,7 @@ export default function LoginModal({
         if (!res.ok) {
           toast.error(data.message || "Registration failed.");
         } else {
-          toast.success("Registration successful! Your account is pending approval. You will receive an email once approved.");
+          toast.success("Registration successful! Your account is pending approval. You will receive an email once approved.", {duration: 5000});
 
           // const loginResult = await fetch("/api/login", {
           //   method: "POST",
@@ -476,6 +502,18 @@ export default function LoginModal({
         isOpen={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}
       />
+      {/* Status Modal */}
+      {showStatusModal && (
+        <StatusModal
+          isOpen={showStatusModal}
+          onClose={() => {
+            setShowStatusModal(false);
+            setUserStatus(null);
+          }}
+          status={userStatus}
+          email={loginData.email}
+        />
+      )}
     </div>
   );
 }
