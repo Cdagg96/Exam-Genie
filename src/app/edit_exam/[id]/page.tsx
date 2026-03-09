@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { ExamDoc } from "@/types/exam";
 import QuestionForm from "@/components/QuestionForm";
@@ -61,6 +61,8 @@ export default function EditExamPage() {
   const [isUnsavedConfirmOpen, setIsUnsavedConfirmOpen] = useState(false);
   const [bankOps, setBankOps] = useState<BankOp[]>([]);
   const [isEditingInstructions, setIsEditingInstructions] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const pageTopRef = useRef<HTMLDivElement>(null)
 
   // Function to count the total points any time a point value is edited
   const recomputeTotalPoints = (questions: any[]) =>
@@ -145,6 +147,15 @@ export default function EditExamPage() {
   const handleEditFormClose = () => {
     setIsEditQuestionFormOpen(false);
     setEditingQuestion(null);
+  };
+
+  //Scroll back to top
+  const scrollToTop = () => {
+    pageTopRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+
   };
 
   // Fetch this specific exam
@@ -470,6 +481,7 @@ export default function EditExamPage() {
   // Otherwise, display the exam editing interface
   return (
     <Background>
+      <div ref={pageTopRef} />
       <div className="min-h-screen w-full flex flex-col items-center py-10 px-4 font-serif">
         {/* X icon in the top right corner (returns to past exams) */}
         <button
@@ -482,9 +494,12 @@ export default function EditExamPage() {
 
         {/* Paper outline that goes around the exam content */}
         <div className="relative bg-white border border-gray-300 shadow-md rounded-lg w-full max-w-[8.5in] p-10">
-          {/* Name in the top left corner */}
-          <div className="mb-4 flex justify-start">
+          {/* Name in the top left corner and points in top right */}
+          <div className="mb-4 flex justify-between items-center">
             <span className="text-sm text-gray-600">Name: ________________</span>
+            <span className="text-4xl text-gray-600 font-medium rounded-lg border border-gray-600 px-6 py-1 min-w-[110px] text-right">
+              /{exam.totalPoints}
+            </span>
           </div>
 
           {/* Header (always displayed currently) */}
@@ -751,6 +766,27 @@ export default function EditExamPage() {
           type="unsaved"
         />
       </div>
+      {/* Back to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className="fixed left-1/2 -translate-x-1/2 bottom-4 bg-white border border-gray-300 rounded-full px-4 py-2 shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 z-50"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-4 h-4"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"
+          />
+        </svg>
+        Back to Top
+      </button>
     </Background>
   );
 }
