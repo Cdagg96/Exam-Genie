@@ -51,6 +51,13 @@ export default function PastExams() {
     const { user } = useAuth();
     const filteredExams = exams;
 
+    // Pagination variables
+    const [page, setPage] = useState(1);
+    const [pageInput, setPageInput] = useState(page.toString());
+    const [limit, setLimit] = useState(25);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+
     // Fetch exams from MongoDB
     const fetchExamsWithFilters = async () => {
         try {
@@ -80,6 +87,9 @@ export default function PastExams() {
                 }
             }
 
+            queryParams.set('page', String(page))
+            queryParams.set('limit', String(limit))
+
             const queryString = queryParams.toString();
             const url = queryString ? `/api/exams?${queryString}` : '/api/exams';
 
@@ -92,8 +102,20 @@ export default function PastExams() {
             }
 
             const data = await response.json();
-            setExams(data);
-            setFiltersApplied(queryString.length > 0);
+            setExams(data.items ?? []);
+            setTotalPages(data.totalPages ?? 1);
+            setTotal(data.total ?? 0);
+
+            // Only mark filtersApplied if real filters are on (ignore page/limit)
+            const hasFilters =
+                !!selectedName ||
+                !!selectedDifficulty ||
+                !!selectedTotalPoints ||
+                !!selectedSubject ||
+                !!selectedCourseNum ||
+                !!selectedLastUsed;
+
+            setFiltersApplied(hasFilters);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
             console.error('Error fetching exams:', err);
@@ -104,6 +126,7 @@ export default function PastExams() {
 
     // Apply filters
     const handleApplyFilters = async () => {
+        setPage(1);
         fetchExamsWithFilters();
     }
 
@@ -120,10 +143,10 @@ export default function PastExams() {
         setDateInputValueEnd('');
         setLastUsedFilterType('before');
         setFiltersApplied(false);
+        setPage(1);
         fetchExams();
     }
 
-    // Fetch exams from MongoDB without filters
     const fetchExams = async () => {
         try {
             setLoading(true);
@@ -131,10 +154,17 @@ export default function PastExams() {
             if (!user?._id) {
                 setExams([]);
                 setFiltersApplied(false);
+                setTotalPages(1);
+                setTotal(0);
                 return;
             }
-            
-            const response = await fetch(`/api/exams?userID=${user._id}`, {
+
+            const queryParams = new URLSearchParams();
+            queryParams.append("userID", user._id);
+            queryParams.set("page", page.toString());
+            queryParams.set("limit", limit.toString());
+
+            const response = await fetch(`/api/exams?${queryParams.toString()}`, {
                 method: "GET",
             });
 
@@ -143,7 +173,9 @@ export default function PastExams() {
             }
 
             const data = await response.json();
-            setExams(data);
+            setExams(data.items ?? []);
+            setTotalPages(data.totalPages ?? 1);
+            setTotal(data.total ?? 0);
             setFiltersApplied(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
@@ -153,16 +185,35 @@ export default function PastExams() {
         }
     };
 
+    // Loads the current number for pagination
+    useEffect(() => {
+        setPageInput(page.toString());
+    }, [page]);
+
+    // Guarantees the displayed number never exceeds the last page
+    useEffect(() => {
+        if (page > totalPages) {
+            setPage(totalPages);
+            setPageInput(totalPages.toString());
+        }
+    }, [totalPages]);
+
     // Runs when page opens to get exams
     useEffect(() => {
         if (!user?._id) {
             setExams([]);
-            setFiltersApplied(false);
+            setTotalPages(1);
+            setTotal(0);
             setLoading(false);
             return;
         }
-        fetchExams();
-    }, [user]);
+        fetchExamsWithFilters();
+    }, [page, limit, user?._id]);
+
+    // Set page back to one if user changes
+    useEffect(() => {
+        setPage(1);
+    }, [user?._id]);
 
     //Creates a unique list of subjects and course numbers for the filter box
     useEffect(() => {
@@ -569,6 +620,73 @@ export default function PastExams() {
                                 Apply Filters
                             </button>
                         </div>
+                    </div>
+
+                    {/* Pages */}
+                    <div className="flex items-center gap-3 mb-5">
+                        <button
+                            className="btn btn-ghost"
+                            disabled={page === 1}
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                        >
+                            Prev
+                        </button>
+
+                        <div className="flex items-center gap-2 text-sm text-primary">
+                            <span>Page</span>
+
+                            <input
+                                value={pageInput}
+                                maxLength={4}
+                                onChange={(e) => setPageInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    // Allow only digits, backspace, arrows, enter
+                                    if (!((e.key >= "0" && e.key <= "9") || ["Backspace", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key))) {
+                                        e.preventDefault(); 
+                                    }
+
+                                    // If the enter key is pressed, the input box is unhighlighted
+                                    if (e.key === "Enter") {
+                                        (e.target as HTMLInputElement).blur();
+                                    }
+                                }}
+                                onBlur={() => {
+                                    const inputNum = Number(pageInput); 
+
+                                    // If the input is blank or not a number than default the page to the beginning
+                                    if (!pageInput || Number.isNaN(inputNum)) {
+                                        setPage(1);
+                                        setPageInput("1");
+                                    } else {
+                                        const newPageNum = Math.max(1, Math.min(totalPages, inputNum)); // Input can only fall between 1 and highest page
+                                        setPage(newPageNum); // Update page number
+                                        setPageInput(newPageNum.toString());
+                                    }
+                                }}
+                                className="w-12 rounded-xl border px-2 py-1 text-center"
+                            />
+
+                            <span>of {totalPages}</span>
+                        </div>
+
+                        <button
+                            className="btn btn-ghost"
+                            disabled={page >= totalPages}
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        >
+                            Next
+                        </button>
+
+                        <select
+                            className="border border-primary bg-primary rounded-xl px-2 py-1 text-sm text-primary"
+                            value={limit}
+                            onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                        >
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
                     </div>
 
                     {/* Exams Table */}
