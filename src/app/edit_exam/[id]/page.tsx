@@ -152,9 +152,9 @@ export default function EditExamPage() {
   //Scroll back to top
   const scrollToTop = () => {
     pageTopRef.current?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
+      behavior: "smooth",
+      block: "start",
+    });
 
   };
 
@@ -579,12 +579,35 @@ export default function EditExamPage() {
               />
               {/* Render each question */}
               {exam.questions?.map((q, index) => {
+                const prevType = index > 0 ? exam.questions[index - 1].type : null;
+                const showTypeHeader = prevType !== q.type;
                 const points = q.points ?? 1;
                 const isBeingDragged = draggedQuestion === q.questionId;
 
                 return (
                   // For each question
+                  /* Question Headers */
                   <div key={q.questionId} className="relative group">
+                    {showTypeHeader && (
+                      <div className="mb-4 -ml-6">
+                        <div className="flex items-center gap-3 pb-4">
+                          <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
+                            {q.type === "MC"
+                              ? "Multiple Choice"
+                              : q.type === "TF"
+                              ? "True/False"
+                              : q.type === "FIB"
+                              ? "Fill in the Blank"
+                              : q.type === "Essay"
+                              ? "Essay"
+                              : q.type === "Code"
+                              ? "Coding"
+                              : "Questions"}
+                          </span>
+                          <div className="h-px flex-1 bg-gray-300"></div>
+                        </div>
+                      </div>
+                    )}
                     {/* Question item */}
                     <div className={`relative transition-all duration-200 rounded-lg ${isBeingDragged ? 'opacity-50' : 'bg-white'
                       }`}>
