@@ -2,6 +2,12 @@ import React from "react";
 
 type Node = any;
 
+type TextSegment = {
+  text: string;
+  bold?: boolean;
+  bullet?: boolean;
+};  
+
 export function renderTipTap(node: Node): React.ReactNode {
   if (!node) return null;
 
@@ -59,5 +65,39 @@ export function renderTipTap(node: Node): React.ReactNode {
 
     default:
       return null;
+  }
+}
+
+//Converts tiptap to a flat array of text segments
+export function tiptapToSegments(node: Node): TextSegment[] {
+  if (!node) return [];
+
+  switch (node.type) {
+
+    case "doc":
+      return node.content?.flatMap(tiptapToSegments) ?? [];
+
+    case "paragraph":
+      return [
+        ...(node.content?.flatMap(tiptapToSegments) ?? []),
+        { text: "\n" }
+      ];
+
+    case "bulletList":
+      return node.content?.flatMap(tiptapToSegments) ?? [];
+
+    case "listItem":
+      return [
+        { text: "•", bullet: true },
+        ...(node.content?.flatMap(tiptapToSegments) ?? []),
+      ];
+
+    case "text":
+      const bold = node.marks?.some((m: any) => m.type === "bold");
+
+      return [{ text: node.text ?? "", bold }];
+
+    default:
+      return [];
   }
 }
