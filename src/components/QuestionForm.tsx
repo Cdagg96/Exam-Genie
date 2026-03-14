@@ -26,6 +26,8 @@ export default function BackgroundModal({
     const [choices, setChoices] = useState([
         {label: "A", text: ""},
         {label: "B", text: ""},
+        {label: "C", text: ""},
+        {label: "D", text: ""},
     ]);
     const [correctAnswer, setCorrect] = useState("A");
     const [extendedAnswer, setExAnswer] = useState("");
@@ -263,7 +265,7 @@ export default function BackgroundModal({
 
                         {/* Question topic(s) */}
                         <input
-                            className="border-primary px-4 py-3 w-full rounded-xl"
+                            className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
                             placeholder="Topic(s) (comma separated)"
                             value={topics}
                             onChange={(e) => setTopics(e.target.value)}
@@ -374,7 +376,7 @@ export default function BackgroundModal({
                                     Correct answer
                                 </label>
                                 <textarea
-                                    className="border h-50 px-4 py-3 w-full rounded-xl"
+                                    className="border border-primary text-secondary h-50 px-4 py-3 w-full rounded-xl"
                                     placeholder="Type your answer here..."
                                     value={extendedAnswer}
                                     onChange={(e) => setExAnswer(e.target.value)}
@@ -385,7 +387,7 @@ export default function BackgroundModal({
                                 </label>
                                 <input
                                     type="number"
-                                    className="border text-secondary px-4 py-3 w-full rounded-xl"
+                                    className="border border-primary text-secondary px-4 py-3 w-full rounded-xl"
                                     value={blankLines}
                                     onChange={(e) => setBlankLines(Number(e.target.value))}
                                     required
@@ -400,7 +402,8 @@ export default function BackgroundModal({
                                     Correct answer
                                 </label>
                                 <input
-                                    className="border px-4 py-3 w-full rounded-xl"
+                                    className="border border-primary text-secondary px-4 py-3 w-full rounded-xl"
+                                    placeholder="Type your answer here..."
                                     value={fibAnswer}
                                     onChange={(e) => setFIBAnswer(e.target.value)}
                                     required
@@ -410,13 +413,13 @@ export default function BackgroundModal({
 
                         {/* MC correct answer*/}
                         {type === "MC" && (
-                            <label className="block">
+                            <label className="block text-primary">
                                 Correct answer:
                                 <select
-                                className="border-primary bg-primary p-2 ml-2 rounded"
-                                value={correctAnswer}
-                                onChange={(e) => setCorrect(e.target.value)}
-                                required
+                                    className="border-primary bg-primary p-2 ml-2 rounded"
+                                    value={correctAnswer}
+                                    onChange={(e) => setCorrect(e.target.value)}
+                                    required
                                 >
                                 {choices.map(choice => (
                                     <option key={choice.label} value={choice.label}>

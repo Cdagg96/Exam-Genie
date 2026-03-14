@@ -4,8 +4,10 @@ import ExamForm from "../../components/examForm";
 import NavBar from "@/components/navbar";
 import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
+import useTheme from "@/hooks/useTheme"
 
 export default function examGen(){
+    const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const { user } = useAuth();
     return(
         <Background>

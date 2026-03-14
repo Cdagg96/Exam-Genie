@@ -6,9 +6,11 @@ import toast from "react-hot-toast";
 import SelectBox from "@/components/SelectBox";
 import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
-
+import useTheme from "@/hooks/useTheme"
 
 export default function ContactPage() {
+  const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
+  
   //States for form fields
   const [issueType, setIssueType] = useState("");
   const [message, setMessage] = useState("");
