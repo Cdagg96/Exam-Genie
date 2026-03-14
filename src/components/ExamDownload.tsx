@@ -4,6 +4,7 @@ import type { ExamDoc } from "@/types/exam";
 import { saveAs } from "file-saver";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle,} from "docx";
 import { before } from "node:test";
+import { renderTipTap, tiptapToSegments} from "@/components/renderTipTap";
 type DownloadFormat = "pdf" | "txt" | "csv" | "docx";
 
 //PDF generation function
@@ -1119,7 +1120,8 @@ export function DownloadAnswerKeyCSV(exam: ExamDoc) {
 //Function to generate PDF Blob for zip downloads
 export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
   const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageWidth = doc.internal.pageSize.getWidth(); //210mm
+  const pageHeight = doc.internal.pageSize.getHeight(); //297mm
   const margin = 28; //~1 inch margin
 
   //Set initial y position
@@ -1128,147 +1130,307 @@ export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
   //Name field at top left
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
-  doc.text("Name: ________________", margin, y);
-  y += 15;
+  doc.text("Name: ______________________", margin, y);
 
-  //Header
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.text(`Department of ${exam.subject}` || "No Department", pageWidth / 2, y, { align: "center" });
-  y += 8;
-
+  //Exam total points at top right
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text(exam.title || "Untitled Exam", pageWidth / 2, y, { align: "center" });
-  y += 8;
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  doc.text(`Time: ${exam.timeLimitMin} minutes • Total Points: ${exam.totalPoints}`, pageWidth / 2, y, { align: "center" });
+  doc.text(`  /${exam.totalPoints}`, pageWidth - margin, y, {align: "right"});
   y += 15;
 
-  //Draw header border
-  doc.setDrawColor(200, 200, 200);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 15;
+  let courseName = "";
 
-  //Instructions section
-  doc.setDrawColor(200, 200, 200);
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(margin, y, pageWidth - (2 * margin), 45, 3, 3, 'FD');
+  //Display the subject/course number assigned to the test
+  if (exam.subject) {
+    courseName = exam.courseNum
+    ? `${exam.subject} ${exam.courseNum}`
+    : `Department of ${exam.subject}`;
+  }
 
+  if (courseName) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(courseName, pageWidth / 2, y, { align: "center" });
+    y += 7;
+  }
+
+  //Exam title
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("INSTRUCTIONS", margin + 8, y + 8);
+  doc.setFontSize(16);
+  doc.text(exam.title || "Exam", pageWidth / 2, y, { align: "center" });
+  y += 6;
+
+  //Display the time limit
+  const minutesText = `Time: ${exam.timeLimitMin} ${exam.timeLimitMin !== 1 ? "minutes" : "minute"}`;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(minutesText, pageWidth / 2, y, { align: "center" });
+  y += 10;
+
+  //Instructions
+  const segments = exam.instructionsDoc ? tiptapToSegments(exam.instructionsDoc) : []; //Get instructions in segments
+  const instructionsStartPos = y;
+  const safeWidth = pageWidth - 2 * margin - 6; //Max width allowed for text so there is no runoff
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  const instructions = [
-    "• Answer all questions in the space provided.",
-    "• Show your work where applicable. Circle or clearly mark your final answer.",
-    "• No unauthorized materials. Calculators allowed unless otherwise stated."
-  ];
+  doc.setFontSize(8);
 
-  instructions.forEach((instruction, index) => {
-    doc.text(instruction, margin + 12, y + 18 + (index * 6));
+  const flushLine = (segments: any[]) => {
+    if (segments.length === 0) return;
+
+    //Get the entire width of the instructions
+    const fullText = segments.map(s => s.text).join("");
+    const textWidth = doc.getTextWidth(fullText);
+
+    const xStart = (pageWidth - textWidth) / 2;
+    let x = xStart;
+
+    //Draw bullet if the text segment contains one (this is customizable)
+    const bullet = segments.find(s => s.bullet);
+    if (bullet) {
+      doc.text("•", margin, y);
+    }
+
+    //Go through each part of the text and write it on the PDF
+    segments.forEach(seg => {
+      doc.setFont("helvetica", seg.bold ? "bold" : "normal");
+      doc.text(seg.text, x, y);
+      x += doc.getTextWidth(seg.text);
+    });
+
+    y += 5;
+  };
+
+  let currentLine: any[] = [];
+  let currentWidth = 0;
+
+  //Go through each segment
+  segments.forEach(seg => {
+    const parts = seg.text.split("\n"); //Split the segment into parts based on paragraphs
+
+    parts.forEach((part, idx) => {
+      if (idx > 0) {
+        flushLine(currentLine); //Write the current line
+
+        //Reset
+        currentLine = [];
+        currentWidth = 0;
+      }
+
+      const wrapped = doc.splitTextToSize(part, safeWidth); //Wrap long text using jsPDF's built-in function
+      
+      //Go through each line in the array since it was split to be wrapped
+      wrapped.forEach((line: string, wIdx: number) => {
+        const isFirstWrappedLine = wIdx === 0;
+
+        let cleanText = line.replace(/^•\s*/, ""); //Remove bullet characters from text
+
+        //Only the first wrapped line keeps the bullet point
+        const segForLine = {
+          ...seg,
+          bullet: isFirstWrappedLine ? seg.bullet : false,
+          text: cleanText
+        };
+
+        if (wIdx > 0) {
+          flushLine(currentLine);
+          currentLine = [];
+          currentWidth = 0;
+        }
+
+        const width = doc.getTextWidth(line);
+
+        if (currentWidth + width > safeWidth) {
+          flushLine(currentLine);
+          currentLine = [];
+          currentWidth = 0;
+        }
+
+        currentLine.push(segForLine);
+        currentWidth += width;
+      });
+    });
   });
 
-  y += 55; //Move past instructions
+  flushLine(currentLine); //Write last line
 
-  //Questions
+  //Draw box around instructions
+  doc.setDrawColor(150, 150, 150);
+  doc.rect(margin - 4, instructionsStartPos - 6, pageWidth - margin * 2 + 4, y - instructionsStartPos);
+
+  y += 10;
+
+  //Questions section
   const sortedQuestions = exam.questions.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
+  //Set counters so the headers can be displayed before question of each type
+  let mcCount = 0;
+  let tfCount = 0;
+  let fibCount = 0;
+  let codeCount = 0;
+  let essayCount = 0;
+
+  function getQuestionHeight(q: any, splitStemLines: number) {
+    let height = 0;
+
+    height += Math.max(splitStemLines * 5, 8); //Get question stem height (default to height of 8 if small)
+
+    //Type-specific height
+    if (q.type === "MC") {
+      height += q.snapshot?.choices?.length * 5 + 4;
+    }
+    else if (q.type === "TF") {
+      height += 10;
+    }
+    else if (q.type === "FIB") {
+      height += 10;
+    }
+    else if (q.type === "Essay") {
+      const blankLines = q.snapshot?.blankLines ?? 4;
+      height += blankLines * 8 + 2;
+    }
+    else if (q.type === "Code") {
+      const blankLines = q.snapshot?.blankLines ?? 4;
+      height += blankLines * 8 + 2;
+    }
+
+    height += 2;
+
+    return height;
+  }
+
+  //Go through each question in the exam
   sortedQuestions.forEach((q, index) => {
-    //Check if we need a new page (leave space for question content)
-    if (y > 240) {
+    const questionNumber = index + 1;
+    const points = q.points ?? 1;
+    const stem = q.snapshot?.stem ?? "";
+
+    function addSectionHeader(headerName: string, neededHeight: number) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+
+      //Create new page if needed (Add 10 for header height)
+      if (y + 10 + neededHeight > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+
+      doc.text(headerName, margin, y); //Make the header
+
+      const headerWidth = doc.getTextWidth(headerName);
+
+      //Underline the header
+      doc.setDrawColor(0, 0, 0);
+      doc.line(margin, y + 0.75, margin + headerWidth, y + 0.75);
+
+      y += 6;
+    }
+
+    //Get width of the question number
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    const questionNumberWidth = doc.getTextWidth(`${questionNumber}. `);
+    
+    //Get width of point values
+    const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
+    doc.setFont("helvetica", "italic");
+    const pointsTextWidth = doc.getTextWidth(`(${pointsText}) `);
+
+    const stemBeginning = margin + questionNumberWidth + pointsTextWidth;
+
+    doc.setFont("helvetica", "normal");
+
+    //Split stem text to fit available width
+    const safeStemWidth = pageWidth - margin - stemBeginning;
+    const splitStemLines = doc.splitTextToSize(stem, safeStemWidth); //Puts the split lines into an array
+    const neededHeight = getQuestionHeight(q, splitStemLines.length);
+
+    //Add headers for each subsection
+    if(q.type === "MC") {
+      mcCount++;
+      if(mcCount === 1) {
+        addSectionHeader("Multiple Choice", neededHeight);
+      }
+    }
+    else if(q.type === "TF") {
+      tfCount++;
+      if(tfCount === 1) {
+        addSectionHeader("True/False", neededHeight);
+      }
+    }
+    else if(q.type === "FIB") {
+      fibCount++;
+      if(fibCount === 1) {
+        addSectionHeader("Fill in the Blank", neededHeight);
+      }
+    }
+    else if(q.type === "Code") {
+      codeCount++;
+      if(codeCount === 1) {
+        addSectionHeader("Code", neededHeight);
+      }
+    }
+    else if(q.type === "Essay") {
+      essayCount++;
+      if(essayCount === 1) {
+        addSectionHeader("Essay", neededHeight);
+      }
+    }
+    
+    //Add a new page if there will bot be enough room on current page
+    if (y + neededHeight > pageHeight - margin) {
       doc.addPage();
       y = margin;
     }
 
-    const questionNumber = index + 1;
-    const points = q.points ?? 1;
-    const stem = q.snapshot?.stem ?? "(Question text)";
-
-    //Question number and stem with points badge
+    //Begin with drawing question number
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text(`${questionNumber}.`, margin, y);
+    doc.setFontSize(10);
+    doc.text(`${questionNumber}. `, margin, y);
 
-    //Calculate available width for stem (accounting for points badge)
-    const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
-    const pointsWidth = doc.getTextWidth(pointsText);
-    const availableWidth = pageWidth - (2 * margin) - pointsWidth - 10;
+    //Set the point value next to question number
+    doc.setFont("helvetica", "italic");
+    doc.text(`(${pointsText}) `, margin + questionNumberWidth, y);
 
-    //Split stem text to fit available width
+    //Add the actual question stem
     doc.setFont("helvetica", "normal");
-    const splitStem = doc.splitTextToSize(stem, availableWidth);
-    doc.text(splitStem, margin + 8, y);
+    doc.text(splitStemLines, stemBeginning + 1, y);
 
-    //Points badge (aligned to right)
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text(pointsText, pageWidth - margin - pointsWidth, y);
-
-    //Calculate height used by stem and move y position
-    const stemHeight = splitStem.length * 5;
-    y += Math.max(stemHeight, 8); //Minimum height for single line
-
-    //Type-specific content
+    y += Math.max(splitStemLines.length * 5, 8); //Move y-value down
+    
+    //Type-specific content/spacing
     if (q.type === "MC" && q.snapshot?.choices) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-
       q.snapshot.choices.forEach((choice: any, choiceIndex: number) => {
-        if (y > 270) {
-          doc.addPage();
-          y = margin;
-        }
-
         const choiceLetter = String.fromCharCode(65 + choiceIndex);
         const choiceText = choice.text ?? choice.label ?? "";
-        doc.text(`${choiceLetter}. ${choiceText}`, margin + 16, y);
+        doc.text(`${choiceLetter}. ${choiceText}`, margin + 8, y);
         y += 5;
       });
       y += 4;
     }
     else if (q.type === "TF") {
-      if (y > 270) {
-        doc.addPage();
-        y = margin;
-      }
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
       doc.text("Circle one:", margin + 8, y);
-      doc.text("True", margin + 40, y);
-      doc.text("False", margin + 55, y);
+      doc.text("True      False", margin + 30, y);
+      y += 10;
+    }
+    else if (q.type === "FIB") {
       y += 10;
     }
     else if (q.type === "Essay") {
       const blankLines = q.snapshot?.blankLines ?? 4;
       for (let i = 0; i < blankLines; i++) {
-        if (y > 270) {
-          doc.addPage();
-          y = margin;
-        }
+        doc.setDrawColor(0, 0, 0); //Set line color to black
         doc.line(margin + 8, y + 3, pageWidth - margin, y + 3);
         y += 8;
       }
-      y += 4;
+      y += 2;
     }
     else if (q.type === "Code") {
-      if (y > 250) { //Need more space for code box
-        doc.addPage();
-        y = margin;
+      const blankLines = q.snapshot?.blankLines ?? 4;
+      for (let i = 0; i < blankLines; i++) {
+        y += 8;
       }
-      //Code box
-      doc.setDrawColor(200, 200, 200);
-      doc.setFillColor(248, 250, 252);
-      doc.rect(margin + 8, y, pageWidth - (2 * margin) - 8, 50, 'F');
-      doc.rect(margin + 8, y, pageWidth - (2 * margin) - 8, 50);
-      y += 55;
     }
-
-    y += 8; //Space between questions
+    y += 2;
   });
 
   return doc.output('blob');
