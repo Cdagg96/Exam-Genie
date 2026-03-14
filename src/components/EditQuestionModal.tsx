@@ -217,257 +217,258 @@ export default function EditQuestionModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="card-primary text-black rounded-2xl shadow-2xl w-160 p-6 relative overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="card-primary text-black rounded-2xl shadow-2xl w-160 max-h-[90vh] p-6 flex flex-col relative overflow-hidden">
 
                 {/* Close button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-black hover:text-gray-500 text-3xl"
+                    className="absolute top-4 left-4 z-10 text-black hover:text-gray-500 text-3xl"
                     disabled={loading}
                 >
                     &times;
                 </button>
+                {/* Scrollable body */}
+                <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-2">
+                    <h1 className="text-2xl font-bold text-blue-gradient mb-4 text-center">Edit Question in Exam</h1>
 
-                <h1 className="text-2xl font-bold text-blue-gradient mb-4 text-center">Edit Question in Exam</h1>
-
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Question Stem */}
-                    <div>
-                        <label className="block text-sm font-medium text-primary mb-2">
-                            Question
-                        </label>
-                        <input
-                            className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
-                            placeholder="Question"
-                            value={stem}
-                            onChange={(e) => setStem(e.target.value)}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-
-                    {/* Question Type */}
-                    <div>
-                        <label className="block text-sm font-medium text-primary mb-2">
-                            Question Type
-                        </label>
-                        <SelectBox
-                            label=""
-                            placeholder="Select a type"
-                            options={[
-                                { value: "MC", label: "Multiple Choice" },
-                                { value: "TF", label: "True/False" },
-                                { value: "FIB", label: "Fill in the Blank" },
-                                { value: "Essay", label: "Essay" },
-                                { value: "Code", label: "Code" },
-                            ]}
-                            defaultValue={type}
-                            onSelect={(value) => setType(value)}
-                        />
-                    </div>
-
-                    {/* Question difficulty */}
-                    <div>
-                        <label className="block text-sm font-medium text-primary mb-2">
-                            Difficulty
-                        </label>
-                        <input
-                            className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
-                            type="number"
-                            placeholder="Difficulty (1-5)"
-                            value={difficulty || ""}
-                            min={1}
-                            max={5}
-                            onChange={(e) => setDifficulty(Number(e.target.value))}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-
-                    {/* Question topic(s) */}
-                    <div>
-                        <label className="block text-sm font-medium text-primary mb-2">
-                            Topics (comma separated)
-                        </label>
-                        <input
-                            className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
-                            placeholder="Topic(s) (comma separated)"
-                            value={topics}
-                            onChange={(e) => setTopics(e.target.value)}
-                            disabled={loading}
-                        />
-                    </div>
-
-                    {/* MC options */}
-                    {type === "MC" && (
-                        <div className="space-y-2">
-                            {choices.map((choice, index) => (
-                                <div key={choice.label} className="flex gap-2">
-                                    <input
-                                        className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
-                                        placeholder={`Choice ${choice.label}`}
-                                        value={choice.text}
-                                        onChange={(e) => updateChoice(index, e.target.value)}
-                                        required
-                                    />
-
-                                    <button
-                                        type="button"
-                                        onClick={() => removeChoice(index)}
-                                        className="px-3 text-red-500 hover:text-red-700"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            ))}
-
-                            {/*Add Choice button disappears after 5 choices and shows a message when maximum is reached */}
-                            {choices.length < 5 && (
-                                <div className="flex justify-center">
-                                    <button
-                                        type="button"
-                                        onClick={addChoice}
-                                        className="text-blue-600 hover:underline text-sm flex items-center gap-1 hover:text-blue-800 transition-colors"
-                                    >
-                                        + Add Choice ({choices.length}/5)
-                                    </button> 
-                                </div>
-                            )}
-                            {choices.length >= 5 && (
-                                <div className="flex justify-center">
-                                    <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                                        </svg>
-                                        Maximum of 5 choices reached
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* True/False options */}
-                    {type === "TF" && (
-                        <div className="mt-2">
-                            <label className="block text-sm font-medium text-primary mb-2">
-                                Correct answer
-                            </label>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setCorrect("True")}
-                                    disabled={loading}
-                                    className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
-                                    ${correctAnswer === "True" ? "btn btn-primary-blue" : "btn btn-ghost"} 
-                                    ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-                                >
-                                    True
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setCorrect("False")}
-                                    disabled={loading}
-                                    className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
-                                    ${correctAnswer === "False" ? "btn btn-primary-blue" : "btn btn-ghost"} 
-                                    ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-                                >
-                                    False
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Essay/Code only have one "option" box */}
-                    {(type === "Essay" || type === "Code") && (
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-primary mb-2">
-                                Correct answer
-                            </label>
-                            <textarea
-                                className="border-primary bg-primary text-primary px-4 py-3 w-full rounded-xl"
-                                value={extendedAnswer}
-                                onChange={(e) => setExAnswer(e.target.value)}
-                                required
-                                disabled={loading}
-                                rows={4}
-                            />
-                            <label className="block text-sm font-medium text-primary mb-2 mt-4">
-                                Number of blank lines
-                            </label>
-                            <input
-                                type="number"
-                                className="border-primary bg-primary text-secondary px-4 py-3 w-full rounded-xl"
-                                value={blankLines}
-                                onChange={(e) => setBlankLines(Number(e.target.value))}
-                                required
-                                disabled={loading}
-                            />
-                        </div>
-                    )}
-
-                    {/* FIB only have one "option" box and one blank line*/}
-                    {(type == "FIB") && (
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-primary mb-2">
-                                Correct answer
-                            </label>
-                            <input
-                                className="border-primary bg-primary text-primary px-4 py-3 w-full rounded-xl"
-                                value={fibAnswer}
-                                onChange={(e) => setFIBAnswer(e.target.value)}
-                                required
-                                disabled={loading}
-                            />
-                        </div>
-                    )}
-
-                    {/* MC correct answer*/}
-                    {type === "MC" && (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Question Stem */}
                         <div>
                             <label className="block text-sm font-medium text-primary mb-2">
-                                Correct answer:
+                                Question
                             </label>
-                            <select
-                                className="border-primary bg-primary text-primary px-4 py-3 w-full rounded-xl"
-                                value={correctAnswer}
-                                onChange={(e) => setCorrect(e.target.value)}
+                            <input
+                                className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
+                                placeholder="Question"
+                                value={stem}
+                                onChange={(e) => setStem(e.target.value)}
                                 required
                                 disabled={loading}
-                            >
-                                {choices.map(choice => (
-                                <option key={choice.label} value={choice.label}>
-                                {choice.label}
-                                </option>
-                                ))} 
-                            </select>
+                            />
                         </div>
-                    )}
 
-                    {/* Edit in DB Check Box*/}
-                    <div className="flex items-center gap-2">
-                        <input
-                            id="editInDb"
-                            type="checkbox"
-                            checked={editInDb}
-                            onChange={(e) => setEditInDb(e.target.checked)}
-                            disabled={loading}
-                            className="h-4 w-4"
-                        />
-                        <label htmlFor="editInDb" className="text-sm text-secondary">
-                            Edit question in question bank
-                        </label>
-                    </div>
-                    <div className="flex justify-center gap-4 pt-4">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="btn btn-primary-blue"
-                        >
-                            {loading ? "Updating..." : "Update Question"}
-                        </button>
-                    </div>
-                </form>
+                        {/* Question Type */}
+                        <div>
+                            <label className="block text-sm font-medium text-primary mb-2">
+                                Question Type
+                            </label>
+                            <SelectBox
+                                label=""
+                                placeholder="Select a type"
+                                options={[
+                                    { value: "MC", label: "Multiple Choice" },
+                                    { value: "TF", label: "True/False" },
+                                    { value: "FIB", label: "Fill in the Blank" },
+                                    { value: "Essay", label: "Essay" },
+                                    { value: "Code", label: "Code" },
+                                ]}
+                                defaultValue={type}
+                                onSelect={(value) => setType(value)}
+                            />
+                        </div>
+
+                        {/* Question difficulty */}
+                        <div>
+                            <label className="block text-sm font-medium text-primary mb-2">
+                                Difficulty
+                            </label>
+                            <input
+                                className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
+                                type="number"
+                                placeholder="Difficulty (1-5)"
+                                value={difficulty || ""}
+                                min={1}
+                                max={5}
+                                onChange={(e) => setDifficulty(Number(e.target.value))}
+                                required
+                                disabled={loading}
+                            />
+                        </div>
+
+                        {/* Question topic(s) */}
+                        <div>
+                            <label className="block text-sm font-medium text-primary mb-2">
+                                Topics (comma separated)
+                            </label>
+                            <input
+                                className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
+                                placeholder="Topic(s) (comma separated)"
+                                value={topics}
+                                onChange={(e) => setTopics(e.target.value)}
+                                disabled={loading}
+                            />
+                        </div>
+
+                        {/* MC options */}
+                        {type === "MC" && (
+                            <div className="space-y-2">
+                                {choices.map((choice, index) => (
+                                    <div key={choice.label} className="flex gap-2">
+                                        <input
+                                            className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
+                                            placeholder={`Choice ${choice.label}`}
+                                            value={choice.text}
+                                            onChange={(e) => updateChoice(index, e.target.value)}
+                                            required
+                                        />
+
+                                        <button
+                                            type="button"
+                                            onClick={() => removeChoice(index)}
+                                            className="px-3 text-red-500 hover:text-red-700"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {/*Add Choice button disappears after 5 choices and shows a message when maximum is reached */}
+                                {choices.length < 5 && (
+                                    <div className="flex justify-center">
+                                        <button
+                                            type="button"
+                                            onClick={addChoice}
+                                            className="text-blue-600 hover:underline text-sm flex items-center gap-1 hover:text-blue-800 transition-colors"
+                                        >
+                                            + Add Choice ({choices.length}/5)
+                                        </button> 
+                                    </div>
+                                )}
+                                {choices.length >= 5 && (
+                                    <div className="flex justify-center">
+                                        <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                            </svg>
+                                            Maximum of 5 choices reached
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* True/False options */}
+                        {type === "TF" && (
+                            <div className="mt-2">
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Correct answer
+                                </label>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCorrect("True")}
+                                        disabled={loading}
+                                        className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
+                                        ${correctAnswer === "True" ? "btn btn-primary-blue" : "btn btn-ghost"} 
+                                        ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                                    >
+                                        True
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCorrect("False")}
+                                        disabled={loading}
+                                        className={`border px-4 py-3 flex-1 rounded-xl text-center transition-all
+                                        ${correctAnswer === "False" ? "btn btn-primary-blue" : "btn btn-ghost"} 
+                                        ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                                    >
+                                        False
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Essay/Code only have one "option" box */}
+                        {(type === "Essay" || type === "Code") && (
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Correct answer
+                                </label>
+                                <textarea
+                                    className="border-primary bg-primary text-primary px-4 py-3 w-full rounded-xl"
+                                    value={extendedAnswer}
+                                    onChange={(e) => setExAnswer(e.target.value)}
+                                    required
+                                    disabled={loading}
+                                    rows={4}
+                                />
+                                <label className="block text-sm font-medium text-primary mb-2 mt-4">
+                                    Number of blank lines
+                                </label>
+                                <input
+                                    type="number"
+                                    className="border-primary bg-primary text-secondary px-4 py-3 w-full rounded-xl"
+                                    value={blankLines}
+                                    onChange={(e) => setBlankLines(Number(e.target.value))}
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                        )}
+
+                        {/* FIB only have one "option" box and one blank line*/}
+                        {(type == "FIB") && (
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Correct answer
+                                </label>
+                                <input
+                                    className="border-primary bg-primary text-primary px-4 py-3 w-full rounded-xl"
+                                    value={fibAnswer}
+                                    onChange={(e) => setFIBAnswer(e.target.value)}
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+                        )}
+
+                        {/* MC correct answer*/}
+                        {type === "MC" && (
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Correct answer:
+                                </label>
+                                <select
+                                    className="border-primary bg-primary text-primary px-4 py-3 w-full rounded-xl"
+                                    value={correctAnswer}
+                                    onChange={(e) => setCorrect(e.target.value)}
+                                    required
+                                    disabled={loading}
+                                >
+                                    {choices.map(choice => (
+                                    <option key={choice.label} value={choice.label}>
+                                    {choice.label}
+                                    </option>
+                                    ))} 
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Edit in DB Check Box*/}
+                        <div className="flex items-center gap-2">
+                            <input
+                                id="editInDb"
+                                type="checkbox"
+                                checked={editInDb}
+                                onChange={(e) => setEditInDb(e.target.checked)}
+                                disabled={loading}
+                                className="h-4 w-4"
+                            />
+                            <label htmlFor="editInDb" className="text-sm text-secondary">
+                                Edit question in question bank
+                            </label>
+                        </div>
+                        <div className="flex justify-center gap-4 pt-4">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn btn-primary-blue"
+                            >
+                                {loading ? "Updating..." : "Update Question"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
