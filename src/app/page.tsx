@@ -5,6 +5,7 @@ import NavBar from "@/components/navbar";
 import Link from "next/link";
 import { Background } from "@/components/BackgroundModal";
 import Image from "next/image";
+import useTheme from "@/hooks/useTheme"
 
 type Step = {
   id: string;
@@ -54,6 +55,7 @@ const STEPS: Step[] = [
 ];
 
 export default function Home() {
+  const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
   const [active, setActive] = useState<Step>(STEPS[0]);
   const [nextButton, setNextButton] = useState<boolean>(true);
   const [backButton, setBackButton] = useState<boolean>(false);
@@ -130,6 +132,7 @@ export default function Home() {
                     width={220}
                     height={220}
                     priority
+                    className="drop-shadow-[0_0_1px_rgba(0,0,0,0.6)] dark:drop-shadow-[0_0_1px_rgba(255,255,255,0.4)]" //Smooth the edges of the image
                   />
                 </div>
               )}

@@ -15,6 +15,7 @@ import { useAuth } from "@/components/AuthContext";
 import { Background } from "@/components/BackgroundModal"
 import InstructionEditor from "@/components/InstructionEditor";
 import { renderTipTap } from "@/components/renderTipTap";
+import useTheme from "@/hooks/useTheme"
 
 const POINTS_BY_TYPE: Record<string, number> = {
   MC: 1,
@@ -39,6 +40,7 @@ const normalizeType = (t: string) => {
 };
 
 export default function EditExamPage() {
+  const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
   const { id } = useParams();
   const { user } = useAuth();
   const router = useRouter();

@@ -15,8 +15,10 @@ import { useAuth } from "@/components/AuthContext";
 import { Background } from "@/components/BackgroundModal";
 import { Question } from "@/types/question";
 import CSVUploadModal from "@/components/CSVUploadModal";
+import useTheme from "@/hooks/useTheme"
 
 export default function DatabaseActionPage() {
+    const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(true);
@@ -756,7 +758,7 @@ export default function DatabaseActionPage() {
                     </div>
 
                     {/* Questions Table */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
+                    <div className="bg-primary rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
                         <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
                                 <thead className="bg-linear-to-r from-blue-50 to-cyan-50 dark:bg-gradient-to-r dark:from-slate-700 dark:to-slate-800 sticky top-0">

@@ -30,6 +30,7 @@ interface UserData {
 }
 
 export default function SettingsPage() {
+    const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const { user, logout, updateUser } = useAuth();
     const router = useRouter();
 
@@ -47,7 +48,6 @@ export default function SettingsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState("profile"); //Profile info, Reset password, Delete account
-    const { isDark, toggleTheme } = useTheme();
     const [userData, setUserData] = useState<UserData | null>(null);
 
     //for saving users prefered instructions

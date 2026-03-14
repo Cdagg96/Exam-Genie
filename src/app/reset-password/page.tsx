@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Background } from "@/components/BackgroundModal"
+import useTheme from "@/hooks/useTheme"
 
 export default function ResetPasswordPage() {
     //State variables
+    const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const [token, setToken] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);

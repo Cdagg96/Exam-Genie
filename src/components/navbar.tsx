@@ -23,7 +23,7 @@ export default function Navbar() {
       <div className="w-full h-20 card-primary flex items-center justify-between px-10 rounded-2xl shadow-md">
         <Link href="/">
           <Image
-            className="rounded-full"
+            className="rounded-full drop-shadow-[0_0_1px_rgba(0,0,0,0.6)] dark:drop-shadow-[0_0_1px_rgba(0,0,0,1)]" //Smooth the edges of the image
             src="/logo.png"
             alt="Logo"
             width={80}
