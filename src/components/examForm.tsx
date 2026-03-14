@@ -6,7 +6,9 @@ import ExamPreviewModel from "@/components/examPreview";
 import SelectBox from "@/components/SelectBox";
 import { useAuth } from "@/components/AuthContext";
 import { ExamDoc, ExamQuestionItem, QuestionType } from "@/types/exam";
-
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
 
 const TYPES: { value: QuestionType; label: string }[] = [
     { value: "MC", label: "Multiple Choice" },
@@ -67,12 +69,23 @@ export default function ExamForm() {
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
     const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
 
-    // Simple optional sections (can remove if you want ultra-minimal)
+
     const [sections, setSections] = useState([{ ...DEFAULT_SECTION }]);
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewExam, setPreviewExam] = useState<ExamDoc | null>(null);
     const [generating, setGenerating] = useState(false);
+
+    //for the calander and last use date 
+    const [lastUsedDate, setLastUsedDate] = useState<Dayjs | null>(null);
+    const [dateInputValue, setDateInputValue] = useState('');
+    const [calendarOpen, setCalendarOpen] = useState(false);
+    const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLDivElement | null>(null);
+    const [lastUsedFilterType, setLastUsedFilterType] = useState<'before' | 'after' | 'range'>('before');
+    const [lastUsedDateEnd, setLastUsedDateEnd] = useState<Dayjs | null>(null);
+    const [dateInputValueEnd, setDateInputValueEnd] = useState('');
+    const [calendarEndOpen, setCalendarEndOpen] = useState(false);
+    const [calendarEndAnchorEl, setCalendarEndAnchorEl] = useState<HTMLDivElement | null>(null);
 
     //Runs when page opens to get subjects
     useEffect(() => {
@@ -147,6 +160,13 @@ export default function ExamForm() {
             if (difficulty && difficulty !== "mixed") params.set("difficulty", difficulty);
             if (subject) params.set("subject", subject);
             if (courseNum) params.set("courseNum", courseNum);
+            if (lastUsedDate) {
+                params.set("lastUsed", lastUsedDate.format("MM-DD-YYYY"));
+                params.set("lastUsedFilterType", lastUsedFilterType);
+                if (lastUsedFilterType === "range" && lastUsedDateEnd) {
+                    params.set("lastUsedEnd", lastUsedDateEnd.format("MM-DD-YYYY"));
+                }
+            }
 
             try {
                 params.set("counts", "1");
@@ -176,13 +196,48 @@ export default function ExamForm() {
         loadCourseNums();
         loadSubjects();
         loadQuestionTypeCounts();
-    }, [user?._id, difficulty, subject, courseNum]);
+    }, [user?._id, difficulty, subject, courseNum, lastUsedDate, lastUsedFilterType, lastUsedDateEnd,]);
 
     // States for ordering question by type
     const [questionOrder, setQuestionOrder] = useState<QuestionType[]>([]);
     const [draggedType, setDraggedType] = useState<QuestionType | null>(null);
     const [hoveredType, setHoveredType] = useState<QuestionType | null>(null);
     const [dropType, setDropType] = useState<number | null>(null);
+
+    //last use date handlers
+    const handleDateInputChange = (inputValue: string) => {
+        setDateInputValue(inputValue);
+
+        const parsedDate = dayjs(inputValue, 'MM/DD/YYYY', true);
+        if (parsedDate.isValid()) {
+            setLastUsedDate(parsedDate);
+        } else {
+            setLastUsedDate(null);
+        }
+    };
+
+    const handleDateInputChangeEnd = (inputValue: string) => {
+        setDateInputValueEnd(inputValue);
+
+        const parsedDate = dayjs(inputValue, 'MM/DD/YYYY', true);
+        if (parsedDate.isValid()) {
+            setLastUsedDateEnd(parsedDate);
+        } else {
+            setLastUsedDateEnd(null);
+        }
+    };
+
+    const handleCalendarChange = (newValue: Dayjs | null) => {
+        setLastUsedDate(newValue);
+        setDateInputValue(newValue ? newValue.format('MM/DD/YYYY') : '');
+        setCalendarOpen(false);
+    };
+
+    const handleCalendarChangeEnd = (newValue: Dayjs | null) => {
+        setLastUsedDateEnd(newValue);
+        setDateInputValueEnd(newValue ? newValue.format('MM/DD/YYYY') : '');
+        setCalendarEndOpen(false);
+    };
 
     // Drag and drop handlers
     const handleDragStart = (e: React.DragEvent, type: QuestionType) => {
@@ -294,7 +349,12 @@ export default function ExamForm() {
             pointsByType: normalizedPointsByType,
             questions: [],
             totalPoints: 0,
-            userID: user?._id ?? ""
+            userID: user?._id ?? "",
+            lastUsed: lastUsedDate ? lastUsedDate.format('MM-DD-YYYY') : '',
+            lastUsedFilterType,
+            lastUsedEnd: lastUsedFilterType === 'range' && lastUsedDateEnd
+                ? lastUsedDateEnd.format('MM-DD-YYYY')
+                : '',
         }
 
         try {
@@ -402,7 +462,7 @@ export default function ExamForm() {
                                 value={courseNum}
                             />
                         </label>
-                        <label className="flex flex-col gap-1">
+                        <label className="flex flex-col gap-2">
                             <span className="text-sm font-medium text-primary">Time Limit (minutes)</span>
                             <input
                                 type="number"
@@ -414,6 +474,146 @@ export default function ExamForm() {
                                 required
                             />
                         </label>
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <span className="text-sm font-medium text-primary text-center flex-1 ml-40">Last Used</span>
+
+                                <div className="flex gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setLastUsedFilterType("before")}
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors ${lastUsedFilterType === "before" ? "btn-primary-blue" : "btn btn-ghost"
+                                            }`}
+                                    >
+                                        Before
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setLastUsedFilterType("after")}
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors ${lastUsedFilterType === "after" ? "btn-primary-blue" : "btn btn-ghost"
+                                            }`}
+                                    >
+                                        After
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setLastUsedFilterType("range")}
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors ${lastUsedFilterType === "range" ? "btn-primary-blue" : "btn btn-ghost"
+                                            }`}
+                                    >
+                                        Range
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="relative" ref={setCalendarAnchorEl}>
+                                <input
+                                    type="text"
+                                    placeholder={lastUsedFilterType === "range" ? "Start date (MM/DD/YYYY)" : "MM/DD/YYYY"}
+                                    value={dateInputValue}
+                                    onChange={(e) => handleDateInputChange(e.target.value)}
+                                    className="w-full border border-primary text-secondary px-3 py-3 pr-12"
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                    onClick={() => setCalendarOpen(true)}
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        strokeWidth="1.5"
+                                        stroke="currentColor"
+                                        className="size-5 text-gray-400"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {lastUsedFilterType === "range" && (
+                                <div className="relative mt-2" ref={setCalendarEndAnchorEl}>
+                                    <input
+                                        type="text"
+                                        placeholder="End date (MM/DD/YYYY)"
+                                        value={dateInputValueEnd}
+                                        onChange={(e) => handleDateInputChangeEnd(e.target.value)}
+                                        className="w-full border border-primary text-secondary px-3 py-3 pr-12"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                        onClick={() => setCalendarEndOpen(true)}
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth="1.5"
+                                            stroke="currentColor"
+                                            className="size-5 text-gray-400"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
+
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    open={calendarOpen}
+                                    onClose={() => setCalendarOpen(false)}
+                                    value={lastUsedDate}
+                                    onChange={(newValue) => {
+                                        setLastUsedDate(newValue);
+                                        setCalendarOpen(false);
+                                        handleCalendarChange(newValue);
+                                    }}
+                                    slotProps={{
+                                        popper: {
+                                            anchorEl: calendarAnchorEl,
+                                            placement: "bottom-start",
+                                        },
+                                    }}
+                                    slots={{
+                                        field: () => null,
+                                    }}
+                                />
+
+                                {lastUsedFilterType === "range" && (
+                                    <DatePicker
+                                        open={calendarEndOpen}
+                                        onClose={() => setCalendarEndOpen(false)}
+                                        value={lastUsedDateEnd}
+                                        onChange={(newValue) => {
+                                            setLastUsedDateEnd(newValue);
+                                            setCalendarEndOpen(false);
+                                            handleCalendarChangeEnd(newValue);
+                                        }}
+                                        slotProps={{
+                                            popper: {
+                                                anchorEl: calendarEndAnchorEl,
+                                                placement: "bottom-start",
+                                            },
+                                        }}
+                                        slots={{
+                                            field: () => null,
+                                        }}
+                                    />
+                                )}
+                            </LocalizationProvider>
+                        </div>
                     </div>
                     <h2 className="mb-3 mt-8 text-lg font-semibold text-primary">Allowed Question Types</h2>
                     <p className="mb-3 text-sm text-secondary">
@@ -593,6 +793,11 @@ export default function ExamForm() {
                                     Code: 0,
                                 });
                                 setQuestionOrder([]);
+                                setLastUsedDate(null);
+                                setDateInputValue('');
+                                setLastUsedFilterType('before');
+                                setLastUsedDateEnd(null);
+                                setDateInputValueEnd('');
                             }}
                             className="rounded-xl border px-4 py-2 btn btn-ghost"
                         >
