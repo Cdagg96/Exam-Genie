@@ -17,6 +17,35 @@ import { Question } from "@/types/question";
 import CSVUploadModal from "@/components/CSVUploadModal";
 import useTheme from "@/hooks/useTheme"
 
+function SortableHeader({
+    label,
+    field,
+    sortBy,
+    sortOrder,
+    onSort,
+}: {
+    label: string;
+    field: "difficulty" | "lastUsed";
+    sortBy: string;
+    sortOrder: "asc" | "desc";
+    onSort: (field: "difficulty" | "lastUsed") => void;
+}) {
+    const isActive = sortBy === field;
+
+    return (
+        <button
+            type="button"
+            onClick={() => onSort(field)}
+            className="inline-flex items-center justify-center gap-1 w-full"
+        >
+            <span>{label}</span>
+            <span className="text-xs">
+                {isActive ? (sortOrder === "asc" ? "▲" : "▼") : "↕"}
+            </span>
+        </button>
+    );
+}
+
 export default function DatabaseActionPage() {
     const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const [isQuestionFormOpen, setIsQuestionFormOpen] = useState(false);
@@ -66,6 +95,10 @@ export default function DatabaseActionPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
 
+    // Custome ordering states
+    const [sortBy, setSortBy] = useState<"difficulty" | "lastUsed" | "">("");
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
     //Fetch questions with filters
     const fetchQuestionsWithFilters = async () => {
         try {
@@ -85,6 +118,8 @@ export default function DatabaseActionPage() {
             if (selectedType) params.append('type', selectedType);
             if (selectedSubject) params.append('subject', selectedSubject);
             if (selectedCourseNum) params.append('courseNum', selectedCourseNum);
+            if (sortBy) params.append("sortBy", sortBy);
+            if (sortOrder) params.append("sortOrder", sortOrder);
             
             //Updated last used filter with type and end date
             if (lastUsedDate) {
@@ -100,6 +135,7 @@ export default function DatabaseActionPage() {
 
             params.set('page', String(page))
             params.set('limit', String(limit))
+        
 
             const queryString = params.toString();
             const url = queryString ? `../api/questions?${queryString}` : '../api/questions';
@@ -169,7 +205,7 @@ export default function DatabaseActionPage() {
             return;
         }
         fetchQuestionsWithFilters();
-    }, [page, limit, user?._id]);
+    }, [page, limit, sortBy, sortOrder, user?._id]);
 
     // Set page back to one if user changes
     useEffect(() => {
@@ -235,6 +271,17 @@ export default function DatabaseActionPage() {
     const handleFormClose = () => {
         setIsQuestionFormOpen(false);
         fetchQuestionsWithFilters();
+    };
+
+    const handleSort = (field: "difficulty" | "lastUsed") => {
+        if (sortBy === field) {
+            setSortOrder(prev => (prev === "asc" ? "desc" : "asc"));
+        } else {
+            setSortBy(field);
+            setSortOrder("asc");
+        }
+
+        setPage(1);
     };
 
     //Helper function to format choices (label then text plus can have multiple choices)
@@ -773,7 +820,13 @@ export default function DatabaseActionPage() {
                                             Type
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
-                                            Difficulty
+                                            <SortableHeader
+                                                label="Difficulty"
+                                                field="difficulty"
+                                                sortBy={sortBy}
+                                                sortOrder={sortOrder}
+                                                onSort={handleSort}
+                                            />
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Topic
@@ -791,7 +844,13 @@ export default function DatabaseActionPage() {
                                             Answer
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
-                                            Last Used
+                                            <SortableHeader
+                                                label="Last Used"
+                                                field="lastUsed"
+                                                sortBy={sortBy}
+                                                sortOrder={sortOrder}
+                                                onSort={handleSort}
+                                            />
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider">
                                             Actions
