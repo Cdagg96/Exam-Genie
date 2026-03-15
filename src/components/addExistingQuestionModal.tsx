@@ -267,6 +267,7 @@ export default function AddExistingQuestionModal({
                 setPage(1);
                 setSearch(e.target.value);
               }}
+              maxLength={100}
             />
           </div>
 

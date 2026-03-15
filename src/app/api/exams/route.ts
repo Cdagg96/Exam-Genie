@@ -306,6 +306,9 @@ export async function POST(req: Request) {
             pointsByType,
             typeCounts,
             userID,
+            lastUsed,
+            lastUsedFilterType = "before",
+            lastUsedEnd,
         } = body;
 
         // create the connection
@@ -357,6 +360,48 @@ export async function POST(req: Request) {
         const subjectFilter = subject && subject.trim() !== "";
         const courseNumFilter = courseNum && courseNum.trim() !== "";
 
+        // If a last used date is given, filter on that
+        const lastUsedMatch: any = {};
+        console.log("exam generation filters", {
+            lastUsed,
+            lastUsedFilterType,
+            lastUsedEnd,
+        });
+        if (lastUsed) {
+            try {
+                const [month, day, year] = lastUsed.split("-").map(Number);
+                const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+                const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+
+                if (lastUsedFilterType === "before") {
+                    if (lastUsedFilterType === "before") {
+                        lastUsedMatch.lastUsed = { $lt: startOfDay };
+                    }
+                }
+                else if (lastUsedFilterType === "after") {
+                    lastUsedMatch.lastUsed = { $gt: endOfDay };
+                }
+                else if (lastUsedFilterType === "range") {
+                    if (lastUsedEnd) {
+                        const [endMonth, endDay, endYear] = lastUsedEnd.split("-").map(Number);
+                        const endOfRangeDay = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
+
+                        lastUsedMatch.lastUsed = {
+                            $gte: startOfDay,
+                            $lte: endOfRangeDay,
+                        };
+                    } else {
+                        lastUsedMatch.lastUsed = {
+                            $gte: startOfDay,
+                            $lte: endOfDay,
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error("Error parsing lastUsed in POST /api/exams:", error);
+            }
+        }
+
         // Check availability for each type in the DB
         const shortages: Array<{ type: string; requested: number; available: number }> = [];
 
@@ -369,6 +414,7 @@ export async function POST(req: Request) {
             match.userID = userID;
             if (subjectFilter) match.subject = subject;
             if (courseNumFilter) match.courseNum = courseNum;
+            Object.assign(match, lastUsedMatch);
 
             const available = await questionsdb.countDocuments(match);
             if (available < requested) {
@@ -395,6 +441,7 @@ export async function POST(req: Request) {
             match.userID = userID;
             if (subjectFilter) match.subject = subject;
             if (courseNumFilter) match.courseNum = courseNum;
+            Object.assign(match, lastUsedMatch);
 
             // Randomly sample questions for current type
             const sample = await questionsdb.aggregate([
@@ -425,7 +472,7 @@ export async function POST(req: Request) {
         // get the total points
         const totalPoints = computeTotalPoints(items);
 
-        const lastUsed = new Date();
+        const examLastUsed = new Date();
 
         // Sort the order of types (MC, TF, FIB, Essay, Code by default)
         const TYPE_ORDER = questionOrder && questionOrder.length > 0
@@ -448,7 +495,7 @@ export async function POST(req: Request) {
             totalPoints,
             instructionsDoc,
             questions: items,
-            lastUsed,
+            lastUsed: examLastUsed,
             userID,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -460,7 +507,7 @@ export async function POST(req: Request) {
         if (selectedQuestionIds.length > 0) {
             await questionsdb.updateMany(
                 { _id: { $in: selectedQuestionIds } },
-                { $set: { lastUsed: new Date() } }
+                { $set: { lastUsed: examLastUsed } }
             );
         }
 

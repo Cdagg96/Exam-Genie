@@ -79,7 +79,7 @@ export default function ForgotPasswordModal({
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-white text-black rounded-2xl shadow-2xl w-[30rem] max-w-[90vw] h-auto p-8 relative">
+            <div className="bg-primary text-black rounded-2xl shadow-2xl w-[30rem] max-w-[90vw] h-auto p-8 relative">
                 {/* Close button */}
                 <button
                     onClick={handleClose}
@@ -90,7 +90,7 @@ export default function ForgotPasswordModal({
                 </button>
 
                 <div className="flex flex-col items-center">
-                    <h2 className="text-3xl font-semibold mb-6 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
+                    <h2 className="text-3xl font-semibold mb-6 text-blue-gradient">
                         Reset Password
                     </h2>
 
@@ -130,7 +130,7 @@ export default function ForgotPasswordModal({
                     ) : (
                         //Forgot Password Form
                         <>
-                            <p className="text-gray-600 mb-6 text-center">
+                            <p className="text-primary mb-6 text-center">
                                 Enter your email address and we'll send you a link to reset your password.
                             </p>
 
@@ -142,7 +142,7 @@ export default function ForgotPasswordModal({
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Enter your email"
-                                        className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full rounded-xl border border-primary px-4 py-3 focus:outline-none focus:ring-1 focus:ring-blue-500 text-secondary"
                                         disabled={isLoading}
                                     />
                                 </div>
@@ -150,7 +150,7 @@ export default function ForgotPasswordModal({
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className={`w-full py-3 rounded-xl text-lg font-medium transition ${isLoading ? "bg-gray-400 cursor-not-allowed" : "btn btn-primary-dark-blue hover:opacity-90"}`}
+                                    className={`w-full py-3 text-small font-medium transition ${isLoading ? "bg-primary cursor-not-allowed" : "btn btn-primary-blue hover:opacity-90"}`}
                                 >
                                     {/* Loading state */}
                                     {isLoading ? (
@@ -184,7 +184,7 @@ export default function ForgotPasswordModal({
                             </form>
 
                             {/* Link to go back to login */}
-                            <p className="mt-4 text-sm text-gray-500 text-center">
+                            <p className="mt-4 text-sm text-secondary text-center">
                                 Remember your password?{" "}
                                 <button
                                     type="button"

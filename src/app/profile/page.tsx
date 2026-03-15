@@ -6,6 +6,7 @@ import NavBar from "@/components/navbar";
 import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
 import { signOut } from "next-auth/react"; 
+import useTheme from "@/hooks/useTheme"
 
 interface UserData {
   _id: string;
@@ -20,6 +21,7 @@ interface UserData {
 
 
 export default function ProfilePage() {
+  const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
   const { user } = useAuth(); 
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);

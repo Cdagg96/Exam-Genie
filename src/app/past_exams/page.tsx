@@ -15,8 +15,10 @@ import FilterBox from "@/components/filterBox";
 import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV, downloadExamPackage } from "@/components/ExamDownload"
 import type { ExamWithMeta } from "@/types/exam";
 import { useAuth } from "@/components/AuthContext";
+import useTheme from "@/hooks/useTheme"
 
 export default function PastExams() {
+    const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const [exams, setExams] = useState<ExamWithMeta[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -396,6 +398,7 @@ export default function PastExams() {
                                 options={names}
                                 onSelect={setSelectedName}
                                 value={selectedName}
+                                maxLength={50}
                             />
 
                             {/* Difficulty Filter */}
@@ -440,6 +443,7 @@ export default function PastExams() {
                                 placeholder="Search a subject"
                                 onSelect={setSelectedSubject}
                                 value={selectedSubject}
+                                maxLength={50}
                             />
 
                             {/* Course number Filter Box */}
@@ -449,6 +453,7 @@ export default function PastExams() {
                                 placeholder="Search a Course Number"
                                 onSelect={setSelectedCourseNum}
                                 value={selectedCourseNum}
+                                maxLength={50}
                             />
 
                             <div className="text-left">
@@ -690,7 +695,7 @@ export default function PastExams() {
                     </div>
 
                     {/* Exams Table */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
+                    <div className="bg-primary rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
                         <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
                                 <thead className="bg-linear-to-r from-blue-50 to-cyan-50 dark:bg-gradient-to-r dark:from-slate-700 dark:to-slate-800 sticky top-0 z-20">

@@ -198,6 +198,44 @@ export async function POST(req: NextRequest) {
                     { status: 400 }
                 );
             }
+
+            // Stem limit
+            if (question.stem.length > 100) {
+                return NextResponse.json(
+                    { error: "Question stem exceeds 100 character limit." },
+                    { status: 400 }
+                );
+            }
+            // Topic count limit
+            if (question.topics.length > 10) {
+                return NextResponse.json(
+                    { error: "Too many topics. Maximum allowed is 10." },
+                    { status: 400 }
+                );
+            }
+            // Topic text length limit
+            for (const topic of question.topics) {
+                if (topic.length > 50) {
+                    return NextResponse.json(
+                        { error: `Topic "${topic}" exceeds 50 character limit.` },
+                        { status: 400 }
+                    );
+                }
+            }
+            // Essay / Code answer length
+            if ((question.type === "Essay" || question.type === "Code") && question.answer.length > 1000) {
+                return NextResponse.json(
+                    { error: `${question.type} answer exceeds 1000 character limit.` },
+                    { status: 400 }
+                );
+            }
+
+            if(question.difficulty > 5){
+                return NextResponse.json(
+                    { error: `${question.difficulty} answer exceeds max of 5.` },
+                    { status: 400 }
+                );
+            }
         }
 
         if (questionsToInsert.length === 0) {
