@@ -414,17 +414,22 @@ export default function ExamForm() {
                     <h2 className="mb-3 text-lg font-semibold text-primary">General</h2>
                     <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-2">
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-primary">Title</span>
+                            <span className="text-sm font-medium text-primary">
+                                Title <span className="text-red-500">*</span>
+                            </span>
                             <input
                                 className="border border-primary text-secondary px-3 py-3"
                                 placeholder="Midterm - Algorithms"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
+                                maxLength={100}
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-primary">Difficulty</span>
+                            <span className="text-sm font-medium text-primary">
+                                Difficulty <span className="text-red-500">*</span>
+                            </span>
                             {/* Difficulty Filter */}
                             <SelectBox
                                 label=""
@@ -441,7 +446,9 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-primary">Subject</span>
+                            <span className="text-sm font-medium text-primary">
+                                Subject <span className="text-red-500">*</span>
+                            </span>
                             <SelectBox
                                 label=""
                                 options={subjects}
@@ -452,7 +459,9 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-primary">Course Number</span>
+                            <span className="text-sm font-medium text-primary">
+                                Course Number <span className="text-red-500">*</span>
+                            </span>
                             <SelectBox
                                 label=""
                                 options={courseNums}
@@ -463,10 +472,13 @@ export default function ExamForm() {
                             />
                         </label>
                         <label className="flex flex-col gap-2">
-                            <span className="text-sm font-medium text-primary">Time Limit (minutes)</span>
+                            <span className="text-sm font-medium text-primary">
+                                Time Limit (minutes) <span className="text-red-500">*</span>
+                            </span>
                             <input
                                 type="number"
                                 min={0}
+                                max={180}
                                 className="border border-primary text-secondary px-3 py-3"
                                 placeholder="60"
                                 value={timeLimit || ""}
@@ -631,6 +643,7 @@ export default function ExamForm() {
                                 <input
                                     type="number"
                                     min={0}
+                                    max={availableCounts[t.value]}
                                     placeholder="0"
                                     className="border border-primary text-secondary px-3 py-3"
                                     value={typeCounts[t.value] || ""}
@@ -655,6 +668,7 @@ export default function ExamForm() {
                                     <input
                                         type="number"
                                         min={0}
+                                        max={50}
                                         placeholder={isFixed ? undefined : "1"}
                                         className="border-primary text-secondary px-3 py-3 disabled:bg-gray-100"
                                         value={isFixed ? "1" : (pointsByType[t.value] ?? "")}

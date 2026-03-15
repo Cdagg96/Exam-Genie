@@ -244,6 +244,7 @@ export default function EditQuestionModal({
                                 onChange={(e) => setStem(e.target.value)}
                                 required
                                 disabled={loading}
+                                maxLength={100}
                             />
                         </div>
 
@@ -296,6 +297,7 @@ export default function EditQuestionModal({
                                 value={topics}
                                 onChange={(e) => setTopics(e.target.value)}
                                 disabled={loading}
+                                maxLength={50}
                             />
                         </div>
 
@@ -310,6 +312,7 @@ export default function EditQuestionModal({
                                             value={choice.text}
                                             onChange={(e) => updateChoice(index, e.target.value)}
                                             required
+                                            maxLength={100}
                                         />
 
                                         <button
@@ -391,6 +394,7 @@ export default function EditQuestionModal({
                                     required
                                     disabled={loading}
                                     rows={4}
+                                    maxLength={1000}
                                 />
                                 <label className="block text-sm font-medium text-primary mb-2 mt-4">
                                     Number of blank lines
@@ -418,6 +422,7 @@ export default function EditQuestionModal({
                                     onChange={(e) => setFIBAnswer(e.target.value)}
                                     required
                                     disabled={loading}
+                                    maxLength={100}
                                 />
                             </div>
                         )}

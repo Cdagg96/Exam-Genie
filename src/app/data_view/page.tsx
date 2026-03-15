@@ -460,6 +460,7 @@ export default function DatabaseActionPage() {
                                 onSelect={setSelectedTopic}
                                 value={selectedTopic}
                                 page="databaseView"
+                                maxLength={50}
                             />
 
                             {/* Difficulty Filter */}
@@ -506,6 +507,7 @@ export default function DatabaseActionPage() {
                                 onSelect={setSelectedSubject}
                                 value={selectedSubject}
                                 page="databaseView"
+                                maxLength={50}
                             />
 
                             {/* Course number Filter Box */}
@@ -516,6 +518,7 @@ export default function DatabaseActionPage() {
                                 onSelect={setselectedCourseNum}
                                 value={selectedCourseNum}
                                 page="databaseView"
+                                maxLength={50}
                             />
 
                             <div className="text-left">
