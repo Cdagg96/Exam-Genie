@@ -402,7 +402,8 @@ export default function EditQuestionModal({
                                 <input
                                     type="number"
                                     className="border-primary bg-primary text-secondary px-4 py-3 w-full rounded-xl"
-                                    value={blankLines}
+                                    value={blankLines || ""}
+                                    placeholder="1"
                                     min={1}
                                     max={30}
                                     onChange={(e) => setBlankLines(Number(e.target.value))}
