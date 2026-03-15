@@ -73,8 +73,10 @@ export default function EditExamPage() {
   const updateQuestionPoints = (questionId: string, newPoints: number) => {
     if (!exam) return;
 
+    const clampedPoints = Math.max(0, Math.min(50, Number(newPoints)));
+
     const questions = (exam.questions ?? []).map((q) =>
-      q.questionId === questionId ? { ...q, points: newPoints } : q
+      q.questionId === questionId ? { ...q, points: clampedPoints } : q
     );
 
     setExam({
@@ -660,8 +662,9 @@ export default function EditExamPage() {
                                   <input
                                     type="number"
                                     min={0}
+                                    max={50}
                                     className="w-16 rounded border px-2 py-0.5 text-xs text-gray-700"
-                                    value={points}
+                                    value={q.points ?? ""}
                                     onChange={(e) => updateQuestionPoints(q.questionId, Number(e.target.value))}
                                   />
                                 </div>

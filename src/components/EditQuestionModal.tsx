@@ -403,6 +403,8 @@ export default function EditQuestionModal({
                                     type="number"
                                     className="border-primary bg-primary text-secondary px-4 py-3 w-full rounded-xl"
                                     value={blankLines}
+                                    min={1}
+                                    max={30}
                                     onChange={(e) => setBlankLines(Number(e.target.value))}
                                     required
                                     disabled={loading}

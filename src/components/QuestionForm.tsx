@@ -395,6 +395,8 @@ export default function BackgroundModal({
                                     type="number"
                                     className="border border-primary text-secondary px-4 py-3 w-full rounded-xl"
                                     value={blankLines}
+                                    min={1}
+                                    max={30}
                                     onChange={(e) => setBlankLines(Number(e.target.value))}
                                     required
                                 />

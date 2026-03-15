@@ -229,6 +229,13 @@ export async function POST(req: NextRequest) {
                     { status: 400 }
                 );
             }
+
+            if(question.difficulty > 5){
+                return NextResponse.json(
+                    { error: `${question.difficulty} answer exceeds max of 5.` },
+                    { status: 400 }
+                );
+            }
         }
 
         if (questionsToInsert.length === 0) {
