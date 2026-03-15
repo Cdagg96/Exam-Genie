@@ -192,6 +192,30 @@ export default function EditExamPage() {
     router.push("/past_exams");        // Go back to past exams page
   };
 
+  // When questions are added they go with the the rest of questions of that type
+  const insertQuestionIntoTypeGroup = (questions: any[], newQuestion: any) => {
+    const newType = newQuestion.type;
+
+    // Find the last question of the same type
+    const lastSameTypeIndex = [...questions]
+      .map((q, index) => ({ q, index }))
+      .filter(({ q }) => q.type === newType)
+      .pop()?.index;
+
+    // If this type already exists, insert after the last one
+    if (lastSameTypeIndex !== undefined) {
+      return [
+        ...questions.slice(0, lastSameTypeIndex + 1),
+        newQuestion,
+        ...questions.slice(lastSameTypeIndex + 1),
+      ];
+    }
+
+    // If this type does not exist yet append to the end
+    // so we don't disturb the existing exam order
+    return [...questions, newQuestion];
+  };
+
   // this will add the question to the bottom of current exam
   // it will not save it if the exam is exited without saving 
   const handleQuestionAdded = (newQuestion: any) => {
@@ -203,7 +227,7 @@ export default function EditExamPage() {
       points: POINTS_BY_TYPE[newQuestion.type] ?? 1,
     }
 
-    const questions = [...(exam.questions ?? []), newQuestionWithPoints];
+    const questions = insertQuestionIntoTypeGroup((exam.questions ?? []), newQuestionWithPoints);
     setExam({
       ...exam,
       questions,
@@ -386,7 +410,11 @@ export default function EditExamPage() {
         },
       }));
 
-    const questions = [...(exam.questions ?? []), ...newExamQuestions]
+    let questions = [...(exam.questions ?? [])];
+    for (const newQuestion of newExamQuestions) {
+      questions = insertQuestionIntoTypeGroup(questions, newQuestion);
+    }
+
     setExam({
       ...exam,
       questions,
