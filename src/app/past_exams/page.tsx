@@ -398,6 +398,7 @@ export default function PastExams() {
                                 options={names}
                                 onSelect={setSelectedName}
                                 value={selectedName}
+                                maxLength={50}
                             />
 
                             {/* Difficulty Filter */}
@@ -442,6 +443,7 @@ export default function PastExams() {
                                 placeholder="Search a subject"
                                 onSelect={setSelectedSubject}
                                 value={selectedSubject}
+                                maxLength={50}
                             />
 
                             {/* Course number Filter Box */}
@@ -451,6 +453,7 @@ export default function PastExams() {
                                 placeholder="Search a Course Number"
                                 onSelect={setSelectedCourseNum}
                                 value={selectedCourseNum}
+                                maxLength={50}
                             />
 
                             <div className="text-left">

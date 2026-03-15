@@ -12,6 +12,7 @@ interface FilterBoxProps {
   value?: string;
   page?: string;
   allowCustom?: boolean;
+  maxLength?: number;
 }
 
 //Make a filter box component that allows users to filter through a list of options
@@ -22,7 +23,8 @@ export default function FilterBox({
   onSelect,
   value = '',
   page = '',
-  allowCustom = false
+  allowCustom = false,
+  maxLength
 }: FilterBoxProps) { //All the work is done inside this component once user interacts with it
   //Set up the selection and input states
   const [isOpen, setIsOpen] = useState(false);
@@ -175,6 +177,7 @@ export default function FilterBox({
           onFocus={inputFocus}
           onBlur={inputBlur}
           placeholder={placeholder}
+          maxLength={maxLength}
           className="w-full px-4 py-3 border-primary bg-primary text-secondary flex justify-between items-center"
         />
 

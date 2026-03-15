@@ -234,6 +234,7 @@ export default function BackgroundModal({
                             value={stem}
                             onChange={(e) => setStem(e.target.value)}
                             required
+                            maxLength={100}
                         />
 
                         {/* Question Type */}
@@ -270,6 +271,7 @@ export default function BackgroundModal({
                             value={topics}
                             onChange={(e) => setTopics(e.target.value)}
                             required
+                            maxLength={50}
                         />
 
                         {/* Question subject */}
@@ -281,6 +283,7 @@ export default function BackgroundModal({
                             value={subject}
                             page="questionForm"
                             allowCustom={true}
+                            maxLength={50}
                         />
 
                         {/* Question Course Number */}
@@ -292,6 +295,7 @@ export default function BackgroundModal({
                             onSelect={(value) => setCourseNum(value)}
                             page="questionForm"
                             allowCustom={true}
+                            maxLength={50}
                         />
 
                         {/* MC options */}
@@ -305,6 +309,7 @@ export default function BackgroundModal({
                                     value={choice.text}
                                     onChange={(e) => updateChoice(index, e.target.value)}
                                     required
+                                    maxLength={100}
                                     />
 
                                     <button
@@ -381,6 +386,7 @@ export default function BackgroundModal({
                                     value={extendedAnswer}
                                     onChange={(e) => setExAnswer(e.target.value)}
                                     required
+                                    maxLength={1000}
                                 />
                                 <label className="block text-sm font-medium text-primary mb-2">
                                     Number of blank lines
@@ -389,6 +395,8 @@ export default function BackgroundModal({
                                     type="number"
                                     className="border border-primary text-secondary px-4 py-3 w-full rounded-xl"
                                     value={blankLines}
+                                    min={1}
+                                    max={30}
                                     onChange={(e) => setBlankLines(Number(e.target.value))}
                                     required
                                 />
@@ -407,6 +415,7 @@ export default function BackgroundModal({
                                     value={fibAnswer}
                                     onChange={(e) => setFIBAnswer(e.target.value)}
                                     required
+                                    maxLength={100}
                                 />
                             </div>
                         )}
