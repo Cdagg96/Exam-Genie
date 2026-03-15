@@ -40,7 +40,25 @@ function SortableHeader({
         >
             <span>{label}</span>
             <span className="text-xs">
-                {isActive ? (sortOrder === "asc" ? "▲" : "▼") : "↕"}
+                {isActive ? (sortOrder === "asc" ? (
+                    <svg className="w-3 h-3 inline" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 5l5 6H5l5-6z" />
+                    </svg>
+                ) : (
+                    <svg className="w-3 h-3 inline" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 15l-5-6h10l-5 6z" />
+                    </svg>
+                )) :
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-5 h-5 ml-1 text-primary"
+                        >
+                        <path d="M10 4l-3 3h6l-3-3z" />
+                        <path d="M10 16l3-3H7l3 3z" />
+                    </svg> 
+                }
             </span>
         </button>
     );
@@ -95,7 +113,7 @@ export default function DatabaseActionPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
 
-    // Custome ordering states
+    // Custom ordering states
     const [sortBy, setSortBy] = useState<"difficulty" | "lastUsed" | "">("");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 

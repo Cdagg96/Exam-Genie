@@ -17,6 +17,53 @@ import type { ExamWithMeta } from "@/types/exam";
 import { useAuth } from "@/components/AuthContext";
 import useTheme from "@/hooks/useTheme"
 
+function SortableHeader({
+    label,
+    field,
+    sortBy,
+    sortOrder,
+    onSort,
+}: {
+    label: string;
+    field: "totalPoints" | "lastUsed" | "createdAt";
+    sortBy: string;
+    sortOrder: "asc" | "desc";
+    onSort: (field: "totalPoints" | "lastUsed" | "createdAt") => void;
+}) {
+    const isActive = sortBy === field;
+
+    return (
+        <button
+            type="button"
+            onClick={() => onSort(field)}
+            className="inline-flex items-center justify-center gap-1 w-full"
+        >
+            <span>{label}</span>
+            <span className="text-xs">
+                {isActive ? (sortOrder === "asc" ? (
+                    <svg className="w-3 h-3 inline" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 5l5 6H5l5-6z" />
+                    </svg>
+                ) : (
+                    <svg className="w-3 h-3 inline" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 15l-5-6h10l-5 6z" />
+                    </svg>
+                )) :
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-5 h-5 ml-1 text-primary"
+                        >
+                        <path d="M10 4l-3 3h6l-3-3z" />
+                        <path d="M10 16l3-3H7l3 3z" />
+                    </svg> 
+                }
+            </span>
+        </button>
+    );
+}
+
 export default function PastExams() {
     const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const [exams, setExams] = useState<ExamWithMeta[]>([]);
@@ -60,6 +107,10 @@ export default function PastExams() {
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
 
+    // Custom ordering states
+    const [sortBy, setSortBy] = useState<"totalPoints" | "lastUsed" | "createdAt" | "">("");
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
     // Fetch exams from MongoDB
     const fetchExamsWithFilters = async () => {
         try {
@@ -78,6 +129,8 @@ export default function PastExams() {
             if (selectedTotalPoints) queryParams.append('totalPoints', selectedTotalPoints);
             if (selectedSubject) queryParams.append('subject', selectedSubject);
             if (selectedCourseNum) queryParams.append('courseNum', selectedCourseNum);
+            if (sortBy) queryParams.append("sortBy", sortBy);
+            if (sortOrder) queryParams.append("sortOrder", sortOrder);
 
             //Updated last used filter with type and end date
             if (selectedLastUsed) {
@@ -210,7 +263,7 @@ export default function PastExams() {
             return;
         }
         fetchExamsWithFilters();
-    }, [page, limit, user?._id]);
+    }, [page, limit, sortBy, sortOrder, user?._id]);
 
     // Set page back to one if user changes
     useEffect(() => {
@@ -358,6 +411,17 @@ export default function PastExams() {
         setLastUsedDateEnd(newValue);
         setDateInputValueEnd(newValue ? newValue.format('MM/DD/YYYY') : '');
         setCalendarEndOpen(false);
+    };
+
+    const handleSort = (field: "totalPoints" | "lastUsed" | "createdAt") => {
+        if (sortBy === field) {
+            setSortOrder(prev => (prev === "asc" ? "desc" : "asc"));
+        } else {
+            setSortBy(field);
+            setSortOrder("asc");
+        }
+
+        setPage(1);
     };
 
     return (
@@ -713,13 +777,31 @@ export default function PastExams() {
                                             Difficulty
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
-                                            Total Points
+                                            <SortableHeader
+                                                label="Total Points"
+                                                field="totalPoints"
+                                                sortBy={sortBy}
+                                                sortOrder={sortOrder}
+                                                onSort={handleSort}
+                                            />
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
-                                            Date Created
+                                            <SortableHeader
+                                                label="Date Created"
+                                                field="createdAt"
+                                                sortBy={sortBy}
+                                                sortOrder={sortOrder}
+                                                onSort={handleSort}
+                                            />
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
-                                            Last Used
+                                            <SortableHeader
+                                                label="Last Used"
+                                                field="lastUsed"
+                                                sortBy={sortBy}
+                                                sortOrder={sortOrder}
+                                                onSort={handleSort}
+                                            />
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             Actions
