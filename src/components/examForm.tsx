@@ -630,22 +630,25 @@ export default function ExamForm() {
 
                     <div className="border-t border-primary my-8"></div>
                     
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-3">
                         {/* Allowed Question Types */}
                         <div>
                             <h2 className="mb-3 text-lg font-semibold text-primary">Allowed Question Types</h2>
                             <p className="mb-3 text-sm text-secondary">
                                 Set how many questions of each type you want. Use 0 to exclude a type.
                             </p>
-                            <div className="pl-40 pr-40 grid gap-4 sm:grid-cols-1">
+                            <div className="grid gap-4 sm:grid-cols-1">
                             {TYPES.map((t) => (
                                 <label key={t.value} className="flex flex-col">
-                                    <span className="text-sm font-medium text-primary">{t.label}</span>
-                                    {user && (
-                                        <span className="text-base text-secondary">
-                                            {availableCounts[t.value] ?? 0} questions available
-                                        </span>
-                                    )}
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span className="text-sm font-medium text-primary">{t.label}</span>
+                                        {user && (
+                                            <span className="text-sm text-primary">
+                                                ({availableCounts[t.value] ?? 0} questions available)
+                                            </span>
+                                        )}
+                                    </div>
+                                    
                                     <input
                                         type="number"
                                         min={0}
@@ -669,7 +672,7 @@ export default function ExamForm() {
                             </p>
 
                             <div className="flex justify-center flex-wrap">
-                                <div className="pl-40 pr-40 w-full max-w-[1000px]">
+                                <div className="w-full max-w-[1000px]">
                                     <div className="max-w-md mx-auto">
                                         {/* If the user has not selected a question display more instructions */}
                                         {questionOrder.length === 0 ? (
@@ -756,39 +759,38 @@ export default function ExamForm() {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        {/* Point Values */ }
+                        <div>
+                            <h2 className="text-lg font-semibold text-primary">Point Values</h2>
+                            <p className="mb-3 text-sm text-secondary">
+                                Default values can be set here and adjusted later in Edit Exam.
+                            </p>
+                            <div className="grid gap-4 sm:grid-cols-1">
+                                {TYPES.map((t) => {
+                                    return (
+                                        <label key={t.value} className="flex flex-col gap-0.5">
+                                            <span className="text-sm font-medium text-primary">{t.label}</span>
 
-                    <div className="border-t border-primary my-8"></div>
-
-                    <h2 className="mb-3 mt-8 text-lg font-semibold text-primary">Point Values</h2>
-                    <p className="mb-3 text-sm text-secondary">
-                        Default values can be set here and adjusted later in Edit Exam.
-                    </p>
-
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        {TYPES.map((t) => {
-                            return (
-                                <label key={t.value} className="flex flex-col gap-2">
-                                    <span className="text-sm font-medium text-primary">{t.label}</span>
-
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={50}
-                                        placeholder={"0"}
-                                        className="border-primary text-secondary px-3 py-3"
-                                        value={pointsByType[t.value] ?? ""}
-                                        onChange={(e) => {
-                                            const v = e.target.value;
-                                            setPointsByType((prev) => ({
-                                                ...prev,
-                                                [t.value]: v,
-                                            }))
-                                        }}
-                                    />
-                                </label>
-                            );
-                        })}
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={50}
+                                                placeholder={"0"}
+                                                className="border-primary text-secondary px-2"
+                                                value={pointsByType[t.value] ?? ""}
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    setPointsByType((prev) => ({
+                                                        ...prev,
+                                                        [t.value]: v,
+                                                    }))
+                                                }}
+                                            />
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </section>
                 <div className="flex items-center justify-between">
