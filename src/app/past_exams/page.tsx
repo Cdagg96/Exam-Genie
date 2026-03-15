@@ -696,7 +696,7 @@ export default function PastExams() {
 
                     {/* Exams Table */}
                     <div className="bg-primary rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
-                        <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
+                        <div className="overflow-x-auto w-full max-w-full h-120 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
                                 <thead className="bg-linear-to-r from-blue-50 to-cyan-50 dark:bg-gradient-to-r dark:from-slate-700 dark:to-slate-800 sticky top-0 z-20">
                                     <tr>
@@ -730,19 +730,49 @@ export default function PastExams() {
                                     {loading && user ? (
                                         // Exams loading
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-secondary text-lg">Loading exams</div>
+                                            <td colSpan={8} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="flex justify-center items-center space-x-2 py-4">
+                                                    {/* Spinning circle loading animation */}
+                                                    <svg
+                                                        className="animate-spin h-12 w-12 text-secondary"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <circle
+                                                            className="opacity-50"
+                                                            cx="12"
+                                                            cy="12"
+                                                            r="10"
+                                                            stroke="currentColor"
+                                                            strokeWidth="4"
+                                                        />
+                                                        <circle
+                                                            className="opacity-75"
+                                                            cx="12"
+                                                            cy="12"
+                                                            r="10"
+                                                            stroke="currentColor"
+                                                            strokeWidth="3"
+                                                            strokeLinecap="round"
+                                                            strokeDasharray="50"
+                                                            strokeDashoffset="20"
+                                                        />
+                                                    </svg>
+                                                    <span className="text-secondary text-lg">Loading...</span>
+                                                </div>
                                             </td>
                                         </tr>
                                     ) : error ? (
                                         // Error while loading exams
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
+                                            <td colSpan={8} className="px-6 py-24 text-center border-r border-gray-200">
                                                 <div className="text-secondary text-lg">Error loading exams</div>
                                                 <div className="text-red-400 text-sm mt-2">{error}</div>
                                                 <button
                                                     onClick={fetchExams}
-                                                    className="mt-4 px-4 py-2 bg-gray-800 text-secondary rounded-lg hover:bg-gray-900 transition-colors">
+                                                    className="mt-4 px-4 py-2 bg-gray-800 text-secondary rounded-lg hover:bg-gray-900 transition-colors"
+                                                >
                                                     Retry
                                                 </button>
                                             </td>
@@ -750,128 +780,143 @@ export default function PastExams() {
                                     ) : !user ? (
                                         // Not logged in
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-secondary text-lg">Please log in to view your past exams</div>
+                                            <td colSpan={8} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="text-secondary text-lg">Please log in to view your exams</div>
                                             </td>
                                         </tr>
                                     ) : filteredExams.length === 0 ? (
                                         // No exams
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-24 text-center border-r border-gray-200">
+                                            <td colSpan={8} className="px-6 py-24 text-center border-r border-gray-200">
                                                 <div className="text-secondary text-lg">No exams found</div>
                                                 <div className="text-secondary text-sm mt-2">Generate exams to see them listed here.</div>
                                             </td>
                                         </tr>
                                     ) : (
                                         // Exams data
-                                        filteredExams.map((exam, index) => (
-                                            <tr key={exam._id} className={index % 2 === 0 ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-800'}>
-                                                <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
-                                                    <div className="truncate" title={exam.title}>
-                                                        {exam.title}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    <div className="truncate" title={exam.title}>
-                                                        {exam.subject ? exam.subject : "N/A"}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    <div className="truncate" title={exam.title}>
-                                                        {exam.courseNum ? exam.courseNum : "N/A"}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {exam.difficulty
-                                                        ? exam.difficulty
-                                                        : "N/A"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {exam.totalPoints
-                                                        ? exam.totalPoints
-                                                        : "N/A"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {exam.createdAt
-                                                        ? new Date(exam.createdAt).toLocaleDateString() // Format date based on user's locale
-                                                        : "N/A"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {exam.lastUsed 
-                                                        ? (() => {
-                                                            const [year, month, day] = new Date(exam.lastUsed).toISOString().split('T')[0].split('-');
-                                                            return `${month}/${day}/${year}`;
-                                                        })()
-                                                        : 'Never'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <div className="flex items-center justify-center gap-4">
-                                                        <Link href={`/edit_exam/${exam._id}`} className="text-blue-600 hover:text-blue-900">
-                                                            Edit
-                                                        </Link>
-                                                        <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(exam._id, exam.title)}>
-                                                            Delete
-                                                        </button>
-                                                        {/* Download menu */}
-                                                        <div className="relative">
-                                                            <button
-                                                                onClick={() =>
-                                                                    setOpenDownloadMenuId(
-                                                                        openDownloadMenuId === exam._id ? null : exam._id
-                                                                    )
-                                                                }
-                                                                className="p-1 rounded hover:bg-gray-100"
-                                                                aria-label="Download exam"
-                                                            >
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    fill="none"
-                                                                    viewBox="0 0 24 24"
-                                                                    strokeWidth={1.5}
-                                                                    stroke="currentColor"
-                                                                    className="w-5 h-5 hover:-translate-y-0.5"
-                                                                >
-                                                                    <path
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-                                                                    />
-                                                                </svg>
-                                                            </button>
-
-                                                            {openDownloadMenuId === exam._id && (
-                                                                <div className="absolute right-0 top-full mt-2 w-35 rounded-lg border bg-primary border-primary shadow-lg text-sm z-10 overflow-hidden">
-                                                                    <button
-                                                                        className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                                                                        onClick={() => handleDownloadExam(exam, "pdf")}
-                                                                    >
-                                                                        Download PDF
-                                                                    </button>
-                                                                    <button
-                                                                        className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                                                                        onClick={() => handleDownloadExam(exam, "txt")}
-                                                                    >
-                                                                        Download TXT
-                                                                    </button>
-                                                                    <button
-                                                                        className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                                                                        onClick={() => handleDownloadExam(exam, "docx")}
-                                                                    >
-                                                                        Download DOCX
-                                                                    </button>
-                                                                    <button
-                                                                        className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                                                                        onClick={() => handleDownloadExam(exam, "csv")}
-                                                                    >
-                                                                        Download CSV
-                                                                    </button>
-                                                                </div>
-                                                            )}
+                                        <>
+                                            {filteredExams.map((exam, index) => (
+                                                <tr 
+                                                    key={exam._id} 
+                                                    className={index % 2 === 0 ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-800'}
+                                                >
+                                                    <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
+                                                        <div className="truncate" title={exam.title}>
+                                                            {exam.title}
                                                         </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        <div className="truncate" title={exam.title}>
+                                                            {exam.subject ? exam.subject : "N/A"}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        <div className="truncate" title={exam.title}>
+                                                            {exam.courseNum ? exam.courseNum : "N/A"}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {exam.difficulty
+                                                            ? exam.difficulty
+                                                            : "N/A"}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {exam.totalPoints
+                                                            ? exam.totalPoints
+                                                            : "N/A"}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {exam.createdAt
+                                                            ? new Date(exam.createdAt).toLocaleDateString() // Format date based on user's locale
+                                                            : "N/A"}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {exam.lastUsed 
+                                                            ? (() => {
+                                                                const [year, month, day] = new Date(exam.lastUsed).toISOString().split('T')[0].split('-');
+                                                                return `${month}/${day}/${year}`;
+                                                            })()
+                                                            : 'Never'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                        <div className="flex items-center justify-center gap-4">
+                                                            <Link href={`/edit_exam/${exam._id}`} className="text-blue-600 hover:text-blue-900">
+                                                                Edit
+                                                            </Link>
+                                                            <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(exam._id, exam.title)}>
+                                                                Delete
+                                                            </button>
+                                                            {/* Download menu */}
+                                                            <div className="relative">
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setOpenDownloadMenuId(
+                                                                            openDownloadMenuId === exam._id ? null : exam._id
+                                                                        )
+                                                                    }
+                                                                    className="p-1 rounded hover:bg-gray-100"
+                                                                    aria-label="Download exam"
+                                                                >
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        fill="none"
+                                                                        viewBox="0 0 24 24"
+                                                                        strokeWidth={1.5}
+                                                                        stroke="currentColor"
+                                                                        className="w-5 h-5 hover:-translate-y-0.5"
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                                                                        />
+                                                                    </svg>
+                                                                </button>
+
+                                                                {openDownloadMenuId === exam._id && (
+                                                                    <div className="absolute right-0 top-full mt-2 w-35 rounded-lg border bg-primary border-primary shadow-lg text-sm z-10 overflow-hidden">
+                                                                        <button
+                                                                            className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                                                                            onClick={() => handleDownloadExam(exam, "pdf")}
+                                                                        >
+                                                                            Download PDF
+                                                                        </button>
+                                                                        <button
+                                                                            className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                                                                            onClick={() => handleDownloadExam(exam, "txt")}
+                                                                        >
+                                                                            Download TXT
+                                                                        </button>
+                                                                        <button
+                                                                            className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                                                                            onClick={() => handleDownloadExam(exam, "docx")}
+                                                                        >
+                                                                            Download DOCX
+                                                                        </button>
+                                                                        <button
+                                                                            className="block w-full px-3 py-2 text-left hover:bg-gray-100"
+                                                                            onClick={() => handleDownloadExam(exam, "csv")}
+                                                                        >
+                                                                            Download CSV
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+
+                                            {/* Filler rows to maintain alternating colors */}
+                                            {Array.from({ length: Math.max(0, 8 - filteredExams.length) }).map((_, i) => (
+                                                <tr
+                                                    key={`filler-${i}`}
+                                                    className={(filteredExams.length + i) % 2 === 0 ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-800'}
+                                                >
+                                                    <td colSpan={8} className="py-4">&nbsp;</td>
+                                                </tr>
+                                            ))}
+                                        </>
                                     )}
                                 </tbody>
                             </table>
