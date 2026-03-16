@@ -27,30 +27,30 @@ const STEPS: Step[] = [
     title: "Manage Questions",
     description: "Create, edit, and organize your question bank. Add multiple choice, true/false, fill in the blank, code, and essay questions.",
     route: "/data_view",
-    video: "/videos/QuestionsPageTutorial.mp4",
+    video: "/videos/QuestionBankTutorialUpdated.mp4",
     buttonName: "Go to questions page",
   },
   {
     id: "generate",
-    title: "Generate Exam",
+    title: "Generate Exams",
     description: "Enter exam details, select questions, assign point values, and choose how your exam is organized.",
     route: "/exam_gen",
-    video: "/videos/ExamGenerationPageTutorial.mp4",
+    video: "/videos/GenerateExamTutorialUpdated.mp4",
     buttonName: "Go to generator page",
   },
   {
     id: "edit",
-    title: "Exams",
+    title: "Manage Exams",
     description: "Review and update existing exams, reorder questions, adjust settings, or remove exams when they are no longer needed.",
     route: "/past_exams",
-    video: "videos/EditExamPageTutorial.mp4",
+    video: "videos/EditExamTutorialUpdated.mp4",
     buttonName: "Go to exams page",
   },
   {
     id: "print",
     title: "Download Exams",
     description: "Download polished exams and answer keys, ready for printing and classroom use.",
-    video: "videos/DownloadExamTutorial.mp4",
+    video: "videos/ExamDownloadTutorialUpdated.mp4",
   },
 ];
 
@@ -119,6 +119,13 @@ export default function Home() {
                     muted
                     loop
                     playsInline
+                    controls
+                    controlsList="nodownload noplaybackrate"
+                    disablePictureInPicture
+                    onContextMenu={(e) => e.preventDefault()}
+                    onVolumeChange={(e) => {
+                      e.currentTarget.muted = true;
+                    }}
                     className="w-full h-full object-contain"
                   >
                     <source src={active.video} />
