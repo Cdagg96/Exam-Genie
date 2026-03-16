@@ -485,6 +485,9 @@ export default function DatabaseActionPage() {
         setCSVModalOpen(true);
     };
 
+    //Color the questions table even if its not entirely full with data
+    let counter;
+
     return (
         <Background>
             <div className="flex flex-col justify-between min-h-screen p-4 text-center">
@@ -827,7 +830,7 @@ export default function DatabaseActionPage() {
 
                     {/* Questions Table */}
                     <div className="bg-primary rounded-2xl shadow-lg overflow-hidden w-full border border-gray-100">
-                        <div className="overflow-x-auto w-full max-w-full max-h-120 overflow-y-auto">
+                        <div className="overflow-x-auto w-full max-w-full h-120 overflow-y-auto">
                             <table className="min-w-full divide-y divide-gray-200 border-x border-gray-200">
                                 <thead className="bg-linear-to-r from-blue-50 to-cyan-50 dark:bg-gradient-to-r dark:from-slate-700 dark:to-slate-800 sticky top-0">
                                     <tr>
@@ -858,7 +861,7 @@ export default function DatabaseActionPage() {
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200 max-w-72">
                                             Choices
                                         </th>
-                                        <th className="px-6 py-4text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200 max-w-72">
+                                        <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200 max-w-72">
                                             Answer
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
@@ -879,19 +882,49 @@ export default function DatabaseActionPage() {
                                     {loading && user ? (
                                         //Questions Loading
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
-                                                <div className="text-secondary text-lg">Loading questions</div>
+                                            <td colSpan={10} className="px-6 py-24 text-center border-r border-gray-200">
+                                                <div className="flex justify-center items-center space-x-2 py-4">
+                                                    {/* Spinning circle loading animation */}
+                                                    <svg
+                                                        className="animate-spin h-12 w-12 text-secondary"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <circle
+                                                            className="opacity-50"
+                                                            cx="12"
+                                                            cy="12"
+                                                            r="10"
+                                                            stroke="currentColor"
+                                                            strokeWidth="4"
+                                                        />
+                                                        <circle
+                                                            className="opacity-75"
+                                                            cx="12"
+                                                            cy="12"
+                                                            r="10"
+                                                            stroke="currentColor"
+                                                            strokeWidth="3"
+                                                            strokeLinecap="round"
+                                                            strokeDasharray="50"
+                                                            strokeDashoffset="20"
+                                                        />
+                                                    </svg>
+                                                    <span className="text-secondary text-lg">Loading...</span>
+                                                </div>
                                             </td>
                                         </tr>
                                     ) : error ? (
                                         //Error while loading questions
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                            <td colSpan={10} className="px-6 py-24 text-center border-r border-gray-200">
                                                 <div className="text-secondary text-lg">Error Loading questions</div>
                                                 <div className="text-red-400 text-sm mt-2">{error}</div>
                                                 <button
                                                     onClick={fetchQuestionsWithFilters}
-                                                    className="mt-4 px-4 py-2 bg-gray-800 text-secondary rounded-lg hover:bg-gray-900 transition-colors">
+                                                    className="mt-4 px-4 py-2 bg-gray-800 text-secondary rounded-lg hover:bg-gray-900 transition-colors"
+                                                >
                                                     Retry
                                                 </button>
                                             </td>
@@ -899,70 +932,79 @@ export default function DatabaseActionPage() {
                                     ) : !user ? (
                                         //Not logged in
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                            <td colSpan={10} className="px-6 py-24 text-center border-r border-gray-200">
                                                 <div className="text-secondary text-lg">Please log in to view your questions</div>
                                             </td>
                                         </tr>
                                     ) : filteredQuestions.length == 0 ? (
                                         //No questions
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-24 text-center border-r border-gray-200">
+                                            <td colSpan={10} className="px-6 py-24 text-center border-r border-gray-200">
                                                 <div className="text-secondary text-lg">No questions found</div>
                                                 <div className="text-secondary text-sm mt-2">Add a question to get started</div>
                                             </td>
                                         </tr>
                                     ) : (
                                         //Questions data
-                                        filteredQuestions.map((question, index) => (
-                                            <tr key={question._id} className={index % 2 === 0 ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-800'}>
-                                                <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
-                                                    <div className="truncate" title={question.stem}>
-                                                        {question.stem}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {question.type}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {question.difficulty}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {formatTopics(question.topics)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {question.subject || 'N/A'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {question.courseNum || 'N/A'}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
-                                                    <div className="truncate" title={formatChoices(question.choices)}>
-                                                        {formatChoices(question.choices)}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200 max-w-72">
-                                                    <div className="truncate" title={formatAnswers(question)}>
-                                                        {formatAnswers(question)}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
-                                                    {question.lastUsed 
-                                                        ? (() => {
+                                        <>
+                                            {filteredQuestions.map((question, index) => (
+                                                <tr
+                                                    key={question._id}
+                                                    className={index % 2 === 0 ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-800'}
+                                                >
+                                                    <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
+                                                        <div className="truncate" title={question.stem}>
+                                                            {question.stem}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {question.type}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {question.difficulty}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {formatTopics(question.topics)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {question.subject || 'N/A'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {question.courseNum || 'N/A'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-secondary max-w-xs border-r border-gray-200">
+                                                        <div className="truncate" title={formatChoices(question.choices)}>{formatChoices(question.choices)}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200 max-w-72">
+                                                        <div className="truncate" title={formatAnswers(question)}>{formatAnswers(question)}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        {question.lastUsed ? (() => {
                                                             const [year, month, day] = new Date(question.lastUsed).toISOString().split('T')[0].split('-');
                                                             return `${month}/${day}/${year}`;
-                                                        })()
-                                                        : 'Never'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => handleEditClick(question)}>
-                                                        Edit
-                                                    </button>
-                                                    <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(question._id, question.stem)}>
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
+                                                        })() : 'Never'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                        <button className="text-blue-600 hover:text-blue-900 mr-3" onClick={() => handleEditClick(question)}>
+                                                            Edit
+                                                        </button>
+                                                        <button className="text-red-600 hover:text-red-900" onClick={() => handleDeleteClick(question._id, question.stem)}>
+                                                            Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+
+                                            {/* Filler rows to maintain alternating colors */}
+                                            {Array.from({ length: Math.max(0, 8 - filteredQuestions.length) }).map((_, i) => (
+                                                <tr
+                                                    key={`filler-${i}`}
+                                                    className={(filteredQuestions.length + i) % 2 === 0 ? 'bg-white dark:bg-gray-700' : 'bg-gray-50 dark:bg-gray-800'}
+                                                >
+                                                    <td colSpan={10} className="py-4">&nbsp;</td>
+                                                </tr>
+                                            ))}
+                                        </>
                                     )}
                                 </tbody>
                             </table>
