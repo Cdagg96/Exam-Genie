@@ -75,6 +75,16 @@ export async function GET(req: Request) {
         const hasLimit = searchParams.has("limit");
         const usePagination = hasPage || hasLimit;
 
+        // If sorting by order in the table (Difficulty or Last used)
+        const sortBy = searchParams.get("sortBy");
+        const sortOrder = searchParams.get("sortOrder") === "desc" ? -1 : 1;
+        const allowedSortFields = ["createdAt", "totalPoints", "lastUsed"];
+
+        let sort: Record<string, 1 | -1> = { createdOn: -1, _id: -1 };
+        if (sortBy && allowedSortFields.includes(sortBy)) {
+            sort = { [sortBy]: sortOrder as 1 | -1, _id: -1 };
+        }
+
         // Build filter object based on provided parameters
         const filter: any = {};
 
@@ -181,7 +191,7 @@ export async function GET(req: Request) {
             const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") ?? 25))); // Exams per page
             const skip = (page - 1) * limit; // Next/prev page
 
-            const exams = await collection.find(filter).sort({createdAt: -1, _id: -1}).skip(skip).limit(limit).toArray();
+            const exams = await collection.find(filter).sort(sort).skip(skip).limit(limit).toArray();
 
             // Total count for pagination controls
             const total = await collection.countDocuments(filter);
@@ -223,7 +233,7 @@ export async function GET(req: Request) {
             });
         }
         // Otherwise return all matching exams (array)
-        const exams = await collection.find(filter).sort({ createdAt: -1 }).toArray();
+        const exams = await collection.find(filter).sort(sort).toArray();
 
         const serializedExams = exams.map(exam => ({
             ...exam,
