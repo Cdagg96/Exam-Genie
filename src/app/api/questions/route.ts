@@ -175,41 +175,53 @@ export async function GET(req: Request) {
             //Get filter type (default to 'before' if not specified)
             const filterType = searchParams.get('lastUsedFilterType') || 'before';
             
-            //Create date range for the selected day
-            const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-            const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
-            
-            if (filterType === 'before') {
-                //Filter for dates before the selected day
-                filter.lastUsed = { $lt: startOfDay };
-            } 
-            else if (filterType === 'after') {
-                //Filter for dates after the selected day
-                filter.lastUsed = { $gt: endOfDay };
+            if (filterType === 'never'){
+                filter.lastUsed = null;
             }
-            else if (filterType === 'range') {
-                //Filter for dates between start and end
-                const lastUsedEnd = searchParams.get('lastUsedEnd');
+            else {
+                //Create date range for the selected day
+                const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+                const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
                 
-                if (lastUsedEnd) {
-                    const [endMonth, endDay, endYear] = lastUsedEnd.split('-').map(Number);
-                    const endOfRangeDay = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
+                if (filterType === 'before') {
+                    //Filter for dates before the selected day
+                    filter.lastUsed = { $lt: startOfDay };
+                } 
+                else if (filterType === 'after') {
+                    //Filter for dates after the selected day
+                    filter.lastUsed = { $gt: endOfDay };
+                }
+                else if (filterType === 'range') {
+                    //Filter for dates between start and end
+                    const lastUsedEnd = searchParams.get('lastUsedEnd');
                     
-                    filter.lastUsed = {
-                    $gte: startOfDay,
-                    $lte: endOfRangeDay
-                    };
-                } else {
-                    //If no end date provided, just use the single day
-                    filter.lastUsed = {
-                    $gt: startOfDay,
-                    $lt: endOfDay
-                    };
+                    if (lastUsedEnd) {
+                        const [endMonth, endDay, endYear] = lastUsedEnd.split('-').map(Number);
+                        const endOfRangeDay = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
+                        const startOfRangeDay = new Date(Date.UTC(endYear, endMonth - 1, endDay, 0, 0, 0, 0));
+                        
+                        filter.lastUsed = {
+                        $gt: endOfDay,
+                        $lt: startOfRangeDay
+                        };
+                    } else {
+                        //If no end date provided, just use the single day
+                        filter.lastUsed = {
+                        $gt: startOfDay,
+                        $lt: endOfDay
+                        };
+                    }
                 }
             }
         } catch (error) {
             console.error('Error parsing lastUsed date:', error);
             //If date parsing fails, don't apply the filter rather than throwing error
+        }
+    }
+    else {
+        const filterType = searchParams.get('lastUsedFilterType');
+        if (filterType === 'never') {
+            filter.lastUsed = null;
         }
     }
 
