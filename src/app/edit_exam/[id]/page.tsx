@@ -53,7 +53,8 @@ export default function EditExamPage() {
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [draggedQuestion, setDraggedQuestion] = useState<string | null>(null);
-  const [dropTarget, setDropTarget] = useState<number | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false); 
   const [isExistingPickerOpen, setIsExistingPickerOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [pendingDeleteQuestion, setPendingDeleteQuestion] = useState<any>(null);
@@ -91,6 +92,7 @@ export default function EditExamPage() {
   const handleDragStart = (e: React.DragEvent, questionId: string) => {
     e.dataTransfer.setData("text/plain", questionId);
     setDraggedQuestion(questionId);
+    setIsDragging(true);
     e.currentTarget.classList.add("opacity-50");
   };
 
@@ -98,23 +100,112 @@ export default function EditExamPage() {
     e.currentTarget.classList.remove("opacity-50");
     setDraggedQuestion(null);
     setDropTarget(null);
+    setIsDragging(false);
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  //Check to see if its a valid zone to drag and drop
+  const isValidDropZone = (dropZoneKey: string, draggedQuestionId: string): boolean => {
+    if (!exam || !draggedQuestionId) return false;
+    const [zoneType, indexStr] = dropZoneKey.split('-');
+    const index = parseInt(indexStr);
+    
+    let targetIndex: number;
+    
+    if (zoneType === 'top') {
+      targetIndex = index;
+    } else if (zoneType === 'between') {
+      targetIndex = index;
+    } else if (zoneType === 'bottom') {
+      targetIndex = index;
+    } else {
+      return false;
+    }
+    
+    return canDropAtPosition(draggedQuestionId, targetIndex, zoneType);
+  };
+
+  const handleDragOver = (e: React.DragEvent, dropZoneKey: string) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    setDropTarget(index);
+    setDropTarget(dropZoneKey);
   };
 
   const handleDragLeave = () => {
     setDropTarget(null);
   };
 
-  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+  //Can question be dropped at this position?
+  const canDropAtPosition = (draggedQuestionId: string, targetIndex: number, zoneType?: string): boolean => {
+    if (!exam) return false;
+
+    const draggedQuestion = exam.questions.find(q => q.questionId === draggedQuestionId);
+    if (!draggedQuestion) return false;
+
+    const draggedType = draggedQuestion.type;
+
+    //Empty exam
+    if (exam.questions.length === 0) return true;
+    
+    //Top drop zone (inserting at the beginning of a section)
+    if (zoneType === 'top') {
+      if (targetIndex === 0) {
+        //Check first question
+        return exam.questions[0]?.type === draggedType;
+      }
+      //Top of a section (the first question of this section)
+      const targetQuestion = exam.questions[targetIndex];
+      if (!targetQuestion) return false;
+      return targetQuestion.type === draggedType;
+    }
+    
+    //Between drop zone (inserting between questions)
+    if (zoneType === 'between') {
+      //Check the question before the insertion point
+      if (targetIndex === 0) return false;
+      const prevQuestion = exam.questions[targetIndex - 1];
+      if (!prevQuestion) return false;
+      return prevQuestion.type === draggedType;
+    }
+    
+    //Bottom drop zone (inserting at the end)
+    if (zoneType === 'bottom') {
+      if (exam.questions.length === 0) return true;
+      return exam.questions[exam.questions.length - 1]?.type === draggedType;
+    }
+    
+    //Default
+    return false;
+  };
+
+  const handleDrop = (e: React.DragEvent, dropZoneKey: string) => {
     e.preventDefault();
     const draggedQuestionId = e.dataTransfer.getData("text/plain");
 
     if (!exam) return;
+
+    //Parse the drop zone key to get target index and type
+    const [zoneType, indexStr] = dropZoneKey.split('-');
+    let targetIndex: number;
+    
+    if (zoneType === 'top') {
+      //For top drop zones, insert before the question at this index
+      targetIndex = parseInt(indexStr);
+    } else if (zoneType === 'between') {
+      //For between drop zones, insert after the previous question (at this index)
+      targetIndex = parseInt(indexStr) + 1;
+    } else if (zoneType === 'bottom') {
+      //For bottom drop zone, insert at the end
+      targetIndex = parseInt(indexStr);
+    } else {
+      return;
+    }
+
+    //Check if the drop is allowed based on question types
+    if (!canDropAtPosition(draggedQuestionId, targetIndex, zoneType)) {
+      toast.error(`Cannot move questions between different types. ${getQuestionType(draggedQuestionId)} questions must stay together.`);
+      setDropTarget(null);
+      return;
+    }
 
     const questions = [...exam.questions];
     const draggedIndex = questions.findIndex(q => q.questionId === draggedQuestionId);
@@ -140,6 +231,58 @@ export default function EditExamPage() {
     });
     setDirty(true); //marked as unsaved
     setDropTarget(null);
+  };
+
+  //Get question type (for error message)
+  const getQuestionType = (questionId: string): string => {
+    if (!exam) return "Question";
+    const question = exam.questions.find(q => q.questionId === questionId);
+    if (!question) return "Question";
+    
+    switch(question.type) {
+      case "MC": return "Multiple Choice";
+      case "TF": return "True/False";
+      case "FIB": return "Fill in the Blank";
+      case "Essay": return "Essay";
+      case "Code": return "Coding";
+      default: return "Question";
+    }
+  };
+
+  //Check if drop zone is in the same type section
+  const isInSameTypeSection = (dropZoneKey: string, draggedQuestionId: string): boolean => {
+    if (!exam || !draggedQuestionId) return false;
+    
+    const draggedQuestion = exam.questions.find(q => q.questionId === draggedQuestionId);
+    if (!draggedQuestion) return false;
+    
+    const draggedType = draggedQuestion.type;
+    
+    //Parse the drop zone key to get the target index
+    const [zoneType, indexStr] = dropZoneKey.split('-');
+    const targetIndex = parseInt(indexStr);
+    
+    //See if the target index is within the same type section as the dragged question
+    if (zoneType === 'top') {
+      if (targetIndex < exam.questions.length) {
+        return exam.questions[targetIndex]?.type === draggedType;
+      }
+      return false;
+    } else if (zoneType === 'between') {
+      if (targetIndex < exam.questions.length - 1) {
+      //Check questions around arethey same type (don't check after because of edge case)
+      const currentQuestion = exam.questions[targetIndex];
+      return currentQuestion.type === draggedType;
+    }
+    return false;
+    } else if (zoneType === 'bottom') {
+      if (exam.questions.length > 0) {
+      return exam.questions[exam.questions.length - 1]?.type === draggedType;
+    }
+    return true; //Empty exam
+    } else {
+      return false;
+    }
   };
 
   //this is for the question form popup
@@ -594,53 +737,73 @@ export default function EditExamPage() {
 
           {/* Drag and Drop Instructions */}
           <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800 print:hidden text-center">
-            <p>Drag questions using the handle (☰) to reorder them. A blue box shows where the question will be placed. You can add questions in between, above, or below existing ones. Remember to click "Save Exam" to keep your changes.</p>
+            <p>Drag questions using the handle (☰) to reorder them. A blue box shows where you can place the questions. You can add questions in between, above, or below existing ones. Remember to click "Save Exam" to keep your changes.</p>
           </div>
 
           {/* Questions */}
           <main className="font-serif">
             <div className="space-y-6">
-              {/* Top drop zone - before first question */}
-              <div
-                onDragOver={(e) => handleDragOver(e, 0)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, 0)}
-                className={`h-5 mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === 0
-                  ? 'bg-blue-100 border-blue-500'
-                  : 'border-transparent'
-                  }`}
-              />
               {/* Render each question */}
               {exam.questions?.map((q, index) => {
                 const prevType = index > 0 ? exam.questions[index - 1].type : null;
-                const showTypeHeader = prevType !== q.type;
+                const nextType = index < exam.questions.length - 1 ? exam.questions[index + 1].type : null;
+                const isFirstOfType  = prevType !== q.type;
+                const isLastOfType = nextType !== q.type;
                 const points = q.points ?? 1;
                 const isBeingDragged = draggedQuestion === q.questionId;
+
+                //Unique keys for different drop zones
+                const topDropZoneKey = `top-${index}`;
+                const betweenDropZoneKey = `between-${index}`;
+
+                //Check if this drop zone is valid for the dragged question
+                const isTopDropZoneValid = isDragging && draggedQuestion && isInSameTypeSection(topDropZoneKey, draggedQuestion);
+                const isBetweenDropZoneValid = isDragging && draggedQuestion && index < exam.questions.length - 1 && isInSameTypeSection(betweenDropZoneKey, draggedQuestion);
+                const isBottomDropZoneValid = isDragging && draggedQuestion && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion);
 
                 return (
                   // For each question
                   /* Question Headers */
                   <div key={q.questionId} className="relative group">
-                    {showTypeHeader && (
-                      <div className="mb-4 -ml-6">
-                        <div className="flex items-center gap-3 pb-4">
-                          <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
-                            {q.type === "MC"
-                              ? "Multiple Choice"
-                              : q.type === "TF"
-                              ? "True/False"
-                              : q.type === "FIB"
-                              ? "Fill in the Blank"
-                              : q.type === "Essay"
-                              ? "Essay"
-                              : q.type === "Code"
-                              ? "Coding"
-                              : "Questions"}
-                          </span>
-                          <div className="h-px flex-1 bg-gray-300"></div>
+                    {isFirstOfType  && (
+                        <div className="mt-6 -ml-6">
+                          <div className="flex items-center gap-3">
+                            <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
+                              {q.type === "MC"
+                                ? "Multiple Choice"
+                                : q.type === "TF"
+                                ? "True/False"
+                                : q.type === "FIB"
+                                ? "Fill in the Blank"
+                                : q.type === "Essay"
+                                ? "Essay"
+                                : q.type === "Code"
+                                ? "Coding"
+                                : "Questions"}
+                            </span>
+                            <div className="h-px flex-1 bg-gray-300"></div>
+                          </div>
                         </div>
-                      </div>
                     )}
+
+                    {/* Top drop zone - before first question */}
+                    {isFirstOfType && (
+                      <div
+                        onDragOver={(e) => handleDragOver(e, topDropZoneKey)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, topDropZoneKey)}
+                        className={`mt-3 h-5 mb-2 transition-all duration-200 rounded-lg border-2 border-dashed ${
+                          dropTarget === topDropZoneKey
+                            ? (isTopDropZoneValid 
+                              ? 'bg-green-100 border-green-500'
+                              : 'bg-red-100 border-red-500')
+                            : (isDragging && isTopDropZoneValid)
+                            ? 'bg-blue-100 border-blue-500 border-dashed'
+                            : 'border-transparent'
+                        }`}
+                      />
+                    )}
+
                     {/* Question item */}
                     <div className={`relative transition-all duration-200 rounded-lg ${isBeingDragged ? 'opacity-50' : 'bg-white'
                       }`}>
@@ -754,11 +917,15 @@ export default function EditExamPage() {
                     {/* Drop zone between questions */}
                     {index < exam.questions.length - 1 && (
                       <div
-                        onDragOver={(e) => handleDragOver(e, index + 1)}
+                        onDragOver={(e) => handleDragOver(e, betweenDropZoneKey)}
                         onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, index + 1)}
-                        className={`h-5 mt-3 -mb-2 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === index + 1
-                          ? 'bg-blue-100 border-blue-500'
+                        onDrop={(e) => handleDrop(e, betweenDropZoneKey)}
+                        className={`h-5 mt-3 -mb-2 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === betweenDropZoneKey
+                          ? (isBetweenDropZoneValid 
+                            ? 'bg-green-100 border-green-500'
+                            : 'bg-red-100 border-red-500')
+                          : (isDragging && isBetweenDropZoneValid)
+                          ? 'bg-blue-100 border-blue-500 border-dashed'
                           : 'border-transparent'
                           }`}
                       />
@@ -769,11 +936,15 @@ export default function EditExamPage() {
 
               {/* Bottom drop zone - after last question */}
               <div
-                onDragOver={(e) => handleDragOver(e, exam.questions.length)}
+                onDragOver={(e) => handleDragOver(e, `bottom-${exam.questions.length}`)}
                 onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, exam.questions.length)}
-                className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === (exam.questions?.length ?? 0)
-                  ? 'bg-blue-100 border-blue-500'
+                onDrop={(e) => handleDrop(e, `bottom-${exam.questions.length}`)}
+                className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === `bottom-${exam.questions.length}`
+                  ? (isDragging && draggedQuestion && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion) 
+                    ? 'bg-green-100 border-green-500'
+                    : 'bg-red-100 border-red-500')
+                  : (isDragging && draggedQuestion && isValidDropZone(`bottom-${exam.questions.length}`, draggedQuestion) && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion))
+                  ? 'bg-blue-100 border-blue-500 border-dashed'
                   : 'border-transparent'
                   }`}
               />
