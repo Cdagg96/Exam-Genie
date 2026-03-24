@@ -567,6 +567,60 @@ export default function EditExamPage() {
     setDirty(true); //marked as unsaved change
   };
 
+  //Handles the updated exam data if the user selects to add a new question to the exam
+  const handleNewQuestionsAdded = async () => {
+    if (!exam) return exam;
+
+    const updatedQuestions = [...exam.questions]; //Get the questions from the exam
+
+    //Go through all the questions
+    for (let i = 0; i < updatedQuestions.length; i++) {
+      const question = updatedQuestions[i];
+
+      //The questions that are added before saving are given the temporary prefix "temp-"
+      //If an unsaved question is found with this prefix, add it to the database
+      if (question.questionId.startsWith("temp-")) {
+        try {
+          const data = {
+            stem: question.snapshot?.stem ?? "",
+            type: question.type,
+            choices: question.snapshot?.choices ?? [],
+            answer: question.snapshot?.answer ?? "",
+            blankLines: question.snapshot?.blankLines ?? 1,
+            subject: question.subject ?? "",
+            courseNum: question.courseNum ?? "",
+            userID: user?._id ?? "",
+            difficulty: question.snapshot?.difficulty ?? 1,
+            topics: question.snapshot?.topics ?? [],
+          };
+
+
+          const res = await fetch("/api/questions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          const result: any = await res.json();
+
+          if (res.ok && result.insertedId) {
+            updatedQuestions[i] = { ...question, questionId: result.insertedId };
+          } else {
+            toast.error(`Failed to save question ?? "Unknown error"}`);
+          }
+        } catch (e) {
+          toast.error("Network error while saving a question to the bank.");
+        }
+      }
+    }
+
+    return {
+      ...exam,
+      questions: updatedQuestions,
+      _id: exam._id,
+    };
+  };
+
   //Save exam changes, then apply queued Question Bank ops
   const handleSaveExam = async () => {
     if (!exam) return;
@@ -575,24 +629,30 @@ export default function EditExamPage() {
       setIsSaving(true);
       console.log("Saving exam:", exam);
 
+      const examWithNewQuestions = await handleNewQuestionsAdded();
+
+      if (!examWithNewQuestions) {
+        throw new Error("Failed to add new question(s)");
+      }
+
       const res = await fetch("/api/exams", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: exam._id,
-          title: exam.title,
-          timeLimitMin: exam.timeLimitMin,
-          totalPoints: exam.totalPoints,
-          questions: exam.questions,
-          instructionsDoc: exam.instructionsDoc,
+          id: examWithNewQuestions._id,
+          title: examWithNewQuestions.title,
+          timeLimitMin: examWithNewQuestions.timeLimitMin,
+          totalPoints: examWithNewQuestions.totalPoints,
+          questions: examWithNewQuestions.questions,
+          instructionsDoc: examWithNewQuestions.instructionsDoc,
         }),
       });
 
       const result = await res.json();
 
-      //if save workis 
+      //if save works 
       if (res.ok) {
         const refreshRes = await fetch(`/api/exams?id=${id}&userID=${user?._id}`);
         if (refreshRes.ok) {
@@ -979,7 +1039,7 @@ export default function EditExamPage() {
           </div>
         </div>
         <ConfirmationModal isOpen={isDeleteConfirmOpen} onClose={closeDeleteConfirm} onConfirm={handleConfirmDeleteQuestion} type="question" isLoading={isDeleting} text={pendingDeleteQuestion?.snapshot?.stem ?? ""} showAlsoDeleteInBank={true} alsoDeleteInBank={alsoDeleteInBank} onAlsoDeleteInBankChange={setAlsoDeleteInBank} />
-        <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} />
+        <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} mode="editExam" />
         <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
         <AddExistingQuestionModal isOpen={isExistingPickerOpen} onClose={() => setIsExistingPickerOpen(false)} onAddSelected={handleExistingQuestionsAdded} excludeIds={new Set((exam.questions ?? []).map(q => q.questionId))} />
         {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} />}
