@@ -69,6 +69,15 @@ export default function CooperatePage() {
                         />
 
                         </div>
+                        {/* Filter Actions */}
+                        <div className="flex justify-end space-x-4 mt-8">
+                            <button className="px-6 py-3 btn btn-ghost">
+                                Clear Filters
+                            </button>
+                            <button className="px-6 py-3 btn btn-primary-blue">
+                                Apply Filters
+                            </button>
+                        </div>
                     </div>
 
                     {/* Member Cards */}
