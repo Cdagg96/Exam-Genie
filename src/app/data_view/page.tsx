@@ -83,7 +83,7 @@ export default function DatabaseActionPage() {
     const [dateInputValue, setDateInputValue] = useState('');
     const [calendarOpen, setCalendarOpen] = useState(false);
     const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLDivElement | null>(null);
-    const [lastUsedFilterType, setLastUsedFilterType] = useState<'before' | 'after' | 'range'>('before');
+    const [lastUsedFilterType, setLastUsedFilterType] = useState<'before' | 'after' | 'range' | 'never'>('before');
     const [lastUsedDateEnd, setLastUsedDateEnd] = useState<Dayjs | null>(null);
     const [dateInputValueEnd, setDateInputValueEnd] = useState('');
     const [calendarEndOpen, setCalendarEndOpen] = useState(false);
@@ -140,13 +140,16 @@ export default function DatabaseActionPage() {
             if (sortOrder) params.append("sortOrder", sortOrder);
             
             //Updated last used filter with type and end date
-            if (lastUsedDate) {
+            if (lastUsedDate && lastUsedFilterType !== 'never') {
                 params.append('lastUsed', lastUsedDate.format('MM-DD-YYYY'));
                 params.append('lastUsedFilterType', lastUsedFilterType);
                 
                 if (lastUsedFilterType === 'range' && lastUsedDateEnd) {
                     params.append('lastUsedEnd', lastUsedDateEnd.format('MM-DD-YYYY'));
                 }
+            }
+            else if (lastUsedFilterType === 'never') {
+                params.append('lastUsedFilterType', 'never');
             }
 
             if (user?._id) params.append("userId", user._id)
@@ -179,7 +182,8 @@ export default function DatabaseActionPage() {
                 !!selectedType ||
                 !!selectedSubject ||
                 !!selectedCourseNum ||
-                !!lastUsedDate;
+                !!lastUsedDate ||
+                lastUsedFilterType === 'never';
 
             setFiltersApplied(hasFilters);
         } catch (err) {
@@ -591,7 +595,7 @@ export default function DatabaseActionPage() {
 
                             <div className="text-left">
                                 {/* Filter Type Selector */}
-                                <div className="flex items-center gap-2 flex-wrap">
+                                <div className="flex items-center gap-2 flex-wrap py-1 -mt-2">
                                     <label className="block text-sm text-primary whitespace-nowrap">
                                         Last Used
                                     </label>
@@ -628,53 +632,62 @@ export default function DatabaseActionPage() {
                                     >
                                         Range
                                     </button>
-                                </div>
-
-                                {/* Start Date Picker */}
-                                <label className="block text-xs text-primary mb-1">
-                                        {lastUsedFilterType === 'range' ? 'Start Date' : ''}
-                                </label>
-                                <div className="relative mb-2" ref={setCalendarAnchorEl}>
-                                    <input
-                                        type="text"
-                                        placeholder="Ex: MM/DD/YYYY"
-                                        value={dateInputValue}
-                                        onChange={(e) => handleDateInputChange(e.target.value)}
-                                        className="w-full border-primary text-secondary px-4 py-3 pr-12"
-                                    />
                                     <button
                                         type="button"
-                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                        onClick={() => setCalendarOpen(true)}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
-                                        </svg>
+                                        onClick={() => setLastUsedFilterType('never')}
+                                        className={`px-3 py-1 text-sm rounded-xl transition-colors ${
+                                            lastUsedFilterType === 'never'
+                                                ? 'btn-primary-blue'
+                                                : 'btn-ghost'
+                                        }`}
+                                    >
+                                        Never
                                     </button>
                                 </div>
+                                
+                                {lastUsedFilterType !== 'never' && (
+                                    <>
+                                        {/* Start Date Picker */}
+                                        <div className="relative mb-2" ref={setCalendarAnchorEl}>
+                                            <input
+                                                type="text"
+                                                placeholder={lastUsedFilterType === "range" ? "Start date (MM/DD/YYYY)" : "MM/DD/YYYY"}
+                                                value={dateInputValue}
+                                                onChange={(e) => handleDateInputChange(e.target.value)}
+                                                className="w-full border-primary text-secondary px-4 py-3 pr-12"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                                onClick={() => setCalendarOpen(true)}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
+                                                </svg>
+                                            </button>
+                                        </div>
 
-                                {/* End Date Picker */}
-                                <label className="block text-xs text-primary mb-1">
-                                    {lastUsedFilterType === 'range' ? 'End Date' : ''}
-                                </label>
-                                {lastUsedFilterType === 'range' && (
-                                <div className="relative" ref={setCalendarEndAnchorEl}>
-                                    <input
-                                        type="text"
-                                        placeholder="MM/DD/YYYY"
-                                        value={dateInputValueEnd}
-                                        onChange={(e) => handleDateInputChangeEnd(e.target.value)}
-                                        className="w-full border-primary text-secondary px-4 py-3 pr-12"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                        onClick={() => setCalendarEndOpen(true)}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            )}
+                                        {/* End Date Picker */}
+                                        {lastUsedFilterType === 'range' && (
+                                            <div className="relative" ref={setCalendarEndAnchorEl}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="End date (MM/DD/YYYY)"
+                                                    value={dateInputValueEnd}
+                                                    onChange={(e) => handleDateInputChangeEnd(e.target.value)}
+                                                    className="w-full border-primary text-secondary px-4 py-3 pr-12"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                                    onClick={() => setCalendarEndOpen(true)}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 text-gray-400">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
                                         open={calendarOpen}
