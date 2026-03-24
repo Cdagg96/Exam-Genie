@@ -198,11 +198,10 @@ export async function GET(req: Request) {
                     if (lastUsedEnd) {
                         const [endMonth, endDay, endYear] = lastUsedEnd.split('-').map(Number);
                         const endOfRangeDay = new Date(Date.UTC(endYear, endMonth - 1, endDay, 23, 59, 59, 999));
-                        const startOfRangeDay = new Date(Date.UTC(endYear, endMonth - 1, endDay, 0, 0, 0, 0));
                         
                         filter.lastUsed = {
-                        $gt: endOfDay,
-                        $lt: startOfRangeDay
+                        $gte: startOfDay,
+                        $lte: endOfRangeDay
                         };
                     } else {
                         //If no end date provided, just use the single day
