@@ -1033,7 +1033,7 @@ export default function DatabaseActionPage() {
                     </div>
                 </main>
                 {isQuestionFormOpen && (
-                    <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} />
+                    <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} mode="questionBank" />
                 )}
 
                 {/* Delete Confirmation Modal */}

@@ -9,10 +9,12 @@ export default function BackgroundModal({
     isOpen,
     onClose,
     onQuestionAdded,
+    mode = "questionBank",
 }: {
     isOpen: boolean;
     onClose: () => void;
     onQuestionAdded?: (newQuestion: any) => void;
+    mode?: "questionBank" | "editExam";
 }) {
     
 
@@ -159,15 +161,31 @@ export default function BackgroundModal({
             case "FIB":
                 data = {
                     ...base_data,
+                    choices: "N/A",
                     answer: fibAnswer,
                     blankLines: 1,
                 };
                 break;
             case "Short Answer":
+                data = {
+                    ...base_data,
+                    choices: "N/A",
+                    answer: extendedAnswer || "",
+                    lines: blankLines,
+                };
+                break;
             case "Essay":
+                data = {
+                    ...base_data,
+                    choices: "N/A",
+                    answer: extendedAnswer || "",
+                    lines: blankLines,
+                };
+                break;
             case "Code":
                 data = {
                     ...base_data,
+                    choices: "N/A",
                     answer: extendedAnswer || "",
                     lines: blankLines,
                 };
@@ -175,40 +193,52 @@ export default function BackgroundModal({
         }
 
         try {
+            //Add question to exam but not database yet when editing exam
+            if (mode === "editExam") {
+                const tempId = `temp-${Date.now()}`;
+
+                const newQuestionForExam = {
+                    questionId: tempId,
+                    type,
+                    points: data.points || 1,
+                    subject: data.subject || "",
+                    courseNum: data.courseNum || "",
+                    snapshot: {
+                        stem,
+                        choices: data.choices || [],
+                        answer: data.answer || "",
+                        blankLines: data.blankLines || blankLines || 4,
+                        topics: data.topics || [],
+                        difficulty: data.difficulty || 1,
+                    },
+                };
+
+                //Add the question to the exam state
+                onQuestionAdded?.(newQuestionForExam);
+                toast.success("Question added to exam");
+                onClose();
+                return;
+            }
+
+            //Immediately add the question to the database upon creation when on questions page
             const res = await fetch("../api/questions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
             });
 
             const result = await res.json();
 
             if (res.ok) {
-                toast.success("Question Created!") // Notification that question was created
-                const newQuestionForExam = {
-                    questionId: result._id || result.id || `temp-${Date.now()}`,
-                    type: type,
-                    points: data.points || 1,
-                    snapshot: {
-                        stem: stem, // Use local state, not API response
-                        choices: data.choices || [],
-                        blankLines: data.blankLines || blankLines || 4,
-                    },
-                };
-                onQuestionAdded?.(newQuestionForExam);
-                onClose(); // Close the popup
-            }
-            else if (res.status === 401) {
-                // temporary notification until other types are implemented
-                toast.error("Please choose multiple choice type")
-            }
-            else {
+                toast.success("Question added to question bank");
+                onClose();
+            } else {
                 console.error(result);
                 toast.error("Failed to create question");
             }
         } catch (error) {
             console.error(error);
-            alert("Network/Server error");
+            toast.error("Network/Server error");
         }
     }
 
