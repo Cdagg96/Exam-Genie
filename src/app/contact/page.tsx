@@ -10,13 +10,15 @@ import useTheme from "@/hooks/useTheme"
 
 export default function ContactPage() {
   const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
-  
+
   //States for form fields
   const [issueType, setIssueType] = useState("");
   const [message, setMessage] = useState("");
   //State for stoping submission button spam
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
+
+  const MAX_MESSAGE_LENGTH = 500;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,14 +123,20 @@ export default function ContactPage() {
                   </svg>
                   Issue Description
                 </label>
+                <div className="relative">
                 <textarea
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none bg-gray-50 resize-vertical"
                   rows={6}
                   placeholder="Please describe the issue in detail."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  maxLength={MAX_MESSAGE_LENGTH}
                   required
                 />
+                <span className="absolute bottom-3 right-4 text-xs text-gray-500">
+                  {message.length}/{MAX_MESSAGE_LENGTH}
+                </span>
+              </div>
               </div>
 
               {/* Submit Button */}

@@ -5,7 +5,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Extension } from "@tiptap/core";
-
+import { Plugin, PluginKey } from "prosemirror-state";
 
 
 type Props = {
@@ -19,12 +19,65 @@ type Props = {
 };
 
 const FONT_SIZES = ["12px", "14px", "16px", "18px", "20px"];
+const MAX_INSTRUCTION_LENGTH = 1000;
 
 const EMPTY_DOC = { type: "doc", content: [{ type: "paragraph" }] };
+
+const getCharacterCount = (doc: any) => {
+  let count = 0;
+  let firstBlock = true;
+
+  doc.descendants((node: any) => {
+    if (node.isText) {
+      count += node.text?.length || 0;
+    }
+
+    if (node.type.name === "hardBreak") {
+      count += 1;
+    }
+
+    // Count block breaks like pressing Enter
+    if (
+      node.isBlock &&
+      ["paragraph", "heading", "blockquote", "listItem"].includes(node.type.name)
+    ) {
+      if (!firstBlock) count += 1;
+      firstBlock = false;
+    }
+  });
+
+  return count;
+};
+
+// Character limit extension
+const CharacterLimit = Extension.create({
+  name: "characterLimit",
+
+  addOptions() {
+    return {
+      limit: MAX_INSTRUCTION_LENGTH,
+    };
+  },
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey("characterLimit"),
+        filterTransaction: (transaction, state) => {
+          if (!transaction.docChanged) return true;
+
+          const newCount = getCharacterCount(transaction.doc);
+          return newCount <= this.options.limit;
+        },
+      }),
+    ];
+  },
+});
 
 export default function InstructionEditor({ initialContent, resetKey, onSave, onChange, isSaving = false, showSaveButton = true, forceLight = false }: Props) {
   const [isBold, setIsBold] = useState(false);
   const [isBullets, setIsBullets] = useState(false);
+  const [charCount, setCharCount] = useState(0);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -34,6 +87,9 @@ export default function InstructionEditor({ initialContent, resetKey, onSave, on
       }),
       TextStyle,
       FontSize,
+      CharacterLimit.configure({
+        limit: MAX_INSTRUCTION_LENGTH,
+      }),
     ],
     content: EMPTY_DOC,
     editorProps: {
@@ -46,6 +102,9 @@ export default function InstructionEditor({ initialContent, resetKey, onSave, on
             : "border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1220] text-slate-900 dark:text-slate-100"),
       },
     },
+    onUpdate: ({ editor }) => {
+      setCharCount(getCharacterCount(editor.state.doc));
+    },
   });
 
   const loadedKeyRef = useRef<string | null>(null);
@@ -57,8 +116,9 @@ export default function InstructionEditor({ initialContent, resetKey, onSave, on
     if (loadedKeyRef.current === key) return;
 
     editor.commands.setContent(initialContent || { type: "doc", content: [{ type: "paragraph" }] });
+    setCharCount(getCharacterCount(editor.state.doc));
     loadedKeyRef.current = key;
-  }, [editor, resetKey]);
+  }, [editor, resetKey, initialContent]);
 
 
   // Push edits upward (Edit Exam uses this)
@@ -80,6 +140,7 @@ export default function InstructionEditor({ initialContent, resetKey, onSave, on
     const sync = () => {
       setIsBold(editor.isActive("bold"));
       setIsBullets(editor.isActive("bulletList"));
+      setCharCount(getCharacterCount(editor.state.doc));
     };
 
     sync();
@@ -137,7 +198,7 @@ export default function InstructionEditor({ initialContent, resetKey, onSave, on
         </button>
 
         <select
-          className={"px-3 py-1 rounded-lg border " +(forceLight ? "bg-white text-slate-900 border-slate-200": "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-800")}
+          className={"px-3 py-1 rounded-lg border " + (forceLight ? "bg-white text-slate-900 border-slate-200" : "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-800")}
           onChange={(e) => setFontSize(e.target.value)}
           defaultValue=""
         >
@@ -165,7 +226,15 @@ export default function InstructionEditor({ initialContent, resetKey, onSave, on
         )}
       </div>
 
-      <EditorContent editor={editor} />
+      <div className="relative">
+        <EditorContent editor={editor} />
+        <span
+          className={`absolute bottom-3 right-4 text-xs ${charCount > 950 ? "text-red-500" : "text-gray-500"
+            }`}
+        >
+          {charCount}/{MAX_INSTRUCTION_LENGTH}
+        </span>
+      </div>
     </div>
   );
 }
