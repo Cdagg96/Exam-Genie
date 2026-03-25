@@ -1454,12 +1454,10 @@ export async function generateAnswerKeyPDFBlob(exam: ExamDoc): Promise<Blob> {
   doc.line(margin, y, pageWidth - margin, y);
   y += 15;
 
-  const sortedQuestions = [...exam.questions].sort(
-    (a, b) => (a.order ?? 0) - (b.order ?? 0)
-  );
+  const questions = exam.questions; // Grab the questions from the exam
 
   // Iterate through each question to display the answers
-  sortedQuestions.forEach((q, index) => {
+  questions.forEach((q, index) => {
     // Page break
     if (y > 240) {
       doc.addPage();

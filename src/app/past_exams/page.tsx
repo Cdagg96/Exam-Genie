@@ -346,32 +346,21 @@ export default function PastExams() {
         setExamTitleToDelete("");
     };
 
-    const handleDownloadExam = async (exam: ExamWithMeta, format: DownloadFormat) => {
+    const handleDownloadExam = async (examId: string, format: DownloadFormat) => {
         try {
             toast.loading('Creating download package...', { id: 'download' });
-            await downloadExamPackage(exam, format);
+
+            //Fetch an up-to-date exam for ordering/editing purposes
+            const res = await fetch(`/api/exams?id=${examId}&userID=${user?._id}`);
+            const currentExam = await res.json();
+
+            await downloadExamPackage(currentExam, format);
+
             toast.success('Download package created!', { id: 'download' });
         }
         catch (error) {
             console.error('Download error:', error);
             toast.error('Failed to create download package', { id: 'download' });
-            toast.loading('Downloading individual files...', { id: 'download' });
-
-            if (format === "txt") {
-                DownloadExamTXT(exam);        // or exam as any / ExamDoc if needed
-                DownloadAnswerKeyTXT(exam);
-            } else if (format === "pdf") {
-                DownloadExamPDF(exam);
-                DownloadAnswerKeyPDF(exam);
-            } else if (format === "csv") {
-                DownloadExamCSV(exam);
-                DownloadAnswerKeyCSV(exam);
-            } else if (format === "docx") {
-                DownloadExamDOCX(exam);
-                DownloadAnswerKeyDOCX(exam);
-            }
-
-            toast.success('Individual files downloaded', { id: 'download-fallback' });
         }
     };
 
@@ -959,25 +948,25 @@ export default function PastExams() {
                                                                     <div className="absolute right-0 top-full mt-2 w-35 rounded-lg border bg-primary border-primary shadow-lg text-sm z-10 overflow-hidden">
                                                                         <button
                                                                             className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                                                                            onClick={() => handleDownloadExam(exam, "pdf")}
+                                                                            onClick={() => handleDownloadExam(exam._id, "pdf")}
                                                                         >
                                                                             Download PDF
                                                                         </button>
                                                                         <button
                                                                             className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                                                                            onClick={() => handleDownloadExam(exam, "txt")}
+                                                                            onClick={() => handleDownloadExam(exam._id, "txt")}
                                                                         >
                                                                             Download TXT
                                                                         </button>
                                                                         <button
                                                                             className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                                                                            onClick={() => handleDownloadExam(exam, "docx")}
+                                                                            onClick={() => handleDownloadExam(exam._id, "docx")}
                                                                         >
                                                                             Download DOCX
                                                                         </button>
                                                                         <button
                                                                             className="block w-full px-3 py-2 text-left hover:bg-gray-100"
-                                                                            onClick={() => handleDownloadExam(exam, "csv")}
+                                                                            onClick={() => handleDownloadExam(exam._id, "csv")}
                                                                         >
                                                                             Download CSV
                                                                         </button>
