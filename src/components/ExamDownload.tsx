@@ -2,10 +2,73 @@ import jsPDF from "jspdf";
 import JSZip from 'jszip';
 import type { ExamDoc } from "@/types/exam";
 import { saveAs } from "file-saver";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle,} from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, } from "docx";
 import { before } from "node:test";
-import { renderTipTap, tiptapToSegments} from "@/components/renderTipTap";
+import { renderTipTap, tiptapToSegments } from "@/components/renderTipTap";
 type DownloadFormat = "pdf" | "txt" | "csv" | "docx";
+
+function buildInstructionParagraphsFromSavedDoc(
+  instructionsDoc: any,
+  boxed = false,
+  centered = false
+): Paragraph[] {
+  const segments = tiptapToSegments(instructionsDoc);
+  const paragraphs: Paragraph[] = [];
+  let currentRuns: TextRun[] = [];
+
+  const pushParagraph = () => {
+    if (currentRuns.length === 0) return;
+
+    paragraphs.push(
+      new Paragraph({
+        children: currentRuns,
+        spacing: { after: 50 },
+        alignment: centered ? AlignmentType.CENTER : AlignmentType.LEFT,
+        ...(boxed
+          ? {
+            border: {
+              left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+              right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
+            },
+            indent: { left: 360, right: 360 },
+          }
+          : {}),
+      })
+    );
+
+    currentRuns = [];
+  };
+
+  segments.forEach((seg) => {
+    if (seg.text === "\n") {
+      pushParagraph();
+      return;
+    }
+
+    if (seg.bullet) {
+      currentRuns.push(
+        new TextRun({
+          text: "• ",
+          font: "Helvetica",
+          size: 20,
+        })
+      );
+      return;
+    }
+
+    currentRuns.push(
+      new TextRun({
+        text: seg.text,
+        bold: !!seg.bold,
+        font: "Helvetica",
+        size: 20,
+      })
+    );
+  });
+
+  pushParagraph();
+  return paragraphs;
+}
 
 //PDF generation function
 export function DownloadExamPDF(exam: ExamDoc) {
@@ -257,11 +320,6 @@ export async function DownloadExamDOCX(exam: ExamDoc) {
 
   const paragraphs: Paragraph[] = [];
 
-  const instructions = [
-    "Answer all questions in the space provided.",
-    "Show your work where applicable. Circle or clearly mark your final answer.",
-    "No unauthorized materials. Calculators allowed unless otherwise stated.",
-  ];
 
   // Name
   paragraphs.push(
@@ -316,36 +374,13 @@ export async function DownloadExamDOCX(exam: ExamDoc) {
     })
   );
 
-  // Instructions heading
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "INSTRUCTIONS",
-          bold: true,
-          font: "Helvetica",
-          size: 22,
-        }),
-      ],
-      spacing: { after: 100 },
-    })
+  const instructionParagraphs = buildInstructionParagraphsFromSavedDoc(
+    exam.instructionsDoc,
+    false,
+    false
   );
 
-  // Instructions bullets
-  instructions.forEach((inst) => {
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `• ${inst}`,
-            font: "Helvetica",
-            size: 20,
-          }),
-        ],
-        spacing: { after: 50 },
-      })
-    );
-  });
+  paragraphs.push(...instructionParagraphs);
 
   paragraphs.push(
     new Paragraph({
@@ -460,26 +495,22 @@ export async function DownloadExamDOCX(exam: ExamDoc) {
 
     // Code
     if (q.type === "Code") {
+      const lines = q.snapshot?.blankLines ?? 6;
+
       paragraphs.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: "// Write your code below:",
+              text: "", // empty
               font: "Helvetica",
               size: 20,
             }),
           ],
-          spacing: { after: 100 },
+          spacing: {
+            after: lines * 200, // controls vertical space
+          },
         })
       );
-      for (let i = 0; i < 6; i++) {
-        paragraphs.push(
-          new Paragraph({
-            text: "",
-            spacing: { after: 50 },
-          })
-        );
-      }
     }
   });
 
@@ -1134,7 +1165,7 @@ export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
 
   //Exam total points at top right
   doc.setFont("helvetica", "bold");
-  doc.text(`  /${exam.totalPoints}`, pageWidth - margin, y, {align: "right"});
+  doc.text(`  /${exam.totalPoints}`, pageWidth - margin, y, { align: "right" });
   y += 15;
 
   let courseName = "";
@@ -1142,8 +1173,8 @@ export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
   //Display the subject/course number assigned to the test
   if (exam.subject) {
     courseName = exam.courseNum
-    ? `${exam.subject} ${exam.courseNum}`
-    : `Department of ${exam.subject}`;
+      ? `${exam.subject} ${exam.courseNum}`
+      : `Department of ${exam.subject}`;
   }
 
   if (courseName) {
@@ -1217,7 +1248,7 @@ export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
       }
 
       const wrapped = doc.splitTextToSize(part, safeWidth); //Wrap long text using jsPDF's built-in function
-      
+
       //Go through each line in the array since it was split to be wrapped
       wrapped.forEach((line: string, wIdx: number) => {
         const isFirstWrappedLine = wIdx === 0;
@@ -1329,7 +1360,7 @@ export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     const questionNumberWidth = doc.getTextWidth(`${questionNumber}. `);
-    
+
     //Get width of point values
     const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
     doc.setFont("helvetica", "italic");
@@ -1345,37 +1376,37 @@ export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
     const neededHeight = getQuestionHeight(q, splitStemLines.length);
 
     //Add headers for each subsection
-    if(q.type === "MC") {
+    if (q.type === "MC") {
       mcCount++;
-      if(mcCount === 1) {
+      if (mcCount === 1) {
         addSectionHeader("Multiple Choice", neededHeight);
       }
     }
-    else if(q.type === "TF") {
+    else if (q.type === "TF") {
       tfCount++;
-      if(tfCount === 1) {
+      if (tfCount === 1) {
         addSectionHeader("True/False", neededHeight);
       }
     }
-    else if(q.type === "FIB") {
+    else if (q.type === "FIB") {
       fibCount++;
-      if(fibCount === 1) {
+      if (fibCount === 1) {
         addSectionHeader("Fill in the Blank", neededHeight);
       }
     }
-    else if(q.type === "Code") {
+    else if (q.type === "Code") {
       codeCount++;
-      if(codeCount === 1) {
+      if (codeCount === 1) {
         addSectionHeader("Code", neededHeight);
       }
     }
-    else if(q.type === "Essay") {
+    else if (q.type === "Essay") {
       essayCount++;
-      if(essayCount === 1) {
+      if (essayCount === 1) {
         addSectionHeader("Essay", neededHeight);
       }
     }
-    
+
     //Add a new page if there will bot be enough room on current page
     if (y + neededHeight > pageHeight - margin) {
       doc.addPage();
@@ -1396,7 +1427,7 @@ export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
     doc.text(splitStemLines, stemBeginning + 1, y);
 
     y += Math.max(splitStemLines.length * 5, 8); //Move y-value down
-    
+
     //Type-specific content/spacing
     if (q.type === "MC" && q.snapshot?.choices) {
       q.snapshot.choices.forEach((choice: any, choiceIndex: number) => {
@@ -1872,7 +1903,7 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
           size: 22, // 11pt
         }),
         new TextRun({
-          text: "\t\t\t\t\t\t\t\t", 
+          text: "\t\t\t\t\t\t\t\t",
           font: "Helvetica",
           size: 22,
         }),
@@ -1960,55 +1991,13 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
     })
   );
 
-  // Instructions heading
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "INSTRUCTIONS",
-          bold: true,
-          font: "Helvetica",
-          size: 24,
-        }),
-      ],
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 100 },
-      border: {
-        left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-        right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-      },
-      indent: { left: 360, right: 360 },
-    })
+  const instructionParagraphs = buildInstructionParagraphsFromSavedDoc(
+    exam.instructionsDoc,
+    true,
+    true
   );
 
-  const instructions = [
-    "Answer all questions in the space provided.",
-    "Show your work where applicable. Circle or clearly mark your final answer.",
-    "No unauthorized materials. Calculators allowed unless otherwise stated.",
-  ];
-
-  // Instructions bullets
-  instructions.forEach((inst, index) => {
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `• ${inst}`,
-            font: "Helvetica",
-            size: 20,
-          }),
-        ],
-        spacing: { after: index === instructions.length - 1 ? 100 : 50 },
-        border: {
-          left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-          right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-        },
-        indent: { left: 360, right: 360 },
-        alignment: AlignmentType.CENTER,
-      })
-    );
-  });
-
+  paragraphs.push(...instructionParagraphs);
   //Bottom border instruction paragraph
   paragraphs.push(
     new Paragraph({
@@ -2044,10 +2033,10 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
           children: [
             new TextRun({
               text: q.type === "MC" ? "Multiple Choice" :
-                    q.type === "TF" ? "True/False" :
-                    q.type === "FIB" ? "Fill in the Blank" :
+                q.type === "TF" ? "True/False" :
+                  q.type === "FIB" ? "Fill in the Blank" :
                     q.type === "Essay" ? "Essay" :
-                    q.type === "Code" ? "Coding" : "Questions",
+                      q.type === "Code" ? "Coding" : "Questions",
               font: "Helvetica",
               size: 20,
               bold: true,
@@ -2177,41 +2166,20 @@ export async function generateExamDOCXBlob(exam: ExamDoc): Promise<Blob> {
 
     // Code
     if (q.type === "Code") {
+      const lines = q.snapshot?.blankLines ?? 6;
+
       paragraphs.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: "Write your code below:",
+              text: "",
               font: "Helvetica",
               size: 20,
             }),
           ],
-          spacing: { after: 100 },
-        })
-      );
-      paragraphs.push(
-        new Paragraph({
-          spacing: { 
-            before: 100,
-            after: 400,
-            line: 1300, 
+          spacing: {
+            after: lines * 200, // adjust height
           },
-          border: {
-            top: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-            bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-            left: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-            right: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
-          },
-          shading: {
-            fill: "F5F5F5",
-          },
-          children: [
-            new TextRun({
-              text: "\n\n\n",
-              font: "Helvetica",
-              size: 20,
-            }),
-          ],
         })
       );
     }

@@ -769,7 +769,7 @@ export default function EditExamPage() {
             </div>
 
             {!isEditingInstructions ? (
-              <div className="text-center font-serif">
+              <div className="text-center font-serif break-words [overflow-wrap:anywhere]">
                 {exam.instructionsDoc ? renderTipTap(exam.instructionsDoc) : (
                   <p className="text-gray-500">No instructions.</p>
                 )}
@@ -905,9 +905,9 @@ export default function EditExamPage() {
                           </span>
 
                           {/* Question Content */}
-                          <div className="flex-1">
-                            <div className="mb-2 flex items-start justify-between gap-4">
-                              <div className="font-medium leading-relaxed">
+                          <div className="flex-1 min-w-0">
+                            <div className="mb-2 flex items-start gap-4 min-w-0">
+                              <div className="font-medium leading-relaxed min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]">
                                 {q.snapshot?.stem ?? "(Question text)"}
                               </div>
 
@@ -970,8 +970,10 @@ export default function EditExamPage() {
                             )}
 
                             {q.type === "Code" && (
-                              <div className="mt-3 border border-gray-300 bg-gray-50 rounded-md">
-                                <div className="h-40" />
+                            <div className="mt-3 space-y-3">
+                              {Array.from({ length: q.snapshot?.blankLines ?? 4 }).map((_, idx) => (
+                                <div key={idx} className="h-6 w-full" />
+                              ))}
                               </div>
                             )}
                           </div>
