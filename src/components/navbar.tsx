@@ -12,6 +12,8 @@ export default function Navbar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { user } = useAuth(); 
 
+   const isAdmin = user?.isAdmin === true;
+
   const handleSignOut = async () => {
     // This signs out of NextAuth (clears cookies + session)
     await signOut({ callbackUrl: "/" });
@@ -82,6 +84,15 @@ export default function Navbar() {
                   >
                     Settings
                   </Link>
+
+                  {isAdmin && (
+                    <Link
+                      href="/admin/dashboard"
+                      className="block px-4 py-2 rounded-xl hover:bg-secondary text-primary"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
 
                   <div className="my-1 h-px border-primary" />
 

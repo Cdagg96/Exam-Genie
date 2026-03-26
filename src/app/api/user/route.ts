@@ -180,7 +180,8 @@ export async function POST(req: Request) {
             proofFile: fileData,
             createdOn: new Date(),
             domain: ".edu",
-            status: "Pending"
+            status: "Pending",
+            isAdmin: false
         };
 
 
@@ -261,21 +262,15 @@ export async function POST(req: Request) {
                                     <p style="margin: 5px 0;"><strong>Registration Date:</strong> ${new Date().toLocaleString()}</p>
                                 </div>
 
-                                ${proofContent}
-
                                 <div style="text-align: center; margin: 30px 0;">
-                                    <a href="${baseUrl}/api/admin/update-user-status/${result.insertedId}?action=Approved" 
-                                       style="background: #10b981; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-right: 10px; display: inline-block;">
-                                        Approve
-                                    </a>
-                                    <a href="${baseUrl}/api/admin/update-user-status/${result.insertedId}?action=Denied" 
-                                       style="background: #ef4444; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block;">
-                                        Deny
+                                    <a href="${baseUrl}"
+                                       style="background: #2563eb; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block;">
+                                        Go to Admin Dashboard
                                     </a>
                                 </div>
 
                                 <p style="color: #6b7280; font-size: 14px; margin-top: 30px; text-align: center;">
-                                    Click Approve to activate this teacher's account or Deny to reject the registration.
+                                    Log in to the admin dashboard to review and approve this registration.
                                 </p>
                             </div>
                         </div>
