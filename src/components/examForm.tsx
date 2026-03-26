@@ -81,7 +81,7 @@ export default function ExamForm() {
     const [dateInputValue, setDateInputValue] = useState('');
     const [calendarOpen, setCalendarOpen] = useState(false);
     const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLDivElement | null>(null);
-    const [lastUsedFilterType, setLastUsedFilterType] = useState<'before' | 'after' | 'range'>('before');
+    const [lastUsedFilterType, setLastUsedFilterType] = useState<'before' | 'after' | 'range' | 'never'>('before');
     const [lastUsedDateEnd, setLastUsedDateEnd] = useState<Dayjs | null>(null);
     const [dateInputValueEnd, setDateInputValueEnd] = useState('');
     const [calendarEndOpen, setCalendarEndOpen] = useState(false);
@@ -160,9 +160,13 @@ export default function ExamForm() {
             if (difficulty && difficulty !== "mixed") params.set("difficulty", difficulty);
             if (subject) params.set("subject", subject);
             if (courseNum) params.set("courseNum", courseNum);
-            if (lastUsedDate) {
+            if (lastUsedFilterType === "never") {
+                params.set("lastUsedFilterType", "never");
+            } 
+            else if (lastUsedDate) {
                 params.set("lastUsed", lastUsedDate.format("MM-DD-YYYY"));
                 params.set("lastUsedFilterType", lastUsedFilterType);
+
                 if (lastUsedFilterType === "range" && lastUsedDateEnd) {
                     params.set("lastUsedEnd", lastUsedDateEnd.format("MM-DD-YYYY"));
                 }
@@ -350,8 +354,11 @@ export default function ExamForm() {
             questions: [],
             totalPoints: 0,
             userID: user?._id ?? "",
-            lastUsed: lastUsedDate ? lastUsedDate.format('MM-DD-YYYY') : '',
             lastUsedFilterType,
+            lastUsed:
+            lastUsedFilterType !== "never" && lastUsedDate
+            ? lastUsedDate.format("MM-DD-YYYY")
+            : "",
             lastUsedEnd: lastUsedFilterType === 'range' && lastUsedDateEnd
                 ? lastUsedDateEnd.format('MM-DD-YYYY')
                 : '',
@@ -488,8 +495,9 @@ export default function ExamForm() {
                         </label>
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center justify-between gap-2 flex-wrap">
-                                <span className="text-sm font-medium text-primary text-center flex-1 ml-40">Last Used</span>
-
+                               <div className="flex items-center justify-between gap-3 flex-wrap">
+                                <span className="text-sm font-medium text-primary">Last Used</span>
+                                <div className="flex flex-wrap gap-1">
                                 <div className="flex gap-1">
                                     <button
                                         type="button"
@@ -517,9 +525,21 @@ export default function ExamForm() {
                                     >
                                         Range
                                     </button>
+                                    <button
+                                    type="button"
+                                    onClick={() => setLastUsedFilterType("never")}
+                                    className={`px-2 py-1 text-xs rounded-lg transition-colors ${
+                                        lastUsedFilterType === "never" ? "btn-primary-blue" : "btn btn-ghost"
+                                    }`}
+                                    >
+                                    Never Used
+                                    </button>
                                 </div>
                             </div>
+                            </div>
+                            </div>
 
+                            {lastUsedFilterType !== "never" && (
                             <div className="relative" ref={setCalendarAnchorEl}>
                                 <input
                                     type="text"
@@ -549,6 +569,7 @@ export default function ExamForm() {
                                     </svg>
                                 </button>
                             </div>
+                            )}
 
                             {lastUsedFilterType === "range" && (
                                 <div className="relative mt-2" ref={setCalendarEndAnchorEl}>
@@ -581,7 +602,7 @@ export default function ExamForm() {
                                     </button>
                                 </div>
                             )}
-
+                            {lastUsedFilterType !== "never" && (
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker
                                     open={calendarOpen}
@@ -625,6 +646,7 @@ export default function ExamForm() {
                                     />
                                 )}
                             </LocalizationProvider>
+                            )}
                         </div>
                     </div>
 
