@@ -474,7 +474,7 @@ export default function LoginModal({
               <input
                 type="text"
                 name="tSubject"
-                placeholder="Teaching Subject(s)"
+                placeholder="Teaching Subject(s) - Comma Seperated"
                 value={registerData.tSubject}
                 onChange={handleRegisterChange}
                 className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"

@@ -438,7 +438,7 @@ export default function SettingsPage() {
 
                                     <div>
                                         <label className="block text-sm text-secondary mb-2">
-                                            Teaching Subject(s)
+                                            Teaching Subject(s) - Comma Seperated
                                         </label>
                                         <input
                                             type="text"
