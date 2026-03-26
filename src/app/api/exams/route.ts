@@ -63,6 +63,8 @@ export async function GET(req: Request) {
         const subject = searchParams.get('subject');
         const courseNum = searchParams.get('courseNum');
         const lastUsed = searchParams.get('lastUsed');
+        //Get filter type (default to 'before' if not specified)
+        const filterType = searchParams.get('lastUsedFilterType') || 'before';
 
         const userID = searchParams.get("userID");
 
@@ -139,13 +141,17 @@ export async function GET(req: Request) {
             filter.courseNum = courseNum;
         }
 
-        if (lastUsed) {
+        if (filterType === "never") {
+            filter.$or = [
+                { lastUsed: null },
+                { lastUsed: { $exists: false } },
+            ];
+        } 
+        else if (lastUsed) {
             try {
                 //Parse the MM-DD-YYYY format from the frontend
                 const [month, day, year] = lastUsed.split('-').map(Number);
                 
-                //Get filter type (default to 'before' if not specified)
-                const filterType = searchParams.get('lastUsedFilterType') || 'before';
                 
                 //Create date range for the selected day
                 const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
@@ -377,17 +383,19 @@ export async function POST(req: Request) {
             lastUsedFilterType,
             lastUsedEnd,
         });
-        if (lastUsed) {
+        if (lastUsedFilterType === "never") {
+            lastUsedMatch.$or = [{ lastUsed: null }, { lastUsed: { $exists: false } },];
+        } 
+        else if (lastUsed) {
             try {
                 const [month, day, year] = lastUsed.split("-").map(Number);
                 const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
                 const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
 
                 if (lastUsedFilterType === "before") {
-                    if (lastUsedFilterType === "before") {
-                        lastUsedMatch.lastUsed = { $lt: startOfDay };
-                    }
+                    lastUsedMatch.lastUsed = { $lt: startOfDay };
                 }
+                
                 else if (lastUsedFilterType === "after") {
                     lastUsedMatch.lastUsed = { $gt: endOfDay };
                 }
