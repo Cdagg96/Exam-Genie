@@ -181,7 +181,7 @@ export default function LoginModal({
       return;
     }
 
-    if (!registerData.email || !registerData.password || !registerData.firstName || !registerData.lastName || !registerData.phone) {
+    if (!registerData.email || !registerData.password || !registerData.firstName || !registerData.lastName || !registerData.phone || !registerData.institution || !registerData.department || !registerData.tSubject) {
       //Show error if not all fields are filled out
       toast.error("Not all registration fields are filled out.");
     } else {
