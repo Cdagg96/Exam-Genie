@@ -635,6 +635,11 @@ export default function EditExamPage() {
         throw new Error("Failed to add new question(s)");
       }
 
+      const questionsWithOrder = examWithNewQuestions.questions.map((q, index) => ({
+        ...q,
+        order: index + 1
+      }));
+
       const res = await fetch("/api/exams", {
         method: "PUT",
         headers: {
@@ -645,7 +650,7 @@ export default function EditExamPage() {
           title: examWithNewQuestions.title,
           timeLimitMin: examWithNewQuestions.timeLimitMin,
           totalPoints: examWithNewQuestions.totalPoints,
-          questions: examWithNewQuestions.questions,
+          questions: questionsWithOrder,
           instructionsDoc: examWithNewQuestions.instructionsDoc,
         }),
       });
