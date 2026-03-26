@@ -100,6 +100,7 @@ export default function DatabaseActionPage() {
     const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [selectedCourseNum, setselectedCourseNum] = useState<string>('');
     const [filtersApplied, setFiltersApplied] = useState(false);
+    const [allFilterQuestions, setAllFilterQuestions] = useState<Question[]>([]);
 
     //File import states
     const [importLoading, setImportLoading] = useState(false);
@@ -152,7 +153,7 @@ export default function DatabaseActionPage() {
                 params.append('lastUsedFilterType', 'never');
             }
 
-            if (user?._id) params.append("userId", user._id)
+            //if (user?._id) params.append("userId", user._id)
 
             params.set('page', String(page))
             params.set('limit', String(limit))
@@ -160,6 +161,7 @@ export default function DatabaseActionPage() {
 
             const queryString = params.toString();
             const url = queryString ? `../api/questions?${queryString}` : '../api/questions';
+            console.log("TABLE QUESTIONS URL:", url);
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -194,14 +196,56 @@ export default function DatabaseActionPage() {
         }
     };
 
+    const fetchFilterQuestions = async () => {
+        try {
+            if (!user?._id) {
+                setAllFilterQuestions([]);
+                return;
+            }
+            
+
+            const params = new URLSearchParams();
+            params.append("userId", user._id);
+
+            // no page / limit, so API returns all matching questions
+            const url = `../api/questions?${params.toString()}`;
+            console.log("FILTER QUESTIONS URL:", url);
+            const response = await fetch(`../api/questions?${params.toString()}`, {
+                method: "GET",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch filter questions");
+            }
+
+            const data = await response.json();
+
+            console.log("fetchFilterQuestions raw data:", data);
+            console.log(
+                "fetchFilterQuestions count:",
+                Array.isArray(data) ? data.length : "not-array"
+            );
+            setAllFilterQuestions(Array.isArray(data) ? data : []);
+            console.log(
+                "setting allFilterQuestions to:",
+                Array.isArray(data) ? data.length : 0
+            );
+        } catch (err) {
+            console.error("Error fetching filter questions:", err);
+            setAllFilterQuestions([]);
+        }
+    };
+
     //Apply filters
     const handleApplyFilters = () => {
         setPage(1);
-        fetchQuestionsWithFilters();
+        if (page === 1) {
+            fetchQuestionsWithFilters();
+        }
     }
 
     //Clear filters
-    const handleClearFilters = () => {
+    const handleClearFilters = async () => {
         setSelectedTopic('');
         setSelectedDifficulty('');
         setSelectedType('');
@@ -213,9 +257,30 @@ export default function DatabaseActionPage() {
         setDateInputValueEnd('');
         setLastUsedFilterType('before');
         setFiltersApplied(false);
-        setPage(1)
-        fetchQuestionsWithFilters();
-    }
+        setPage(1);
+
+        const params = new URLSearchParams();
+        if (user?._id) {
+            params.append("userId", user._id);
+        }
+        params.set("page", "1");
+        params.set("limit", String(limit));
+        if (sortBy) params.append("sortBy", sortBy);
+        if (sortOrder) params.append("sortOrder", sortOrder);
+
+        const response = await fetch(`../api/questions?${params.toString()}`, {
+            method: "GET",
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch questions");
+        }
+
+        const data = await response.json();
+        setQuestions(data.items ?? []);
+        setTotalPages(data.totalPages ?? 1);
+        setTotal(data.total ?? 0);
+    };
 
     //Runs when page or limit changes to get questions
     useEffect(() => {
@@ -228,6 +293,10 @@ export default function DatabaseActionPage() {
         }
         fetchQuestionsWithFilters();
     }, [page, limit, sortBy, sortOrder, user?._id]);
+
+    useEffect(() => {
+        fetchFilterQuestions();
+    }, [user?._id]);
 
     // Set page back to one if user changes
     useEffect(() => {
@@ -254,12 +323,12 @@ export default function DatabaseActionPage() {
             return;
         }
         const uniqueTopics = Array.from(
-            new Set(questions.flatMap(quest => quest.topics))
+            new Set(allFilterQuestions.flatMap(quest => quest.topics || []))
         ).map(topic => ({ value: topic, label: topic }));
 
         //Store the list of unique topics if any changes occur in questions
         setTopics(uniqueTopics);
-    }, [questions, user]);
+    }, [allFilterQuestions, user?._id]);
 
     //Creates a unique list of subjects for the filter box
     useEffect(() => {
@@ -268,12 +337,13 @@ export default function DatabaseActionPage() {
             return;
         }
         const uniqueSubjects = Array.from(
-            new Set(questions.map(quest => quest.subject?.trim()).filter((s): s is string => !!s))
+            new Set(
+                allFilterQuestions.map(quest => quest.subject?.trim()).filter((s): s is string => !!s))
         ).map(subject => ({ value: subject, label: subject }));
 
         //Store the list of unique topics if any changes occur in questions
         setSubjects(uniqueSubjects);
-    }, [questions, user]);
+    }, [allFilterQuestions, user?._id]);
 
     //Creates a unique list of course numbers for the filter box
     useEffect(() => {
@@ -282,17 +352,27 @@ export default function DatabaseActionPage() {
             return;
         }
         const uniqueCourseNums = Array.from(
-            new Set(questions.map(quest => quest.courseNum?.trim()).filter((s): s is string => !!s))
+            new Set(allFilterQuestions.map(quest => quest.courseNum?.trim()).filter((s): s is string => !!s))
         ).map(courseNum => ({ value: courseNum, label: courseNum }));
 
         //Store the list of unique topics if any changes occur in questions
         setCourseNums(uniqueCourseNums);
-    }, [questions, user]);
+    }, [allFilterQuestions, user?._id]);
+
+    useEffect(() => {
+        console.log("allFilterQuestions length:", allFilterQuestions.length);
+        console.log("topics length:", topics.length, topics);
+        console.log("subjects length:", subjects.length, subjects);
+        console.log("courseNums length:", courseNums.length, courseNums);
+        console.log("questions length (current page only):", questions.length);
+        console.log("current limit:", limit);
+    }, [allFilterQuestions, topics, subjects, courseNums, questions, limit]);
 
     //Runs when the add question form closes to potentially grab new questions just added
     const handleFormClose = () => {
         setIsQuestionFormOpen(false);
         fetchQuestionsWithFilters();
+        fetchFilterQuestions();
     };
 
     const handleSort = (field: "difficulty" | "lastUsed") => {
@@ -368,6 +448,7 @@ export default function DatabaseActionPage() {
             if (response.ok) {
                 toast.success("Question deleted successfully!");
                 await fetchQuestionsWithFilters();
+                await fetchFilterQuestions();
             } else {
                 throw new Error(result.error || 'Failed to delete question');
             }
@@ -403,6 +484,7 @@ export default function DatabaseActionPage() {
         setEditModalOpen(false);
         setQuestionToEdit(null);
         fetchQuestionsWithFilters();
+        fetchFilterQuestions();
     };
 
     const handleDateInputChange = (inputValue: string) => {
@@ -462,13 +544,14 @@ export default function DatabaseActionPage() {
             const result = await response.json();
 
             if (response.ok) {
-                if(result.importedCount != 0){
+                if (result.importedCount != 0) {
                     toast.success(`Successfully imported ${result.importedCount} questions!`);
                 }
                 if (result?.ignoredCount && result.ignoredCount > 0) {
                     toast(`${result.ignoredCount} questions ignored missing required fields`);
                 }
                 fetchQuestionsWithFilters(); //Refresh the questions list
+                fetchFilterQuestions();
                 setCSVModalOpen(false);
             } else {
                 toast.error(result?.error || "Failed to import questions");
