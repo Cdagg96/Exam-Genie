@@ -15,6 +15,9 @@ interface UserData {
   firstName: string;
   lastName: string;
   phone: string;
+  institution: string;
+  department: string;
+  tSubject: string[];
   createdOn: string;
   updatedOn?: string;
 }
@@ -105,6 +108,12 @@ export default function ProfilePage() {
     if (!userData) return "U";
     return (userData.firstName?.charAt(0)?.toUpperCase() || '') +
            (userData.lastName?.charAt(0)?.toUpperCase() || '') || "U";
+  };
+
+  //Helper function to format topics (can have multiple topics)
+  const formatTSubjects = (tSubject: string[] | undefined): string => {
+      if (!tSubject || !Array.isArray(tSubject)) return 'No Subjects';
+      return tSubject.join(', ');
   };
 
   return (
@@ -225,6 +234,33 @@ export default function ProfilePage() {
                   {formatDateJoined(userData?.createdOn)}
                 </div>
               </div>
+
+              <div className="border-primary p-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
+                  Department
+                </div>
+                <div className="mt-1 text-sm text-secondary">
+                  {userData?.department || "N/A"}
+                </div>
+              </div>
+
+              <div className="border-primary p-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
+                  Teaching Subjects
+                </div>
+                <div className="mt-1 text-sm text-secondary">
+                  {formatTSubjects(userData?.tSubject)}
+                </div>
+              </div>
+            </div>
+
+            <div className="border-primary p-4 mt-4">
+                <div className="text-xs uppercase tracking-wide text-primary">
+                  Institution
+                </div>
+                <div className="mt-1 text-sm text-secondary">
+                  {userData?.institution || "N/A"}
+                </div>
             </div>
             
             {/* Info alert about updating profile */}

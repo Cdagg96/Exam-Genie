@@ -18,6 +18,9 @@ interface UserData {
     firstName: string;
     lastName: string;
     phone: string;
+    institution: string;
+    department: string;
+    tSubject: string[];
     createdOn: string;
     updatedOn?: string;
     instructionPrefs?: {
@@ -40,6 +43,9 @@ export default function SettingsPage() {
         lastName: "",
         phone: "",
         email: "",
+        institution: "",
+        department: "",
+        tSubject: [],
         newPassword: "",
         confirmPassword: ""
     });
@@ -49,6 +55,7 @@ export default function SettingsPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [activeTab, setActiveTab] = useState("profile"); //Profile info, Reset password, Delete account
     const [userData, setUserData] = useState<UserData | null>(null);
+    const [tSubjectInput, setTSubjectInput] = useState("");
 
     //for saving users prefered instructions
     const [isSavingInstructions, setIsSavingInstructions] = useState(false);
@@ -97,6 +104,7 @@ export default function SettingsPage() {
 
                 const data = await response.json();
                 setUserData(data.user || data);
+                const loadedSubjects = (data.user?.tSubject || data?.tSubject) || [];
 
                 //Set form data from API response
                 setFormData(prev => ({
@@ -104,8 +112,12 @@ export default function SettingsPage() {
                     firstName: (data.user?.firstName || data?.firstName) || "",
                     lastName: (data.user?.lastName || data?.lastName) || "",
                     phone: (data.user?.phone || data?.phone) || "",
-                    email: (data.user?.email || data?.email) || ""
+                    email: (data.user?.email || data?.email) || "",
+                    institution: (data.user?.institution || data?.institution) || "",
+                    department: (data.user?.department || data?.department) || "",
+                    tSubject: loadedSubjects
                 }));
+                setTSubjectInput(loadedSubjects.join(", "));
             } catch (error) {
                 console.error('Error fetching user data:', error);
                 toast.error("Failed to load user data");
@@ -179,6 +191,12 @@ export default function SettingsPage() {
         }
 
         try {
+            // Rebuild the subjects array
+            const parsedSubjects = tSubjectInput
+                .split(",")
+                .map(subject => subject.trim())
+                .filter(Boolean);
+
             const response = await fetch("/api/user/update", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -187,7 +205,10 @@ export default function SettingsPage() {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
                     phone: formData.phone,
-                    email: formData.email
+                    email: formData.email,
+                    institution: formData.institution,
+                    department: formData.department,
+                    tSubject: parsedSubjects
                 })
             });
 
@@ -200,7 +221,10 @@ export default function SettingsPage() {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
                     phone: formData.phone,
-                    email: formData.email
+                    email: formData.email,
+                    institution: formData.institution,
+                    department: formData.department,
+                    tSubject: parsedSubjects
                 });
             } else {
                 toast.error("Failed to update profile");
@@ -349,6 +373,7 @@ export default function SettingsPage() {
                                             value={formData.firstName}
                                             onChange={handleChange}
                                             className="w-full px-4 py-2 border-primary bg-primary text-primary"
+                                            maxLength={100}
                                             required
                                         />
                                     </div>
@@ -363,6 +388,7 @@ export default function SettingsPage() {
                                             value={formData.lastName}
                                             onChange={handleChange}
                                             className="w-full px-4 py-2 border-primary bg-primary text-primary"
+                                            maxLength={100}
                                             required
                                         />
                                     </div>
@@ -394,7 +420,53 @@ export default function SettingsPage() {
                                             required
                                         />
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm text-secondary mb-2">
+                                            Department
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="department"
+                                            value={formData.department}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2 border-primary bg-primary text-primary"
+                                            maxLength={100}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm text-secondary mb-2">
+                                            Teaching Subject(s) - Comma Seperated
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="tSubject"
+                                            value={tSubjectInput}
+                                            onChange={(e) => setTSubjectInput(e.target.value)}
+                                            className="w-full px-4 py-2 border-primary bg-primary text-primary"
+                                            maxLength={200}
+                                            required
+                                        />
+                                    </div>
+
                                 </div>
+
+                                <div>
+                                        <label className="block text-sm text-secondary mb-2">
+                                            Institution
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="institution"
+                                            value={formData.institution}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2 border-primary bg-primary text-primary"
+                                            maxLength={100}
+                                            required
+                                        />
+                                    </div>
 
                                 <div className="flex justify-end">
                                     <button

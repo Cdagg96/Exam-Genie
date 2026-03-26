@@ -33,6 +33,9 @@ export default function LoginModal({
     lastName: "",
     phone: "",
     email: "",
+    institution: "",
+    department: "",
+    tSubject: "",
     password: "",
     proofLink: "",
     proofFile: null as File | null
@@ -178,11 +181,17 @@ export default function LoginModal({
       return;
     }
 
-    if (!registerData.email || !registerData.password || !registerData.firstName || !registerData.lastName || !registerData.phone) {
+    if (!registerData.email || !registerData.password || !registerData.firstName || !registerData.lastName || !registerData.phone || !registerData.institution || !registerData.department || !registerData.tSubject) {
       //Show error if not all fields are filled out
       toast.error("Not all registration fields are filled out.");
     } else {
       try {
+        // Convert Subjects to an array
+        const parsedSubjects = registerData.tSubject
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean);
+
         //Prepare form data for file upload
         const formData = new FormData();
 
@@ -190,6 +199,8 @@ export default function LoginModal({
         Object.entries(registerData).forEach(([key, value]) => {
           if (key === 'proofFile' && value instanceof File) {
             formData.append('proofFile', value);
+          }else if (key === "tSubject") {
+            parsedSubjects.forEach(subject => formData.append("tSubject", subject))
           } else if (value !== null && value !== undefined) {
             formData.append(key, value.toString());
           }
@@ -228,7 +239,7 @@ export default function LoginModal({
           //   login(loginData.user); //Update auth context
           // }
 
-          setRegisterData({ role: "", email: "", password: "", proofLink: "", proofFile: null, firstName: "", lastName: "", phone: "" }); //Clear the form
+          setRegisterData({ role: "", email: "", password: "", institution: "", department: "", tSubject: "", proofLink: "", proofFile: null, firstName: "", lastName: "", phone: "" }); //Clear the form
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
           }
@@ -252,6 +263,9 @@ export default function LoginModal({
       role: "",
       email: "",
       phone: "",
+      institution: "",
+      department: "",
+      tSubject: "",
       password: "",
       proofLink: "",
       proofFile: null
@@ -375,7 +389,8 @@ export default function LoginModal({
                   placeholder="First Name"
                   value={registerData.firstName}
                   onChange={handleRegisterChange}
-                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2"
+                  className="rounded-xl border w-full border-primary text-secondary px-4 py-2"
+                  maxLength={100}
                 />
                 <input
                   type="text"
@@ -383,7 +398,8 @@ export default function LoginModal({
                   placeholder="Last Name"
                   value={registerData.lastName}
                   onChange={handleRegisterChange}
-                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2"
+                  className="rounded-xl border w-full border-primary text-secondary px-4 py-2"
+                  maxLength={100}
                 />
               </div>
 
@@ -393,7 +409,7 @@ export default function LoginModal({
                 placeholder="Phone Number"
                 value={registerData.phone}
                 onChange={handleRegisterChange}
-                className="rounded-xl border w-3/4 rounded-xl border-primary text-secondary px-4 py-2 mb-2"
+                className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"
               />
 
               <input
@@ -402,7 +418,7 @@ export default function LoginModal({
                 placeholder="Email"
                 value={registerData.email}
                 onChange={handleRegisterChange}
-                className="rounded-xl border w-3/4 rounded-xl border-primary text-secondary px-4 py-2 mb-2"
+                className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"
               />
 
               <div className="w-3/4 relative">
@@ -412,7 +428,7 @@ export default function LoginModal({
                   placeholder="Password"
                   value={registerData.password}
                   onChange={handleRegisterChange}
-                  className="rounded-xl border w-full rounded-xl border-primary text-secondary px-4 py-2 mb-2"
+                  className="rounded-xl border w-full border-primary text-secondary px-4 py-2 mb-2"
                 />
 
                 <button
@@ -434,6 +450,39 @@ export default function LoginModal({
                   )}
                 </button>
               </div>
+
+              <input
+                type="text"
+                name="institution"
+                placeholder="Institution (School)"
+                value={registerData.institution}
+                onChange={handleRegisterChange}
+                className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"
+                maxLength={100}
+                required
+              />
+              
+              <input
+                type="text"
+                name="department"
+                placeholder="Department"
+                value={registerData.department}
+                onChange={handleRegisterChange}
+                className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"
+                maxLength={100}
+                required
+              />
+
+              <input
+                type="text"
+                name="tSubject"
+                placeholder="Teaching Subject(s) - Comma Seperated"
+                value={registerData.tSubject}
+                onChange={handleRegisterChange}
+                className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"
+                maxLength={200}
+                required
+              />
 
               {/* Proof Section */}
               <div className="w-3/4 p-3 bg-primary border-primary rounded-lg mb-2">

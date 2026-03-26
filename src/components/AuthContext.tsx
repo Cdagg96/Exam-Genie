@@ -10,6 +10,9 @@ type User = {
   firstName: string;
   lastName: string;
   phone: string;
+  institution: string;
+  department: string;
+  tSubject: string[];
   role?: string;
   createdOn?: string | Date;
 };
