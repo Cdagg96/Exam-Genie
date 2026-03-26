@@ -4,10 +4,10 @@ import { ObjectId } from "mongodb";
 
 export async function PUT(req: Request) {
     try {
-        const { userId, firstName, lastName, phone, email } = await req.json();
+        const { userId, firstName, lastName, phone, email, institution, department, tSubject } = await req.json();
 
         //Validate required fields
-        if (!userId || !firstName || !lastName || !phone || !email) {
+        if (!userId || !firstName || !lastName || !phone || !email || !institution || !department || !tSubject) {
             return NextResponse.json(
                 { message: "Missing required fields" },
                 { status: 400 }
@@ -47,6 +47,9 @@ export async function PUT(req: Request) {
                     lastName,
                     phone,
                     email,
+                    institution,
+                    department,
+                    tSubject,
                     updatedOn: new Date()
                 }
             }

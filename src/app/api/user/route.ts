@@ -100,6 +100,9 @@ export async function POST(req: Request) {
         const phone = formData.get("phone") as string;
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
+        const institution = formData.get("institution") as string;
+        const department = formData.get("department") as string;
+        const tSubject = formData.getAll("tSubject") as string[];
         const proofLink = formData.get("proofLink") as string;
         const proofFile = formData.get("proofFile") as File | null;
         const defaultPreview = tiptapToPreview(defaultTipTapDoc);
@@ -169,6 +172,9 @@ export async function POST(req: Request) {
             phone,
             email,
             password: hashedPassword,
+            institution,
+            department,
+            tSubject,
             instructionPrefs,
             proofLink: proofLink || null,
             proofFile: fileData,
