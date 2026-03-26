@@ -459,6 +459,7 @@ export default function LoginModal({
                 onChange={handleRegisterChange}
                 className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"
                 maxLength={100}
+                required
               />
               
               <input
@@ -469,6 +470,7 @@ export default function LoginModal({
                 onChange={handleRegisterChange}
                 className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"
                 maxLength={100}
+                required
               />
 
               <input
@@ -479,6 +481,7 @@ export default function LoginModal({
                 onChange={handleRegisterChange}
                 className="rounded-xl border w-3/4 border-primary text-secondary px-4 py-2 mb-2"
                 maxLength={200}
+                required
               />
 
               {/* Proof Section */}
