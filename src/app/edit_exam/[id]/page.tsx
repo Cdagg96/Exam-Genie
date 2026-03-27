@@ -906,13 +906,13 @@ export default function EditExamPage() {
 
                           {/* Question Content */}
                           <div className="flex-1 min-w-0">
-                            <div className="mb-2 flex items-start gap-4 min-w-0">
-                              <div className="font-medium leading-relaxed min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                            <div className="mb-2 flex items-start min-w-0">
+                              <div className="flex-1 min-w-0 font-medium leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word]">
                                 {q.snapshot?.stem ?? "(Question text)"}
                               </div>
 
                               {/* Righthand side: points, edit, delete */}
-                              <div className="flex items-center gap-2 shrink-0">
+                              <div className="flex items-center gap-2 shrink-0 ml-4">
                                 <div className="flex items-center gap-2">
                                   <label className="text-xs text-gray-600">Pts</label>
                                   <input
