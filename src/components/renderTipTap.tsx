@@ -23,7 +23,11 @@ export function renderTipTap(node: Node): React.ReactNode {
     case "paragraph":
       return (
         <p
-          style={node.attrs?.textAlign ? { textAlign: node.attrs.textAlign } : undefined}
+          style={{
+            ...(node.attrs?.textAlign ? { textAlign: node.attrs.textAlign } : {}),
+            overflowWrap: "anywhere",
+            wordBreak: "break-word",
+          }}
           className="mb-2"
         >
           {node.content?.map((c: Node, i: number) => (
@@ -57,7 +61,11 @@ export function renderTipTap(node: Node): React.ReactNode {
       return (
         <span
           className={bold ? "font-bold" : undefined}
-          style={fontSize ? { fontSize } : undefined}
+          style={{
+            ...(fontSize ? { fontSize } : {}),
+            overflowWrap: "anywhere",
+            wordBreak: "break-word",
+          }}
         >
           {node.text}
         </span>
