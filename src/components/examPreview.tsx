@@ -4,6 +4,7 @@ import type { ExamDoc } from "@/types/exam";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { renderTipTap } from "@/components/renderTipTap";
+import AnswerKeyModal from "@/components/answerKeyModal";
 import { DownloadExamTXT, DownloadExamPDF, DownloadExamCSV, DownloadExamDOCX, DownloadAnswerKeyPDF, DownloadAnswerKeyTXT, DownloadAnswerKeyDOCX, DownloadAnswerKeyCSV, downloadExamPackage } from "@/components/ExamDownload"
 type DownloadFormat = "pdf" | "txt" | "csv" | "docx";
 export default function ExamPreviewModal({
@@ -11,7 +12,7 @@ export default function ExamPreviewModal({
 }: { open: boolean; onClose: () => void; exam: ExamDoc | null }) {
   if (!open || !exam) return null;
 
-
+  const [isAnswerKeyOpen, setIsAnswerKeyOpen] = useState(false);
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -190,12 +191,10 @@ export default function ExamPreviewModal({
 
           {/* Footer actions */}
           <div className="mt-8 flex justify-end gap-2 print:hidden">
-            {/* <button
-                className="rounded-lg border px-3 py-1.5 hover:bg-black hover:text-white"
-                onClick={() => window.print()}
-              >
-                Print
-              </button> */}
+            {/* View answer key button */}
+            <button onClick={() => setIsAnswerKeyOpen(true)} className="px-3 py-2 btn btn-ghost">
+              View Answer Key
+            </button>
             {/* Edit Exam Navigation Button */}
             <button
               onClick={() => {
@@ -265,27 +264,32 @@ export default function ExamPreviewModal({
             </div>
           </div>
         </div>
+
+        {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} mode="preview" />}
+        
         {/* Back to Top Button */}
-        <button
-          onClick={scrollToTop}
-          className="absolute left-1/2 transform -translate-x-1/2 bottom-4 bg-white border border-gray-300 rounded-full px-4 py-2 shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 print:hidden z-10"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-4 h-4"
+        {!isAnswerKeyOpen &&
+          <button
+            onClick={scrollToTop}
+            className="absolute left-6/13 transform -translate-x-1/2 bottom-4 bg-white border border-gray-300 rounded-full px-4 py-2 shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 print:hidden z-10"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"
-            />
-          </svg>
-          Back to Top
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-4 h-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"
+              />
+            </svg>
+            Back to Top
+          </button>
+          }
       </div>
     </div>
   );

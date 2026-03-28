@@ -1049,7 +1049,7 @@ export default function EditExamPage() {
         <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} mode="editExam" />
         <EditQuestionModal isOpen={isEditQuestionFormOpen} onClose={handleEditFormClose} question={editingQuestion} onQuestionUpdated={handleQuestionUpdated} />
         <AddExistingQuestionModal isOpen={isExistingPickerOpen} onClose={() => setIsExistingPickerOpen(false)} onAddSelected={handleExistingQuestionsAdded} excludeIds={new Set((exam.questions ?? []).map(q => q.questionId))} />
-        {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} />}
+        {exam && <AnswerKeyModal isOpen={isAnswerKeyOpen} onClose={() => setIsAnswerKeyOpen(false)} exam={exam} mode="edit" />}
         <ConfirmationModal
           isOpen={isUnsavedConfirmOpen}
           onClose={() => setIsUnsavedConfirmOpen(false)}  // stay on page
