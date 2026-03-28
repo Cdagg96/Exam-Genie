@@ -1,62 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/libs/mongo';
-import { ObjectId } from 'mongodb';
-import { Resend } from 'resend';
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import clientPromise from "@/libs/mongo";
+import { ObjectId } from "mongodb";
+import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
-) {
+export async function POST(req: Request) {
   try {
-    const { userId } = await params;
+    const session = await getServerSession();
     
-    //Get the action from the query parameter
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
-
-    //Validate action
-    if (!action || !['Approved', 'Denied'].includes(action)) {
-      return NextResponse.redirect(new URL('/admin/error?reason=invalid-action', request.url));
+    //Check if the user is authenticated and has an email
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    //Connect to the database
+    
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
     
-    //Get the user's email and name
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const { userId, status } = await req.json();
     
-    //If no user was found, return an error page
+    //FInd the user in the database
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+    
+    //No user
     if (!user) {
-      return NextResponse.redirect(new URL('/admin/error?reason=user-not-found', request.url));
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    //Update the user's status based on the action
-    const result = await db.collection('users').updateOne(
+    
+    //Update the user's status
+    await db.collection("users").updateOne(
       { _id: new ObjectId(userId) },
-      { 
-        $set: { 
-          status: action
-        } 
-      }
+      { $set: { status } }
     );
-
-    //Check if Resend API key is correct
-    if (!process.env.RESEND_API_KEY) {
-        return NextResponse.json(
-            {
-                error: 'Email service is not configured',
-                success: false
-            },
-            { status: 500 }
-        );
-    }
-
+    
     const baseUrl = process.env.NEXTAUTH_URL;
-      
-      if (action === 'Approved') {
+    
+    //Send email based on the new status
+    if (status === 'Approved') {
         //Send approval email
         await resend.emails.send({
           from: 'Exam Genie <onboarding@resend.dev>',
@@ -91,7 +72,8 @@ export async function GET(
             </div>
           `,
         });
-      } else {
+      } 
+      else if (status === 'Denied') {
         //Send denial email
         await resend.emails.send({
           from: 'Exam Genie <onboarding@resend.dev>',
@@ -146,14 +128,9 @@ export async function GET(
         });
       }
     
-    //If no user was found, return an error page
-    if (result.matchedCount === 0) {
-      return NextResponse.redirect(new URL('/admin/error?reason=user-not-found', request.url));
-    }
-
-    return NextResponse.redirect(new URL(`/admin/result?status=${action.toLowerCase()}`, request.url));
-
+    return NextResponse.json({ success: true, message: `User ${status.toLowerCase()} successfully` });
   } catch (error) {
-    return NextResponse.redirect(new URL('/admin/error?reason=server-error', request.url));
+    console.error("Error updating user status:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

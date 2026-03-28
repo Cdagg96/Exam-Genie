@@ -15,6 +15,8 @@ type User = {
   tSubject: string[];
   role?: string;
   createdOn?: string | Date;
+  isAdmin?: boolean;
+  status?: string;
 };
 
 // Auth Struct

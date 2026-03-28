@@ -47,6 +47,10 @@ const handler = NextAuth({
           name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
           role: user.role,
           status: user.status,
+          institution: user.institution,
+          department: user.department,
+          tSubject: user.tSubject || [],
+          isAdmin: user.isAdmin || false
         } as any;
       },
     }),
@@ -59,6 +63,10 @@ const handler = NextAuth({
         token.id = (user as any).id;
         token.role = (user as any).role;
         token.status = (user as any).status;
+        token.institution = (user as any).institution;
+        token.department = (user as any).department;
+        token.tSubject = (user as any).tSubject;
+        token.isAdmin = (user as any).isAdmin;
       }
       return token;
     },
@@ -67,6 +75,10 @@ const handler = NextAuth({
       (session.user as any).id = token.id;
       (session.user as any).role = token.role;
       (session.user as any).status = token.status;
+      (session.user as any).institution = token.institution;
+      (session.user as any).department = token.department;
+      (session.user as any).tSubject = token.tSubject;
+      (session.user as any).isAdmin = token.isAdmin;
       return session;
     },
   },

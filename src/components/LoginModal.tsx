@@ -126,6 +126,17 @@ export default function LoginModal({
       return;
     }
 
+    //Try to update AuthContext
+    try {
+      const userRes = await fetch(`/api/user/details?email=${encodeURIComponent(loginData.email)}`);
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        login(userData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user details:", error);
+    }
+
     toast.success("Login successful!");
     setLoginData({ email: "", password: "" });
     setShowPassword(false);
