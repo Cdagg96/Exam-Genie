@@ -291,3 +291,68 @@ export async function POST(req: Request) {
         );
     }
 }
+
+export async function GET(req: Request) {
+    try {
+        const { searchParams } = new URL(req.url);
+
+        const name = searchParams.get("name");
+        const institution = searchParams.get("institution");
+        const tSubject = searchParams.get("tSubject");
+        const department = searchParams.get("department");
+
+        const client = await clientPromise;
+        const db = client.db(process.env.MONGODB_DB);
+
+        const filter: any = {};
+
+        if (name) {
+            const parts = name.trim().split(/\s+/);
+
+            filter.$and = parts.map((part) => ({
+                $or: [
+                    { firstName: { $regex: part, $options: "i" } },
+                    { lastName: { $regex: part, $options: "i" } },
+                ],
+            }));
+        }
+
+        if (institution) {
+            filter.institution = institution;
+        }
+
+        if (tSubject) {
+            filter.tSubject = { $in: [tSubject] };
+        }
+
+        if (department) {
+            filter.department = department;
+        }
+
+        const users = await db.collection("users").find(
+            filter,
+            {
+                projection: {
+                    password: 0,
+                    proofFile: 0,
+                }
+            }
+        ).toArray();
+
+        const serializedUsers = users.map(user => ({
+            ...user,
+            _id: user._id.toString(),
+        }));
+
+        return NextResponse.json({
+            ok: true,
+            users: serializedUsers,
+        });
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return NextResponse.json(
+            { message: "Internal server error" },
+            { status: 500 }
+        );
+    }
+}
