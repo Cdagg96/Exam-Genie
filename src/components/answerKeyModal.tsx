@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import type { ExamDoc } from "@/types/exam";
 
-export default function AnswerKeyModal({ isOpen, onClose, exam }: { isOpen: boolean; onClose: () => void; exam: ExamDoc }) {
+export default function AnswerKeyModal({ isOpen, onClose, exam , mode, }: { isOpen: boolean; onClose: () => void; exam: ExamDoc; mode: "edit" | "preview"; }) {
     if (!isOpen) return null;
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -94,7 +94,7 @@ export default function AnswerKeyModal({ isOpen, onClose, exam }: { isOpen: bool
                                         const correctLetter = correctAnswer ? String.fromCharCode(65 + index) : "N/A";
 
                                         return (
-                                            <div className="mt-2 text-sm">
+                                            <div className="mt-2 text-sm text-left">
                                                 <span>Answer: </span>
                                                 <span className="font-semibold">
                                                     {correctLetter}. {correctAnswer?.text ?? "N/A"}
@@ -107,7 +107,7 @@ export default function AnswerKeyModal({ isOpen, onClose, exam }: { isOpen: bool
                                         const correct = (q.snapshot?.choices ?? []).find((c: any) => c.isCorrect);
 
                                         return (
-                                            <div className="mt-2 text-sm">
+                                            <div className="mt-2 text-sm text-left">
                                                 <span>Answer: </span>
                                                 <span className="font-semibold">
                                                     {correct?.text ?? "N/A"}
@@ -117,7 +117,7 @@ export default function AnswerKeyModal({ isOpen, onClose, exam }: { isOpen: bool
                                     })()}
 
                                     {q.type === "FIB" && (
-                                        <div className="mt-2 text-sm">
+                                        <div className="mt-2 text-sm text-left">
                                             <span>Answer: </span>
                                             <span className="font-semibold">
                                                 {q.snapshot?.answer ?? "N/A"}
@@ -126,7 +126,7 @@ export default function AnswerKeyModal({ isOpen, onClose, exam }: { isOpen: bool
                                     )}
 
                                     {q.type === "Essay" && (
-                                        <div className="mt-2 text-sm">
+                                        <div className="mt-2 text-sm text-left">
                                             <span>Sample Answer: </span>
                                             <span className="font-semibold">
                                                 {q.snapshot?.answer ?? "N/A"}
@@ -135,11 +135,11 @@ export default function AnswerKeyModal({ isOpen, onClose, exam }: { isOpen: bool
                                     )}
                                     
                                     {q.type === "Code" && (
-                                        <div className="mt-2 text-sm">
+                                        <div className="mt-2 text-sm text-left">
                                             <span>Sample Answer: </span>
-                                            <span className="font-semibold">
+                                            <div className="font-semibold">
                                                 {q.snapshot?.answer ?? "N/A"}
-                                            </span>
+                                            </div>
                                         </div>
                                     )}
                                 </li>
@@ -162,7 +162,7 @@ export default function AnswerKeyModal({ isOpen, onClose, exam }: { isOpen: bool
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                             </svg>
-                            Return to Edit Exam
+                            {mode === "edit" ? "Back to Edit Exam" : "Back to Exam Preview"}
                         </button>
                     </div>
                 </div>

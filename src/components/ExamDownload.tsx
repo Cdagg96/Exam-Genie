@@ -1470,197 +1470,298 @@ export async function generateExamPDFBlob(exam: ExamDoc): Promise<Blob> {
 //Function to generate Answer Key PDF Blob for zip downloads
 export async function generateAnswerKeyPDFBlob(exam: ExamDoc): Promise<Blob> {
   const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 28;
+  const pageWidth = doc.internal.pageSize.getWidth(); //210mm
+  const pageHeight = doc.internal.pageSize.getHeight(); //297mm
+  const margin = 28; //~1 inch margin
+
+  //Set initial y position
   let y = margin;
 
-  // Header that includes exam title + " Answer Key"
+  //Exam total points at top right
+  doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
+  doc.text(`  /${exam.totalPoints}`, pageWidth - margin, y, { align: "right" });
+  y += 15;
+
+  let courseName = "";
+
+  //Display the subject/course number assigned to the test
+  if (exam.subject) {
+    courseName = exam.courseNum
+      ? `${exam.subject} ${exam.courseNum}`
+      : `Department of ${exam.subject}`;
+  }
+
+  if (courseName) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(courseName, pageWidth / 2, y, { align: "center" });
+    y += 7;
+  }
+
+  //Exam title + " Answer Key"
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
   doc.text(`${exam.title} Answer Key`, pageWidth / 2, y, { align: "center" });
   y += 8;
 
-  // Divider line 
-  doc.setDrawColor(200, 200, 200);
+  //Divider line 
+  doc.setDrawColor(150, 150, 150);
   doc.line(margin, y, pageWidth - margin, y);
-  y += 15;
+  y += 10;
 
-  const questions = exam.questions; // Grab the questions from the exam
+  //Questions section
+  const questions = exam.questions;
 
-  // Iterate through each question to display the answers
+  //Set counters so the headers can be displayed before question of each type
+  let mcCount = 0;
+  let tfCount = 0;
+  let fibCount = 0;
+  let codeCount = 0;
+  let essayCount = 0;
+
+  function getQuestionHeight(q: any, splitStemLines: number) {
+    let height = 0;
+
+    height += Math.max(splitStemLines * 5, 8); //Get question stem height (default to height of 8 if small)
+
+    //Type-specific height
+    if (q.type === "MC") {
+      height += q.snapshot?.choices?.length * 5 + 4;
+    }
+    else if (q.type === "TF") {
+      height += 10;
+    }
+    else if (q.type === "FIB") {
+      height += 10;
+    }
+    else if (q.type === "Essay") {
+      const blankLines = q.snapshot?.blankLines ?? 4;
+      height += blankLines * 8 + 2;
+    }
+    else if (q.type === "Code") {
+      const blankLines = q.snapshot?.blankLines ?? 4;
+      height += blankLines * 8 + 2;
+    }
+
+    height += 2;
+
+    return height;
+  }
+
+  //Go through each question in the exam
   questions.forEach((q, index) => {
-    // Page break
-    if (y > 240) {
+    const questionNumber = index + 1;
+    const points = q.points ?? 1;
+    const stem = q.snapshot?.stem ?? "";
+
+    function addSectionHeader(headerName: string, neededHeight: number) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+
+      //Create new page if needed (Add 10 for header height)
+      if (y + 10 + neededHeight > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+
+      doc.text(headerName, margin, y); //Make the header
+
+      const headerWidth = doc.getTextWidth(headerName);
+
+      //Underline the header
+      doc.setDrawColor(0, 0, 0);
+      doc.line(margin, y + 0.75, margin + headerWidth, y + 0.75);
+
+      y += 6;
+    }
+
+    //Get width of the question number
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    const questionNumberWidth = doc.getTextWidth(`${questionNumber}. `);
+
+    //Get width of point values
+    const pointsText = `${points} pt${points !== 1 ? "s" : ""}`;
+    doc.setFont("helvetica", "italic");
+    const pointsTextWidth = doc.getTextWidth(`(${pointsText}) `);
+
+    const stemBeginning = margin + questionNumberWidth + pointsTextWidth;
+
+    doc.setFont("helvetica", "normal");
+
+    //Split stem text to fit available width
+    const safeStemWidth = pageWidth - margin - stemBeginning;
+    const splitStemLines = doc.splitTextToSize(stem, safeStemWidth); //Puts the split lines into an array
+    const neededHeight = getQuestionHeight(q, splitStemLines.length);
+
+    //Add headers for each subsection
+    if (q.type === "MC") {
+      mcCount++;
+      if (mcCount === 1) {
+        addSectionHeader("Multiple Choice", neededHeight);
+      }
+    }
+    else if (q.type === "TF") {
+      tfCount++;
+      if (tfCount === 1) {
+        addSectionHeader("True/False", neededHeight);
+      }
+    }
+    else if (q.type === "FIB") {
+      fibCount++;
+      if (fibCount === 1) {
+        addSectionHeader("Fill in the Blank", neededHeight);
+      }
+    }
+    else if (q.type === "Code") {
+      codeCount++;
+      if (codeCount === 1) {
+        addSectionHeader("Code", neededHeight);
+      }
+    }
+    else if (q.type === "Essay") {
+      essayCount++;
+      if (essayCount === 1) {
+        addSectionHeader("Essay", neededHeight);
+      }
+    }
+
+    //Add a new page if there will bot be enough room on current page
+    if (y + neededHeight > pageHeight - margin) {
       doc.addPage();
       y = margin;
     }
 
-    // Question number, stem, and points for each question
-    const num = index + 1;
-    let stem = q.snapshot?.stem ?? "(Question text)";
+    //Begin with drawing question number
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text(`${questionNumber}. `, margin, y);
 
-    // Handle fill in the blank separately first since it has unique formatting
-    if (q.type === "FIB") {
+    //Set the point value next to question number
+    doc.setFont("helvetica", "italic");
+    doc.text(`(${pointsText}) `, margin + questionNumberWidth, y);
+
+    //Add the actual question stem
+    doc.setFont("helvetica", "normal");
+    doc.text(splitStemLines, stemBeginning + 1, y);
+
+    y += Math.max(splitStemLines.length * 5, 8); //Move y-value down
+
+    //Type-specific content/spacing
+    if (q.type === "MC" && q.snapshot?.choices) {
+      const correctAnswer = q.snapshot.choices.find((c: any) => c.isCorrect);
+      const index = q.snapshot.choices.indexOf(correctAnswer);
+      const correctLetter = correctAnswer ? String.fromCharCode(65 + index) : "N/A";
+      const answerText = correctAnswer?.text ?? "N/A";
+
+      doc.text("Answer: ", margin + 4, y);
+
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text(`${num}.`, margin, y);
+      doc.text(`${correctLetter}. ${answerText}`, margin + 18, y);
 
-      const answer = q.snapshot?.answer ?? "N/A";
-
-      let beforeBlank = stem;
-      let afterBlank = "";
-      let hasBlank = false;
-
-      // Find the underscores representing the blank
-      const match = stem.match(/_+/);
-
-      // If underscores found, split the stem
-      if (match) {
-        hasBlank = true;
-        const idx = match.index!;
-
-        // Split stem into before/after blank
-        beforeBlank = stem.slice(0, idx);
-        afterBlank = stem.slice(idx + match[0].length);
-      }
+      y += 8;
+    }
+    else if (q.type === "TF") {
+      const correct = q.snapshot?.choices?.find((c: any) => c.isCorrect);
+      const answerText = correct?.text ?? "N/A";
 
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
+      doc.text("Answer: ", margin + 4, y);
 
-      // If blank found, format accordingly
-      if (hasBlank) {
-        const answerStyled = ` **${answer}** `; // This makes the answer stand out with asterisks
-        const fullStem = beforeBlank + answerStyled + afterBlank; // Combine all parts into one line
+      doc.setFont("helvetica", "bold");
+      doc.text(answerText, margin + 18, y);
 
-        const wrappedStem = doc.splitTextToSize(fullStem, pageWidth - (2 * margin) - 20);
-
-        wrappedStem.forEach((line: string) => {
-          if (y > 240) {
-            doc.addPage();
-            y = margin;
-          }
-
-          doc.text(line, margin + 8, y);
-          y += 5;
-        });
-
-        // Otherwise, put the answer on the next line
-      } else {
-        const wrappedStem = doc.splitTextToSize(stem, pageWidth - (2 * margin) - 20);
-
-        if (y > 240) {
-          doc.addPage();
-          y = margin;
-        }
-
-        doc.text(wrappedStem, margin + 8, y);
-
-        const stemHeight = wrappedStem.length * 5;
-        y += stemHeight + 4;
-
-        const answerStyled = `**${answer}**`;
-
-        if (y > 240) {
-          doc.addPage();
-          y = margin;
-        }
-
-        doc.text(answerStyled, margin + 8, y);
-      }
-
-      y += 10;
-      return;
+      y += 8;
     }
+    else if (q.type === "FIB") {
+      const answerText = q.snapshot?.answer ?? "N/A";
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text(`${num}.`, margin, y);
+      doc.setFont("helvetica", "normal");
+      doc.text("Answer: ", margin + 4, y);
 
-    // Print the question stem, wrapped if necessary
-    doc.setFont("helvetica", "normal");
-    const wrappedStem = doc.splitTextToSize(stem, pageWidth - (2 * margin) - 10);
+      doc.setFont("helvetica", "bold");
+      doc.text(answerText, margin + 18, y);
 
-    wrappedStem.forEach((line: string) => {
-      if (y > 240) {
-        doc.addPage();
-        y = margin;
-      }
-
-      doc.text(line, margin + 8, y);
-      y += 5;
-    });
-
-    y += 3;
-    doc.setFontSize(10);
-
-    // If multiple choice, find and display the correct letter and answer
-    if (q.type === "MC" && q.snapshot?.choices) {
-      const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
-      const letter = correct
-        ? String.fromCharCode(65 + q.snapshot.choices.indexOf(correct))
-        : "N/A";
-
-      if (y > 240) {
-        doc.addPage();
-        y = margin;
-      }
-
-      doc.text(`${letter}. ${correct ? correct.text : "N/A"}`, margin + 8, y);
-      y += 10;
+      y += 8;
     }
-
-    // If true/false, find and display the correct answer
-    else if (q.type === "TF" && q.snapshot?.choices) {
-      const correct = q.snapshot.choices.find((c: any) => c.isCorrect);
-
-      if (y > 240) {
-        doc.addPage();
-        y = margin;
-      }
-
-      doc.text(`${correct ? correct.text : "N/A"}`, margin + 8, y);
-      y += 10;
-    }
-
-    // If essay, display the answer
     else if (q.type === "Essay") {
-      const response = q.snapshot.answer ?? "N/A";
-      const wrappedResponse = doc.splitTextToSize(response, pageWidth - margin * 2 - 20);
+      const answerText = q.snapshot?.answer ?? "N/A";
 
-      // Prevent the answer from overflowing the page
-      wrappedResponse.forEach((line: string) => {
-        if (y > 240) {
-          doc.addPage();
-          y = margin;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+
+      const label = "Sample Answer: ";
+      const labelX = margin + 4;
+
+      doc.text(label, labelX, y);
+
+      const labelWidth = doc.getTextWidth(label);
+
+      doc.setFont("helvetica", "bold");
+
+      const firstLine = doc.splitTextToSize(
+        answerText,
+        pageWidth - margin - (labelX + labelWidth)
+      );
+
+      //Draw first line
+      doc.text(firstLine[0], labelX + labelWidth, y);
+
+      let remainingText = answerText;
+
+      //Remove first line text from the full string
+      if (firstLine.length > 0) {
+        remainingText = answerText.substring(firstLine[0].length).trim();
+      }
+
+      //Split remaining lines into an array
+      if (remainingText.length > 0) {
+        const restLines = doc.splitTextToSize(
+          remainingText,
+          pageWidth - margin - labelX
+        );
+
+        //Go through the remaining lines and draw them starting right under the "sample answer" text
+        for (let i = 0; i < restLines.length; i++) {
+          y += 5;
+          doc.text(restLines[i], labelX, y);
         }
 
-        doc.text(line, margin + 8, y);
-        y += 5;
-      });
-
-      y += 6;
+        y += 6;
+      } else {
+        y += 6;
+      }
     }
-
-    // If code, display the answer
     else if (q.type === "Code") {
-      const code = q.snapshot.answer ?? "";
-      const wrappedCode = doc.splitTextToSize(code, pageWidth - margin * 2 - 20);
+      const answerText = q.snapshot?.answer ?? "N/A";
 
-      // Prevent the code from overflowing the page
-      wrappedCode.forEach((line: string) => {
-        if (y > 240) {
-          doc.addPage();
-          y = margin;
-        }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
 
-        doc.text(line, margin + 8, y);
+      const label = "Sample Answer: ";
+      const labelX = margin + 4;
+
+      //Draw the label first
+      doc.text(label, labelX, y);
+      y += 6;
+
+      doc.setFont("helvetica", "bold");
+
+      // Split the answer to fit the page width
+      const lines = doc.splitTextToSize(
+        answerText,
+        pageWidth - margin - labelX
+      );
+
+      //Print each line starting under the label
+      lines.forEach((line: any) => {
+        doc.text(line, labelX, y);
         y += 5;
       });
 
-      y += 6;
+      y += 4;
     }
-
-    y += 2; // Small space between questions
   });
 
   return doc.output('blob');

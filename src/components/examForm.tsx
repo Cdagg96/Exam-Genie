@@ -430,7 +430,7 @@ export default function ExamForm() {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
-                                maxLength={100}
+                                maxLength={50}
                             />
                         </label>
                         <label className="flex flex-col gap-1">
