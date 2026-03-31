@@ -1019,29 +1019,34 @@ export default function EditExamPage() {
           </main>
 
           {/* Bottom Buttons */}
-          <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 font-serif">
-            <div className="flex gap-3">
-              <button onClick={() => setIsQuestionFormOpen(true)} className="px-3 py-2 btn btn-ghost">
-                + Add New Question
-              </button>
-              <button onClick={() => setIsExistingPickerOpen(true)} className="px-3 py-2 btn btn-ghost">
-                + Add Existing Question
-              </button>
-              <button onClick={() => setIsAnswerKeyOpen(true)} className="px-3 py-2 btn btn-ghost">
-                View Answer Key
-              </button>
-            </div>
+          <div className="fixed left-8 top-1/2 transform -translate-y-1/2 z-40">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-lg p-3">
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 text-center uppercase tracking-wider">
+                Actions
+              </h3>
+              <div className="flex flex-col gap-2">
+                  <button onClick={() => setIsQuestionFormOpen(true)} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
+                    + Add New Question
+                  </button>
+                  <button onClick={() => setIsExistingPickerOpen(true)} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
+                    + Add Existing Question
+                  </button>
+                  <button onClick={() => setIsAnswerKeyOpen(true)} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
+                    View Answer Key
+                  </button>
 
-            <div className="flex gap-3">
-              <button
-                onClick={handleClose}
-                className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
-              >
-                Cancel
-              </button>
-              <button onClick={handleSaveExam} disabled={isSaving} className="btn btn-primary-blue">
-                {isSaving ? "Saving..." : "Save Exam"}
-              </button>
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                  <button
+                    onClick={handleClose}
+                    className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap"
+                  >
+                    Cancel
+                  </button>
+                  <button onClick={handleSaveExam} disabled={isSaving} className="px-2 py-1.5 text-xs btn btn-primary-blue whitespace-nowrap
+                                                                                  disabled:opacity-50 disabled:cursor-not-allowed">
+                    {isSaving ? "Saving..." : "Save Exam"}
+                  </button>
+              </div>
             </div>
           </div>
         </div>
