@@ -2,6 +2,17 @@ import { NextResponse, NextRequest } from "next/server";
 import clientPromise from "@/libs/mongo";
 import { ObjectId } from "mongodb";
 
+function parseDifficulty(value: string | null) {
+  if (!value) return null;
+
+  const n = Number(value);
+  if (Number.isInteger(n) && n >= 1 && n <= 5) {
+    return n;
+  }
+
+  return null;
+}
+
 // Insert a question into the database
 export async function POST(req:Request) {
     try {
@@ -91,7 +102,11 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const topic = searchParams.get('topic');
-    const difficulty = searchParams.get('difficulty');
+    const mcDifficulty = searchParams.get("mcDifficulty");
+    const tfDifficulty = searchParams.get("tfDifficulty");
+    const essayDifficulty = searchParams.get("essayDifficulty");
+    const fibDifficulty = searchParams.get("fibDifficulty");
+    const codeDifficulty = searchParams.get("codeDifficulty");
     const type = searchParams.get('type');
     const subject = searchParams.get('subject');
     const courseNum = searchParams.get('courseNum');
@@ -128,24 +143,6 @@ export async function GET(req: Request) {
     if (topic) {
       filter.topics = { $in: [topic] };
     }
-    
-   if (difficulty && difficulty !== "mixed") {
-        const n = Number(difficulty);
-        if (Number.isInteger(n) && n >= 1 && n <= 5) {
-            //if difficulty comes from questions page
-            filter.difficulty = n;
-        }else {
-            //if difficulty comes from exam gen 
-            const diffMap: Record<string, number[]> = {
-            easy: [1, 2],
-            medium: [3, 4],
-            hard: [5],
-        };
-
-    const vals = diffMap[difficulty];
-    if (vals) filter.difficulty = { $in: vals };
-  }
-}
     
     if (type) {
       //Map the display types to database types
@@ -225,15 +222,33 @@ export async function GET(req: Request) {
     }
 
     if (countsMode === "1") {
-        const questions = await collection.find(filter).toArray();
-        const counts = { MC: 0, TF: 0, Essay: 0, FIB: 0, Code: 0 };
-
-        for (const q of questions) {
-            const t = q.type;
-            if (t in counts) counts[t as keyof typeof counts] += 1;
+        const difficultyByType = {
+            MC: parseDifficulty(mcDifficulty),
+            TF: parseDifficulty(tfDifficulty),
+            Essay: parseDifficulty(essayDifficulty),
+            FIB: parseDifficulty(fibDifficulty),
+            Code: parseDifficulty(codeDifficulty),
+        };
+        const counts = {
+            MC: 0,
+            TF: 0,
+            Essay: 0,
+            FIB: 0,
+            Code: 0,
+        };
+        for (const type of Object.keys(counts) as Array<keyof typeof counts>) {
+            const typeFilter: any = {
+                ...filter,
+                type,
+            };
+            const selectedDifficulty = difficultyByType[type];
+            if (selectedDifficulty !== null) {
+                typeFilter.difficulty = selectedDifficulty;
+            }
+            counts[type] = await collection.countDocuments(typeFilter);
         }
 
-            return NextResponse.json({ ok: true, counts });
+        return NextResponse.json({ ok: true, counts });
     }
 
     if(usePagination){

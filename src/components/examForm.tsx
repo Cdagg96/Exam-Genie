@@ -27,6 +27,14 @@ const DEFAULT_SECTION = {
     difficulty: "mixed",
 };
 
+const DEFAULT_DIFFICULTY_BY_TYPE: Record<QuestionType, string> = {
+    MC: "",
+    TF: "",
+    Essay: "",
+    FIB: "",
+    Code: "",
+};
+
 
 export default function ExamForm() {
     // Core fields (minimal state)
@@ -35,7 +43,7 @@ export default function ExamForm() {
     const [subject, setSubject] = useState("");
     const [courseNum, setCourseNum] = useState("");
     const [totalQuestions, setTotalQuestions] = useState(25);
-    const [difficulty, setDifficulty] = useState("mixed");
+    //const [difficulty, setDifficulty] = useState("mixed");
     const [timeLimit, setTimeLimit] = useState(60);
     const [randomize, setRandomize] = useState(true);
     const [availableCounts, setAvailableCounts] = useState<Record<QuestionType, number>>({
@@ -64,6 +72,8 @@ export default function ExamForm() {
         Essay: "5",
         Code: "10",
     });
+    const [difficultyByType, setDifficultyByType] =
+        useState<Record<QuestionType, string>>(DEFAULT_DIFFICULTY_BY_TYPE);
 
     // For select dropdown
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
@@ -157,7 +167,11 @@ export default function ExamForm() {
             const params = new URLSearchParams();
             params.set("userID", String(user._id));
             params.set("counts", "1");
-            if (difficulty && difficulty !== "mixed") params.set("difficulty", difficulty);
+            if (difficultyByType.MC) params.set("mcDifficulty", difficultyByType.MC);
+            if (difficultyByType.TF) params.set("tfDifficulty", difficultyByType.TF);
+            if (difficultyByType.Essay) params.set("essayDifficulty", difficultyByType.Essay);
+            if (difficultyByType.FIB) params.set("fibDifficulty", difficultyByType.FIB);
+            if (difficultyByType.Code) params.set("codeDifficulty", difficultyByType.Code);
             if (subject) params.set("subject", subject);
             if (courseNum) params.set("courseNum", courseNum);
             if (lastUsedFilterType === "never") {
@@ -200,7 +214,7 @@ export default function ExamForm() {
         loadCourseNums();
         loadSubjects();
         loadQuestionTypeCounts();
-    }, [user?._id, difficulty, subject, courseNum, lastUsedDate, lastUsedFilterType, lastUsedDateEnd,]);
+    }, [user?._id, difficultyByType, subject, courseNum, lastUsedDate, lastUsedFilterType, lastUsedDateEnd,]);
 
     // States for ordering question by type
     const [questionOrder, setQuestionOrder] = useState<QuestionType[]>([]);
@@ -345,7 +359,7 @@ export default function ExamForm() {
             subject,
             courseNum,
             timeLimit,
-            difficulty,
+            difficultyByType,
             allowedTypes,
             typeCounts,
             totalQuestions,
@@ -394,24 +408,6 @@ export default function ExamForm() {
         } finally {
             setGenerating(false);
         }
-
-        const examSpec = { title, totalQuestions, difficulty, timeLimit, randomize, allowedTypes, sections };
-
-        console.log("Exam Spec:", examSpec);
-
-        const questions = Array.from({ length: examSpec.totalQuestions }, (_, i) => {
-            // Pick type based on index (cycle through allowedTypes)
-            const typeIndex = i % examSpec.allowedTypes.length;
-            const type = examSpec.allowedTypes[typeIndex];
-
-            return {
-                number: i + 1,
-                text: `Sample question ${i + 1}?`,
-                type,
-            };
-        });
-
-        //generateExamPDF(examSpec, questions);
     }
 
     return (
@@ -433,25 +429,7 @@ export default function ExamForm() {
                                 maxLength={50}
                             />
                         </label>
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-primary">
-                                Difficulty <span className="text-red-500">*</span>
-                            </span>
-                            {/* Difficulty Filter */}
-                            <SelectBox
-                                label=""
-                                options={[
-                                    { value: '', label: 'All Difficulties' },
-                                    { value: 'easy', label: 'Easy' },
-                                    { value: 'medium', label: 'Medium' },
-                                    { value: 'hard', label: 'Hard' },
-                                    { value: 'mixed', label: 'Mixed' },
-                                ]}
-                                onSelect={setDifficulty}
-                                defaultValue="mixed"
-                                value={difficulty}
-                            />
-                        </label>
+                        
                         <label className="flex flex-col gap-1">
                             <span className="text-sm font-medium text-primary">
                                 Subject <span className="text-red-500">*</span>
@@ -657,32 +635,56 @@ export default function ExamForm() {
                         <div>
                             <h2 className="mb-3 text-lg font-semibold text-primary">Allowed Question Types</h2>
                             <p className="mb-3 text-sm text-secondary">
-                                Set how many questions of each type you want. Use 0 to exclude a type.
+                                Specify the number of questions and difficulty for each type. Use 0 to exclude a type.
                             </p>
                             <div className="grid gap-4 sm:grid-cols-1">
-                            {TYPES.map((t) => (
-                                <label key={t.value} className="flex flex-col">
-                                    <div className="flex items-center justify-center gap-2">
+                                {TYPES.map((t) => (
+                                    <div key={t.value} className="flex flex-col gap-1">
+                                    <div className="flex items-center justify-center gap-2 text-center">
                                         <span className="text-sm font-medium text-primary">{t.label}</span>
                                         {user && (
-                                            <span className="text-sm text-primary">
-                                                ({availableCounts[t.value] ?? 0} questions available)
-                                            </span>
+                                        <span className="text-sm text-primary">
+                                            ({availableCounts[t.value] ?? 0} questions available)
+                                        </span>
                                         )}
                                     </div>
-                                    
-                                    <input
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <input
                                         type="number"
                                         min={0}
-                                        placeholder="0"
-                                        className="border border-primary text-secondary px-2 "
+                                        placeholder="Count"
+                                        className="border border-primary text-secondary px-2 py-2 w-full"
                                         value={typeCounts[t.value] || ""}
-                                        onChange={e => setTypeCounts(prev => ({ ...prev, [t.value]: Number(e.target.value) }))}
-                                    />
+                                        onChange={(e) =>
+                                            setTypeCounts((prev) => ({
+                                            ...prev,
+                                            [t.value]: Number(e.target.value),
+                                            }))
+                                        }
+                                        />
 
-                                </label>
-                            ))}
-                            </div>
+                                        <select
+                                        className="border border-primary text-secondary px-2 py-2 w-full bg-white"
+                                        value={difficultyByType[t.value] ?? ""}
+                                        onChange={(e) =>
+                                            setDifficultyByType((prev) => ({
+                                            ...prev,
+                                            [t.value]: e.target.value,
+                                            }))
+                                        }
+                                        >
+                                        <option value="">Any</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        </select>
+                                    </div>
+                                    </div>
+                                ))}
+                                </div>
                         </div>
                         {/* Question Order */}
                         <div>
@@ -825,7 +827,7 @@ export default function ExamForm() {
                             onClick={() => {
                                 setTitle("");
                                 setTotalQuestions(25);
-                                setDifficulty("mixed");
+                                setDifficultyByType({ ...DEFAULT_DIFFICULTY_BY_TYPE });
                                 setCourseNum("");
                                 setSubject("");
                                 setTimeLimit(60);
