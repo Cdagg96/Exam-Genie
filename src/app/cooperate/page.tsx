@@ -7,12 +7,15 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthContext";
 import { Background } from "@/components/BackgroundModal";
 import MemberCard from "@/components/MemberCard";
+import ViewProfileModal from "@/components/ViewProfileModal"
 
 export default function CooperatePage() {
     const { user } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [userError, setUserError] = useState<string | null>(null);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [selectedMember, setSelectedMember] = useState<any | null>(null);
 
     // Filtering states
     const [searchName, setSearchName] = useState<string>('');
@@ -97,6 +100,11 @@ export default function CooperatePage() {
 
         const data = await response.json();
         setUsers(data.users ?? []);
+    };
+
+    const handleViewMember = (member: any) => {
+        setSelectedMember(member);
+        setViewModalOpen(true);
     };
     
     const formatOptions = (arr: string[]) =>
@@ -192,11 +200,18 @@ export default function CooperatePage() {
                                     school={user.institution}
                                     subjects={Array.isArray(user.tSubject) ? user.tSubject : ["None"]}
                                     department={user.department ?? "None"}
+                                    onView={() => handleViewMember(user)}
                                 />
                             ))
                         )}
                     </div>
                 </main>
+
+                <ViewProfileModal
+                    isOpen={viewModalOpen}
+                    onClose={() => setViewModalOpen(false)}
+                    member={selectedMember}
+                />
             </div>
         </Background>
     );
