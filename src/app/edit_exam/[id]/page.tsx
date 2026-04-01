@@ -1052,6 +1052,33 @@ export default function EditExamPage() {
               />
             </div>
           </main>
+          
+          {/* Bottom Buttons */}
+          <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 font-serif">
+            <div className="flex gap-3">
+              <button onClick={() => setIsQuestionFormOpen(true)} className="px-3 py-2 btn btn-ghost">
+                + Add New Question
+              </button>
+              <button onClick={() => setIsExistingPickerOpen(true)} className="px-3 py-2 btn btn-ghost">
+                + Add Existing Question
+              </button>
+              <button onClick={() => setIsAnswerKeyOpen(true)} className="px-3 py-2 btn btn-ghost">
+                View Answer Key
+              </button>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleClose}
+                className="rounded-lg border px-3 py-2 text-sm hover:bg-stone-200 transition"
+              >
+                Cancel
+              </button>
+              <button onClick={handleSaveExam} disabled={isSaving} className="btn btn-primary-blue">
+                {isSaving ? "Saving..." : "Save Exam"}
+              </button>
+            </div>
+          </div>
         </div>
         </div>
         <ConfirmationModal isOpen={isDeleteConfirmOpen} onClose={closeDeleteConfirm} onConfirm={handleConfirmDeleteQuestion} type="question" isLoading={isDeleting} text={pendingDeleteQuestion?.snapshot?.stem ?? ""} showAlsoDeleteInBank={true} alsoDeleteInBank={alsoDeleteInBank} onAlsoDeleteInBankChange={setAlsoDeleteInBank} />
