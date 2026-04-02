@@ -723,7 +723,7 @@ export default function EditExamPage() {
   return (
     <Background>
       <div ref={pageTopRef} />
-      <div className="min-h-screen w-full grid grid-cols-[1fr_auto_1fr] py-10 px-4 font-serif">
+      <div className="min-h-screen w-full grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] py-10 px-4 font-serif">
         {/* X icon in the top right corner (returns to past exams) */}
         <button
           onClick={handleClose}
@@ -1054,7 +1054,7 @@ export default function EditExamPage() {
           </main>
           
           {/* Bottom Buttons */}
-          <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 font-serif">
+          <div className="flex xl:hidden mt-12 flex-col sm:flex-row justify-between items-center gap-4 font-serif">
             <div className="flex gap-3">
               <button onClick={() => setIsQuestionFormOpen(true)} className="px-3 py-2 btn btn-ghost">
                 + Add New Question
