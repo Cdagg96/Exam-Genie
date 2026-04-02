@@ -24,9 +24,9 @@ const DEFAULT_SECTION = {
     subject: "",
     count: 5,
     type: "multiple_choice" as QuestionType,
-    difficulty: "mixed",
 };
 
+// Default difficulties - empty string is just "any"
 const DEFAULT_DIFFICULTY_BY_TYPE: Record<QuestionType, string> = {
     MC: "",
     TF: "",
@@ -43,7 +43,6 @@ export default function ExamForm() {
     const [subject, setSubject] = useState("");
     const [courseNum, setCourseNum] = useState("");
     const [totalQuestions, setTotalQuestions] = useState(25);
-    //const [difficulty, setDifficulty] = useState("mixed");
     const [timeLimit, setTimeLimit] = useState(60);
     const [randomize, setRandomize] = useState(true);
     const [availableCounts, setAvailableCounts] = useState<Record<QuestionType, number>>({
@@ -72,8 +71,7 @@ export default function ExamForm() {
         Essay: "5",
         Code: "10",
     });
-    const [difficultyByType, setDifficultyByType] =
-        useState<Record<QuestionType, string>>(DEFAULT_DIFFICULTY_BY_TYPE);
+    const [difficultyByType, setDifficultyByType] = useState<Record<QuestionType, string>>(DEFAULT_DIFFICULTY_BY_TYPE);
 
     // For select dropdown
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
