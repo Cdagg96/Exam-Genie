@@ -30,6 +30,7 @@ interface UserData {
             updatedAt?: string;
         };
     };
+    isCooperating?: boolean;
 }
 
 export default function SettingsPage() {
@@ -47,7 +48,8 @@ export default function SettingsPage() {
         department: "",
         tSubject: [],
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        isCooperating: false
     });
 
     //States
@@ -115,7 +117,8 @@ export default function SettingsPage() {
                     email: (data.user?.email || data?.email) || "",
                     institution: (data.user?.institution || data?.institution) || "",
                     department: (data.user?.department || data?.department) || "",
-                    tSubject: loadedSubjects
+                    tSubject: loadedSubjects,
+                    isCooperating: (data.user?.isCooperating ?? data?.isCooperating) ?? false,
                 }));
                 setTSubjectInput(loadedSubjects.join(", "));
             } catch (error) {
@@ -208,7 +211,8 @@ export default function SettingsPage() {
                     email: formData.email,
                     institution: formData.institution,
                     department: formData.department,
-                    tSubject: parsedSubjects
+                    tSubject: parsedSubjects,
+                    isCooperating: formData.isCooperating
                 })
             });
 
@@ -224,7 +228,7 @@ export default function SettingsPage() {
                     email: formData.email,
                     institution: formData.institution,
                     department: formData.department,
-                    tSubject: parsedSubjects
+                    tSubject: parsedSubjects,
                 });
             } else {
                 toast.error("Failed to update profile");
@@ -292,6 +296,44 @@ export default function SettingsPage() {
             setIsLoading(false);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    //Handle the cooperation preference
+    const toggleCooperation = async () => {
+        const newValue = !formData.isCooperating;
+
+        setFormData(prev => ({
+            ...prev,
+            isCooperating: newValue
+        }));
+
+        try {
+            const res = await fetch("/api/user/preferences", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: (user as any)?._id,
+                    isCooperating: newValue
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message);
+            }
+
+            updateUser({ isCooperating: newValue });
+            toast.success("Cooperation updated");
+
+        } catch (err) {
+            setFormData(prev => ({
+                ...prev,
+                isCooperating: !newValue
+            }));
+
+            toast.error("Failed to update");
         }
     };
 
@@ -492,11 +534,27 @@ export default function SettingsPage() {
                                 />
                                 <div className="border-t pt-4">
                                     {/* Dark mode toggle button */}
-                                    <div className="text-sm font-medium text-secondary mb-3">
+                                    <div className="text-lg font-medium text-primary mb-3">
                                         Page Theme
+                                        <p className="text-sm text-secondary mb-4">
+                                            Choose a page theme. If saved, this theme will always be applied. Otherwise, your browser's theme preference will be used.
+                                        </p>
                                     </div>
                                     <button onClick={toggleTheme} className="btn btn-ghost rounded-full text-primary card-secondary shadow-lg" >
-                                        {isDark ? "Turn on light mode" : "Turn on dark mode"}
+                                        {isDark ? "Enable light mode" : "Enable dark mode"}
+                                    </button>
+                                </div>
+                                <div className="border-t pt-4">
+                                    <div className="text-lg font-medium text-primary mb-3">
+                                        Cooperation
+                                        <p className="text-sm text-secondary mb-4">
+                                            By enabling cooperation, your account becomes visible to other users, giving you full access to the cooperation page. 
+                                            Here, you can easily share questions, collaborate on exams, and benefit from a more interactive experience. 
+                                            You can disable this feature anytime to return to a private profile.
+                                        </p>
+                                    </div>
+                                    <button onClick={toggleCooperation} className="btn btn-ghost rounded-full text-primary card-secondary shadow-lg">
+                                        {formData.isCooperating ? "Disable cooperation" : "Enable cooperation"}
                                     </button>
                                 </div>
                             </div>

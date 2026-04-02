@@ -181,7 +181,8 @@ export async function POST(req: Request) {
             createdOn: new Date(),
             domain: ".edu",
             status: "Pending",
-            isAdmin: false
+            isAdmin: false,
+            isCooperating: false
         };
 
 

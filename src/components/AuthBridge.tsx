@@ -29,7 +29,8 @@ export default function AuthBridge() {
         department: (session.user as any).department ?? "",
         tSubject: (session.user as any).tSubject ?? [],
         isAdmin: (session.user as any).isAdmin ?? false,
-        status: (session.user as any).status ?? ""
+        status: (session.user as any).status ?? "",
+        isCooperating: (session.user as any).isCooperating ?? false
       };
 
       // Prevent unnecessary re-logins / loops
