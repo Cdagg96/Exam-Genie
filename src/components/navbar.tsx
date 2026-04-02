@@ -37,6 +37,7 @@ export default function Navbar() {
           <Link href="../exam_gen/" className="text-secondary hover:text-primary">Generator</Link>
           <Link href="../past_exams/" className="text-secondary hover:text-primary">Exams</Link>
           <Link href="../cooperate/" className="text-secondary hover:text-primary">Cooperate</Link>
+          <Link href="../connections/" className="text-secondary hover:text-primary">Connections</Link>
           <Link href="../contact/" className="text-secondary hover:text-primary">Contact</Link>
 
           {/* Profile Icon */}
