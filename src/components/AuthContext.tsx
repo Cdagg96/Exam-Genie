@@ -17,6 +17,7 @@ type User = {
   createdOn?: string | Date;
   isAdmin?: boolean;
   status?: string;
+  isCooperating: boolean;
 };
 
 // Auth Struct

@@ -176,8 +176,11 @@ export default function InstructionEditor({ initialContent, resetKey, onSave, on
 
   return (
     <div className="space-y-3">
-      <div className={forceLight ? "text-sm font-medium text-slate-700" : "text-sm font-medium text-secondary"}>
+      <div className={forceLight ? "text-lg font-medium text-slate-700" : "text-lg font-medium text-primary"}>
         Exam Instructions
+        <p className="text-sm text-secondary mb-4">
+          Customize your preset instructions for exams. They will automatically apply to all future exams you generate, but you can also still modify them when editing individual exams.
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">

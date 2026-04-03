@@ -50,7 +50,8 @@ const handler = NextAuth({
           institution: user.institution,
           department: user.department,
           tSubject: user.tSubject || [],
-          isAdmin: user.isAdmin || false
+          isAdmin: user.isAdmin || false,
+          isCooperating: user.isCooperating || false
         } as any;
       },
     }),
@@ -67,6 +68,7 @@ const handler = NextAuth({
         token.department = (user as any).department;
         token.tSubject = (user as any).tSubject;
         token.isAdmin = (user as any).isAdmin;
+        token.isCooperating = (user as any).isCooperating;
       }
       return token;
     },
@@ -79,6 +81,7 @@ const handler = NextAuth({
       (session.user as any).department = token.department;
       (session.user as any).tSubject = token.tSubject;
       (session.user as any).isAdmin = token.isAdmin;
+      (session.user as any).isCooperating = token.isCooperating;
       return session;
     },
   },
