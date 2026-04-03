@@ -723,7 +723,7 @@ export default function EditExamPage() {
   return (
     <Background>
       <div ref={pageTopRef} />
-      <div className="min-h-screen w-full flex flex-col items-center py-10 px-4 font-serif">
+      <div className="min-h-screen w-full grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] py-10 px-4 font-serif">
         {/* X icon in the top right corner (returns to past exams) */}
         <button
           onClick={handleClose}
@@ -733,7 +733,42 @@ export default function EditExamPage() {
           &times;
         </button>
 
+        {/* Buttons */}
+        <div className="flex justify-center items-center">
+          <div className="fixed top-1/2 -translate-y-1/2 z-40 hidden xl:block">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-lg p-3">
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 text-center uppercase tracking-wider">
+                Actions
+              </h3>
+              <div className="flex flex-col gap-2">
+                  <button onClick={() => setIsQuestionFormOpen(true)} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
+                    + Add New Question
+                  </button>
+                  <button onClick={() => setIsExistingPickerOpen(true)} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
+                    + Add Existing Question
+                  </button>
+                  <button onClick={() => setIsAnswerKeyOpen(true)} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
+                    View Answer Key
+                  </button>
+
+                  <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                  <button
+                    onClick={handleClose}
+                    className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap"
+                  >
+                    Cancel
+                  </button>
+                  <button onClick={handleSaveExam} disabled={isSaving} className="px-2 py-1.5 text-xs btn btn-primary-blue whitespace-nowrap
+                                                                                  disabled:opacity-50 disabled:cursor-not-allowed">
+                    {isSaving ? "Saving..." : "Save Exam"}
+                  </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Paper outline that goes around the exam content */}
+        <div className="flex justify-center">
         <div className="relative bg-white border border-gray-300 shadow-md rounded-lg w-full max-w-[8.5in] p-10">
           {/* Name in the top left corner and points in top right */}
           <div className="mb-4 flex justify-between items-center">
@@ -1017,9 +1052,9 @@ export default function EditExamPage() {
               />
             </div>
           </main>
-
+          
           {/* Bottom Buttons */}
-          <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-4 font-serif">
+          <div className="flex xl:hidden mt-12 flex-col sm:flex-row justify-between items-center gap-4 font-serif">
             <div className="flex gap-3">
               <button onClick={() => setIsQuestionFormOpen(true)} className="px-3 py-2 btn btn-ghost">
                 + Add New Question
@@ -1044,6 +1079,7 @@ export default function EditExamPage() {
               </button>
             </div>
           </div>
+        </div>
         </div>
         <ConfirmationModal isOpen={isDeleteConfirmOpen} onClose={closeDeleteConfirm} onConfirm={handleConfirmDeleteQuestion} type="question" isLoading={isDeleting} text={pendingDeleteQuestion?.snapshot?.stem ?? ""} showAlsoDeleteInBank={true} alsoDeleteInBank={alsoDeleteInBank} onAlsoDeleteInBankChange={setAlsoDeleteInBank} />
         <QuestionForm isOpen={isQuestionFormOpen} onClose={handleFormClose} onQuestionAdded={handleQuestionAdded} mode="editExam" />
