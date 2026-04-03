@@ -102,6 +102,7 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const topic = searchParams.get('topic');
+    const difficulty = searchParams.get("difficulty");
     const mcDifficulty = searchParams.get("mcDifficulty");
     const tfDifficulty = searchParams.get("tfDifficulty");
     const essayDifficulty = searchParams.get("essayDifficulty");
@@ -142,6 +143,14 @@ export async function GET(req: Request) {
     
     if (topic) {
       filter.topics = { $in: [topic] };
+    }
+
+    if (difficulty) {
+        const n = Number(difficulty);
+        if (Number.isInteger(n) && n >= 1 && n <= 5) {
+            //if difficulty comes from questions page
+            filter.difficulty = n;
+        }
     }
     
     if (type) {
