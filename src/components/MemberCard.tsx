@@ -3,6 +3,7 @@ type MemberCardProps = {
   school: string;
   subjects: string[];
   department?: string;
+  page?: "cooperate" | "connections";
   onView?: () => void;
   onMessage?: () => void;
 };
@@ -12,8 +13,9 @@ export default function MemberCard({
   school,
   subjects,
   department,
+  page,
   onView,
-  onMessage,
+  onMessage
 }: MemberCardProps) {
   const initials = name
     .split(" ")
@@ -54,13 +56,23 @@ export default function MemberCard({
       </div>
 
       <div className="flex gap-2 mt-4">
-        <button className="btn btn-ghost w-full" onClick={onView}>
-          View
-        </button>
+        {page !== "connections" && (
+          <button className="btn btn-ghost w-full" onClick={onView}>
+            View
+          </button>
+        )}
 
-        <button className="btn btn-primary-blue w-full" onClick={onMessage}>
-          Message
-        </button>
+        {page === "connections" && (
+          <button className="btn btn-ghost w-full" onClick={onView}>
+            View Questions
+          </button>
+        )}
+
+        {page !== "connections" && (
+          <button className="btn btn-primary-blue w-full" onClick={onMessage}>
+            Message
+          </button>
+        )}
       </div>
     </div>
   );
