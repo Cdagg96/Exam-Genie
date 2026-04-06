@@ -315,12 +315,12 @@ export async function POST(req: Request) {
             subject,
             courseNum,
             timeLimit,
-            difficulty = "mixed",
             randomize = true,
             totalQuestions,
             questionOrder,
             pointsByType,
             typeCounts,
+            difficultyByType = {},
             userID,
             lastUsed,
             lastUsedFilterType = "before",
@@ -347,13 +347,6 @@ export async function POST(req: Request) {
 
         const items: any[] = []; // array that will hold the questions for the exam
 
-        const DIFF_MAP: Record<string, number[] | null> = {
-            mixed: null,          // no filter
-            easy: [1, 2],
-            medium: [2, 3, 4],
-            hard: [4, 5],
-        };
-
         const resolvedPoints: Record<string, number> = {
             ...DEFAULT_POINTS,
             ...(pointsByType || {}),
@@ -368,9 +361,6 @@ export async function POST(req: Request) {
                 requested: Number(n) || 0,
             })).filter(p => p.requested > 0);
 
-        // Check to see the difficulty and what questions we should match to
-        const band = DIFF_MAP[difficulty];
-        const diffFilter = band ? { $in: band } : undefined;
 
         // If a subject or course number is given, filter on those as well
         const subjectFilter = subject && subject.trim() !== "";
@@ -428,7 +418,17 @@ export async function POST(req: Request) {
 
         for (const { type, requested } of pairs) {
             const match: any = { type };
-            if (diffFilter) match.difficulty = diffFilter;
+
+            const rawDifficulty = difficultyByType?.[type];
+            const parsedDifficulty =
+                rawDifficulty === "" || rawDifficulty == null
+                ? null
+                : Number(rawDifficulty);
+
+            if (Number.isInteger(parsedDifficulty)) {
+                match.difficulty = parsedDifficulty;
+            }
+
             match.userID = userID;
             if (subjectFilter) match.subject = subject;
             if (courseNumFilter) match.courseNum = courseNum;
@@ -455,7 +455,17 @@ export async function POST(req: Request) {
         // Now go through and grab questions if valid
         for (const { type, requested } of pairs) {
             const match: any = { type };
-            if (diffFilter) match.difficulty = diffFilter;
+            
+            const rawDifficulty = difficultyByType?.[type];
+            const parsedDifficulty =
+                rawDifficulty === "" || rawDifficulty == null
+                ? null
+                : Number(rawDifficulty);
+
+            if (Number.isInteger(parsedDifficulty)) {
+                match.difficulty = parsedDifficulty;
+            }
+
             match.userID = userID;
             if (subjectFilter) match.subject = subject;
             if (courseNumFilter) match.courseNum = courseNum;
@@ -509,7 +519,7 @@ export async function POST(req: Request) {
             subject,
             courseNum,
             timeLimitMin: timeLimit,
-            difficulty,
+            difficultyByType,
             totalPoints,
             instructionsDoc,
             questions: items,
