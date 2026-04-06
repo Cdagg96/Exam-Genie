@@ -21,6 +21,7 @@ export type ExamDoc = {
   title: string;
   subject: string;
   courseNum: string;
+  topic: string;
   timeLimitMin: number;
   difficulty: string;
   totalPoints: number;
