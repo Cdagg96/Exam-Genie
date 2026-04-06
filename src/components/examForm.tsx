@@ -872,6 +872,7 @@ export default function ExamForm() {
                                 setDifficultyByType({ ...DEFAULT_DIFFICULTY_BY_TYPE });
                                 setCourseNum("");
                                 setSubject("");
+                                setTopic("");
                                 setTimeLimit(60);
                                 setRandomize(true);
                                 setPointsByType({MC: "1",TF: "1",FIB: "1",Essay: "5",Code: "10",});

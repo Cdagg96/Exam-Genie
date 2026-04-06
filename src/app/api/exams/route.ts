@@ -62,6 +62,7 @@ export async function GET(req: Request) {
         const totalPoints = searchParams.get('totalPoints');
         const subject = searchParams.get('subject');
         const courseNum = searchParams.get('courseNum');
+        const topic = searchParams.get('topic');
         const lastUsed = searchParams.get('lastUsed');
         //Get filter type (default to 'before' if not specified)
         const filterType = searchParams.get('lastUsedFilterType') || 'before';
@@ -139,6 +140,10 @@ export async function GET(req: Request) {
 
         if (courseNum) {
             filter.courseNum = courseNum;
+        }
+
+        if (topic) {
+            filter.topic = topic;
         }
 
         if (filterType === "never") {

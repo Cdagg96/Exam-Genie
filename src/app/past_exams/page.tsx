@@ -195,6 +195,7 @@ export default function PastExams() {
         setSelectedTotalPoints('');
         setSelectedSubject('');
         setSelectedCourseNum('');
+        setSelectedTopic('');
         setSelectedLastUsed(null);
         setLastUsedDateEnd(null);
         setDateInputValue('');
