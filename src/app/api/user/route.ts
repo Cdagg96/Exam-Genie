@@ -182,7 +182,10 @@ export async function POST(req: Request) {
             domain: ".edu",
             status: "Pending",
             isAdmin: false,
-            isCooperating: false
+            isCooperating: false,
+            connections: [],
+            incomingRequests: [],
+            outgoingRequests: [],
         };
 
 
@@ -301,11 +304,32 @@ export async function GET(req: Request) {
         const institution = searchParams.get("institution");
         const tSubject = searchParams.get("tSubject");
         const department = searchParams.get("department");
+        const ids = searchParams.get("ids");
 
         const client = await clientPromise;
         const db = client.db(process.env.MONGODB_DB);
 
         const filter: any = {};
+
+        if (ids) {
+            const { ObjectId } = await import("mongodb");
+            const objectIds = ids
+                .split(",")
+                .filter(id => ObjectId.isValid(id))
+                .map(id => new ObjectId(id));
+ 
+            const users = await db.collection("users").find(
+                { _id: { $in: objectIds } },
+                { projection: { password: 0, proofFile: 0 } }
+            ).toArray();
+ 
+            const serializedUsers = users.map(user => ({
+                ...user,
+                _id: user._id.toString(),
+            }));
+ 
+            return NextResponse.json({ ok: true, users: serializedUsers });
+        }
 
         if (name) {
             const parts = name.trim().split(/\s+/);

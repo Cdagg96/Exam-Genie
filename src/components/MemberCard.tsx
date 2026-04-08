@@ -5,7 +5,8 @@ type MemberCardProps = {
   department?: string;
   page?: "cooperate" | "connections";
   onView?: () => void;
-  onMessage?: () => void;
+  onConnect?: () => void;
+  connectionState?: "none" | "request-sent" | "request-received" | "connected";
 };
 
 export default function MemberCard({
@@ -15,7 +16,8 @@ export default function MemberCard({
   department,
   page,
   onView,
-  onMessage
+  onConnect,
+  connectionState = "none",
 }: MemberCardProps) {
   const initials = name
     .split(" ")
@@ -23,8 +25,25 @@ export default function MemberCard({
     .join("")
     .toUpperCase();
 
+  {/* Determine the connection stage/perspective */}
+  const getConnectLabel = () => {
+    switch (connectionState) {
+      case "connected":
+        return "Connected";
+      case "request-sent":
+        return "Connect Request Sent";
+      case "request-received":
+        return "Connect Request Received";
+      default:
+        return "Connect";
+    }
+  };
+
+  const isDisabled = (connectionState === "connected" || connectionState === "request-received");
+
   return (
     <div className="card-primary p-5 rounded-2xl shadow-sm hover:shadow-md transition">
+      {/* Displays the basic information of user on each card */}
       <div className="flex items-center gap-4">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
@@ -56,21 +75,27 @@ export default function MemberCard({
       </div>
 
       <div className="flex gap-2 mt-4">
+        {/* View button that displays more details about the user */}
         {page !== "connections" && (
           <button className="btn btn-ghost w-full" onClick={onView}>
             View
           </button>
         )}
-
         {page === "connections" && (
           <button className="btn btn-ghost w-full" onClick={onView}>
             View Questions
           </button>
         )}
-
+        {/* Connect button with three stages (Connected, request sent, and original connect) */}
         {page !== "connections" && (
-          <button className="btn btn-primary-blue w-full" onClick={onMessage}>
-            Message
+          <button
+            className={`btn btn-primary-blue w-full ${
+              isDisabled ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={!isDisabled ? onConnect : undefined}
+            disabled={isDisabled}
+          >
+            {getConnectLabel()}
           </button>
         )}
       </div>

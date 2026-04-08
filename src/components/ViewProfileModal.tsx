@@ -99,9 +99,6 @@ export default function ViewProfileModal({
           <button onClick={onClose} className="btn btn-ghost px-4 py-2">
             Close
           </button>
-          <button className="btn btn-primary-blue px-4 py-2">
-            Message
-          </button>
         </div>
       </div>
     </div>
