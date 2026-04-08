@@ -1,197 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavBar from "@/components/navbar";
 import { Background } from "@/components/BackgroundModal";
 import MemberCard from "@/components/MemberCard";
-
-//Mock data
-const mockConnections = [
-    {
-        id: "1",
-        name: "Connor Daggett SR",
-        institution: "Stanford University",
-        department: "Computer Science",
-        subjects: ["Web Development", "Database Design", "Algorithms"],
-        connectedSince: "2024-01-15"
-    },
-    {
-        id: "2",
-        name: "Connor Daggett JR",
-        institution: "MIT",
-        department: "Mathematics",
-        subjects: ["Calculus", "Linear Algebra", "Statistics"],
-        connectedSince: "2024-02-01"
-    },
-    {
-        id: "3",
-        name: "Connor Daggett III",
-        institution: "UC Berkeley",
-        department: "Physics",
-        subjects: ["Quantum Mechanics", "Thermodynamics", "Electromagnetism"],
-        connectedSince: "2024-01-20"
-    },
-    {
-        id: "4",
-        name: "Connor Daggett IV",
-        institution: "Harvard University",
-        department: "History",
-        subjects: ["World History", "American History", "Political Science"],
-        connectedSince: "2024-02-10"
-    },
-    {
-        id: "5",
-        name: "Connor Daggett V",
-        institution: "Princeton University",
-        department: "Chemistry",
-        subjects: ["Organic Chemistry", "Inorganic Chemistry", "Biochemistry"],
-        connectedSince: "2024-01-25"
-    }
-];
-
-const mockPendingRequests = [
-    {
-        id: "p1",
-        name: "Connor Daggett VI",
-        institution: "Columbia University",
-        department: "Economics",
-        subjects: ["Microeconomics", "Macroeconomics", "Econometrics"],
-        status: "received",
-        requestedAt: "2024-02-14"
-    },
-    {
-        id: "p2",
-        name: "Connor Daggett VII",
-        institution: "University of Chicago",
-        department: "Psychology",
-        subjects: ["Cognitive Psychology", "Developmental Psychology", "Neuroscience"],
-        status: "received",
-        requestedAt: "2024-02-13"
-    },
-    {
-        id: "p3",
-        name: "Connor Daggett VIII",
-        institution: "Northwestern University",
-        department: "Engineering",
-        subjects: ["Mechanical Engineering", "Thermodynamics", "Fluid Mechanics"],
-        status: "sent",
-        requestedAt: "2024-02-10"
-    }
-];
-
-const mockQuestions = {
-    "1": [
-        {
-            id: "q1",
-            text: "Explain the difference between REST and GraphQL APIs with practical examples.",
-            subject: "Web Development",
-            topic: "API Design",
-            difficulty: "medium",
-            createdAt: "2024-02-15"
-        },
-        {
-            id: "q2",
-            text: "Design a database schema for an e-commerce platform with product categories, user reviews, and order tracking.",
-            subject: "Database Design",
-            topic: "Schema Design",
-            difficulty: "hard",
-            createdAt: "2024-02-10"
-        }
-    ],
-    "2": [
-        {
-            id: "q3",
-            text: "Prove the Fundamental Theorem of Calculus and explain its applications.",
-            subject: "Calculus",
-            topic: "Integration",
-            difficulty: "hard",
-            createdAt: "2024-02-12"
-        },
-        {
-            id: "q4",
-            text: "Solve the system of linear equations using matrix methods: 2x + 3y = 8, 4x - y = 6",
-            subject: "Linear Algebra",
-            topic: "Matrices",
-            difficulty: "easy",
-            createdAt: "2024-02-08"
-        }
-    ],
-    "3": [
-        {
-            id: "q5",
-            text: "Derive the Schrödinger equation and explain its significance in quantum mechanics.",
-            subject: "Quantum Mechanics",
-            topic: "Wave Functions",
-            difficulty: "hard",
-            createdAt: "2024-02-14"
-        }
-    ],
-    "4": [
-        {
-            id: "q6",
-            text: "Analyze the causes and consequences of the American Civil War.",
-            subject: "American History",
-            topic: "Civil War Era",
-            difficulty: "medium",
-            createdAt: "2024-02-09"
-        },
-        {
-            id: "q7",
-            text: "Compare and contrast democracy in ancient Athens with modern representative democracy.",
-            subject: "Political Science",
-            topic: "Political Systems",
-            difficulty: "medium",
-            createdAt: "2024-02-05"
-        }
-    ],
-    "5": [
-        {
-            id: "q8",
-            text: "Explain the mechanism of nucleophilic substitution reactions (SN1 and SN2).",
-            subject: "Organic Chemistry",
-            topic: "Reaction Mechanisms",
-            difficulty: "hard",
-            createdAt: "2024-02-11"
-        },
-        {
-            id: "q9",
-            text: "Calculate the pH of a 0.1M solution of acetic acid (Ka = 1.8 × 10⁻⁵).",
-            subject: "Biochemistry",
-            topic: "Acids and Bases",
-            difficulty: "medium",
-            createdAt: "2024-02-07"
-        }
-    ]
-};
+import { useAuth } from "@/components/AuthContext";
+import Link from "next/link";
+import useTheme from "@/hooks/useTheme"
 
 export default function CollaborateViewPage() {
-    const [viewMode, setViewMode] = useState<"connections" | "questions" | "requests">("connections");
+    const { user } = useAuth();
+    const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
+    const [viewMode, setViewMode] = useState<"connections" | "questions">("connections");
     const [selectedConnection, setSelectedConnection] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [subjectFilter, setSubjectFilter] = useState("");
     const [showRequests, setShowRequests] = useState(false);
+    const [friendRequests, setFriendRequests] = useState<any[]>([]);
+    const [connections, setConnections] = useState<any[]>([]);
+    const [loadingConnections, setLoadingConnections] = useState(false);
+    const [loadingRequests, setLoadingRequests] = useState(false);
 
-    //Filter connections based on search
-    const filteredConnections = mockConnections.filter(conn =>
-        conn.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        conn.institution.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Fetch the current user's connections
+    const fetchConnections = async () => {
+        if (!user?._id) return;
+        try {
+            setLoadingConnections(true);
+            const res = await fetch(`/api/user/connections?userId=${user._id}`);
+            if (!res.ok) throw new Error("Failed to fetch connections");
+            const data = await res.json();
 
-    //Filter questions
-    const filteredQuestions = selectedConnection
-        ? (mockQuestions[selectedConnection.id as keyof typeof mockQuestions] || []).filter((q: any) =>
-            (subjectFilter === "" || q.subject === subjectFilter) &&
-            (searchTerm === "" || q.text.toLowerCase().includes(searchTerm.toLowerCase()))
-        )
-        : [];
+            if (data.connections?.length) {
+                const usersRes = await fetch(`/api/user?ids=${data.connections.join(",")}`);
+                if (!usersRes.ok) throw new Error("Failed to fetch user details");
+                const usersData = await usersRes.json();
 
-    //Filter pending requests
-    const filteredRequests = mockPendingRequests.filter(req =>
-        req.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.institution.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+                //Filter users by those that are cooperating
+                const cooperatingUsers = (usersData.users || []).filter((u: any) => u.isCooperating === true);
+                setConnections(cooperatingUsers);
+            } else {
+                setConnections([]);
+            }
 
-    const receivedRequests = mockPendingRequests.filter(req => req.status === "received");
+            // Map incoming requests to displayable objects
+            if (data.incomingRequests?.length) {
+                const requestsRes = await fetch(`/api/user?ids=${data.incomingRequests.join(",")}`);
+                if (!requestsRes.ok) throw new Error("Failed to fetch request details");
+                const requestsData = await requestsRes.json();
+                setFriendRequests((requestsData.users || []).filter((u: any) => u.isCooperating === true));
+            } else {
+                setFriendRequests([]);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingConnections(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchConnections();
+    }, [user?._id]);
 
     const handleViewConnection = (connection: any) => {
         setSelectedConnection(connection);
@@ -200,6 +69,51 @@ export default function CollaborateViewPage() {
         setSubjectFilter("");
         setShowRequests(false);
     };
+
+    //Accept a friend request and update all the respective user fields
+    const handleAcceptRequest = async (targetUserId: string) => {
+        if (!user?._id) return;
+        try {
+            const res = await fetch("/api/user/connections", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: String(user._id),
+                    targetUserId,
+                    action: "accept"
+                })
+            });
+            if (!res.ok) throw new Error("Failed to accept request");
+            fetchConnections();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    //Reject a friend request and update all the respective user fields
+    const handleRejectRequest = async (targetUserId: string) => {
+        if (!user?._id) return;
+        try {
+            const res = await fetch("/api/user/connections", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: String(user._id),
+                    targetUserId,
+                    action: "reject"
+                })
+            });
+            if (!res.ok) throw new Error("Failed to reject request");
+            fetchConnections();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const filteredConnections = connections.filter(conn =>
+        `${conn.firstName ?? ""} ${conn.lastName ?? ""}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (conn.institution || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <Background>
@@ -217,48 +131,62 @@ export default function CollaborateViewPage() {
                         </p>
                     </div>
 
-                    {/* Action Buttons Bar */}
-                    <div className="flex justify-between items-center mb-8">
-                        {/* View Toggle Buttons */}
-                        <div className="flex gap-4">
-                            <button
-                                onClick={() => {
-                                    setViewMode("connections");
-                                    setSelectedConnection(null);
-                                    setSearchTerm("");
-                                    setShowRequests(false);
-                                }}
-                                className="px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 btn btn-ghost"
+                    <div className="mb-6 text-center">
+                        <Link
+                            href="../cooperate/"
+                            className="text-secondary hover:text-primary inline-flex items-center font-medium"
+                        >
+                            Go to Cooperate
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.5}
+                                stroke="currentColor"
+                                className="w-5 h-5 ml-2 rotate-180 transition-transform duration-200 group-hover:-translate-x-1"
                             >
-                                My Connections ({mockConnections.length})
-                            </button>
-                        </div>
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                                />
+                            </svg>
+                        </Link>
+                    </div>
 
-                        {/* Friend Requests Button */}
+                    {/* Action Buttons */}
+                    <div className="flex justify-between items-center mb-8">
                         <button
                             onClick={() => {
-                                setShowRequests(true);
                                 setViewMode("connections");
                                 setSelectedConnection(null);
                                 setSearchTerm("");
+                                setShowRequests(false);
                             }}
+                            className="px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 btn btn-ghost"
+                        >
+                            My Connections ({connections.length})
+                        </button>
+
+                        <button
+                            onClick={() => setShowRequests(true)}
                             className="relative px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 btn btn-primary-blue"
                         >
                             Friend Requests
-                            {mockPendingRequests.filter(r => r.status === "received").length > 0 && (
+                            {friendRequests.length > 0 && (
                                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
-                                    {mockPendingRequests.filter(r => r.status === "received").length}
+                                    {friendRequests.length}
                                 </span>
                             )}
                         </button>
                     </div>
 
-                    {/* Search Bar for Connections and Requests */}
+                    {/* Search Bar */}
                     {(viewMode === "connections" || showRequests) && (
                         <div className="mb-6">
                             <input
                                 type="text"
-                                placeholder={showRequests ? "Search requests by name or institution" : "Search connections by name or institution"}
+                                placeholder={showRequests ? "Search requests" : "Search connections"}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
@@ -266,221 +194,47 @@ export default function CollaborateViewPage() {
                         </div>
                     )}
 
-                    {/* Friend Requests Section */}
-                    {showRequests && (
-                        <div className="mb-8">
-                            <div className="space-y-6">
-                                {/* Received Requests */}
-                                {receivedRequests.length > 0 && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                            Received Requests ({receivedRequests.length})
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {filteredRequests.filter(r => r.status === "received").map((request) => (
-                                                <div key={request.id} className="card-primary p-5 rounded-2xl shadow-sm hover:shadow-md transition">
-                                                    <div className="flex items-center gap-4">
-                                                        {/* Avatar */}
-                                                        <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
-                                                            {request.name
-                                                                .split(" ")
-                                                                .map((n: string) => n[0])
-                                                                .join("")
-                                                                .toUpperCase()}
-                                                        </div>
-
-                                                        <div>
-                                                            <h3 className="text-lg font-semibold text-primary">
-                                                                {request.name}
-                                                            </h3>
-                                                            <p className="text-sm text-secondary">
-                                                                {request.institution}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="mt-4 text-sm text-secondary">
-                                                        <p>
-                                                            <span className="font-medium">Subjects:</span>{" "}
-                                                            {request.subjects.join(", ")}
-                                                        </p>
-                                                        {request.department && (
-                                                            <p>
-                                                                <span className="font-medium">Department:</span>{" "}
-                                                                {request.department}
-                                                            </p>
-                                                        )}
-                                                        <p className="text-gray-500 text-xs mt-2">
-                                                            Requested {new Date(request.requestedAt).toLocaleDateString()}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="flex gap-2 mt-4">
-                                                        <button
-                                                            className="btn btn-primary-blue w-full"
-                                                        >
-                                                            Accept
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-ghost w-full"
-                                                        >
-                                                            Reject
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {filteredRequests.length === 0 && (
-                                    <div className="card-primary p-12 text-center">
-                                        <h3 className="text-xl font-semibold text-primary mb-2">No friend requests found</h3>
-                                        <p className="text-secondary">
-                                            {searchTerm ? "Try a different search term" : "You have no pending friend requests"}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {!showRequests && viewMode === "connections" && (
-                        <div className="space-y-6">
-                            {/* Connections Grid */}
-                            {filteredConnections.length === 0 ? (
-                                <div className="card-primary p-12 text-center">
-                                    <div className="text-6xl mb-4">👥</div>
-                                    <h3 className="text-xl font-semibold text-primary mb-2">No connections found</h3>
-                                    <p className="text-secondary">
-                                        {searchTerm ? "Try a different search term" : "Connect with other faculty members to start collaborating"}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredConnections.map((connection) => (
-                                        <MemberCard
-                                            key={connection.id}
-                                            name={connection.name}
-                                            school={connection.institution}
-                                            subjects={connection.subjects}
-                                            page="connections"
-                                            department={connection.department}
-                                            onView={() => handleViewConnection(connection)}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {!showRequests && viewMode === "questions" && selectedConnection && (
-                        <div className="space-y-6">
-                            {/* Selected Connection Header */}
-                            <div className="card-primary p-6">
-                                <div className="flex items-center justify-between flex-wrap gap-4">
-                                    <div className="flex items-center gap-4 flex-1">
-                                        {/* Avatar */}
-                                        <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold text-lg">
-                                            {selectedConnection.name
-                                                .split(" ")
-                                                .map((n: string) => n[0])
-                                                .join("")
-                                                .toUpperCase()}
-                                        </div>
-
-                                        <div className="flex-1">
-                                            <h3 className="text-lg font-semibold text-primary">
-                                                {selectedConnection.name}
-                                            </h3>
-                                            <p className="text-sm text-secondary">
-                                                {selectedConnection.institution}
-                                            </p>
-                                            <div className="mt-2 text-sm text-secondary">
-                                                <p>
-                                                    <span className="font-medium">Subjects:</span>{" "}
-                                                    {selectedConnection.subjects.join(", ")}
-                                                </p>
-                                                {selectedConnection.department && (
-                                                    <p>
-                                                        <span className="font-medium">Department:</span>{" "}
-                                                        {selectedConnection.department}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <p className="text-gray-500 text-xs mt-2">
-                                                Connected since {new Date(selectedConnection.connectedSince).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={() => {
-                                            setViewMode("connections");
-                                            setSelectedConnection(null);
-                                        }}
-                                        className="px-4 py-2 btn btn-ghost rounded-lg transition-colors"
-                                    >
-                                        Back to Connections
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Questions Count */}
-                            <div className="flex justify-between items-center">
-                                <p className="text-secondary text-sm">
-                                    Showing {filteredQuestions.length} question{filteredQuestions.length !== 1 ? "s" : ""}
-                                </p>
-                            </div>
-
-                            {/* Questions Grid */}
-                            {filteredQuestions.length === 0 ? (
-                                <div className="card-primary p-12 text-center">
-                                    <h3 className="text-xl font-semibold text-primary mb-2">No questions found</h3>
-                                    <p className="text-secondary">
-                                        {searchTerm || subjectFilter
-                                            ? "Try adjusting your search or filter criteria"
-                                            : "No questions have been shared by this faculty member yet"}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {filteredQuestions.map((question: any) => (
-                                        <div
-                                            key={question.id}
-                                            className="card-primary p-6 hover:shadow-lg transition-all group"
+                    {/* Friend request view */}
+                    {showRequests ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {friendRequests.length > 0 ? friendRequests.map(req => (
+                                <div key={req._id} className="card-primary p-5 rounded-2xl shadow-sm hover:shadow-md transition">
+                                    <h3 className="text-lg font-semibold text-primary">
+                                        {req.firstName} {req.lastName}
+                                    </h3>
+                                    <p className="text-secondary">{req.institution}</p>
+                                    <div className="flex gap-2 mt-4">
+                                        <button
+                                            className="btn btn-primary-blue w-full"
+                                            onClick={() => handleAcceptRequest(req._id)}
                                         >
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className="flex-1">
-                                                    <p className="text-primary text-lg leading-relaxed">
-                                                        {question.text}
-                                                    </p>
-                                                    <div className="flex flex-wrap gap-2 mt-3">
-                                                        <span className="px-2 py-1 text-xs font-medium text-secondary">
-                                                            {question.subject}
-                                                        </span>
-                                                        {question.topic && (
-                                                            <span className="px-2 py-1 text-xs font-medium text-secondary">
-                                                                {question.topic}
-                                                            </span>
-                                                        )}
-                                                        <span className="px-2 py-1 rounded-md text-xs font-medium text-secondary">
-                                                            {question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="mt-4 pt-3 border-t border-gray-700 flex justify-between items-center text-xs">
-                                                <button
-                                                    className="btn btn-primary-blue text-sm"
-                                                >
-                                                    View Details
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                            Accept
+                                        </button>
+                                        <button
+                                            className="btn btn-ghost w-full"
+                                            onClick={() => handleRejectRequest(req._id)}
+                                        >
+                                            Reject
+                                        </button>
+                                    </div>
                                 </div>
-                            )}
+                            )) : <p className="text-secondary">No friend requests</p>}
+                        </div>
+                    //Connections view
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {loadingConnections ? <p className="text-secondary">Loading...</p> :
+                                filteredConnections.length > 0 ? filteredConnections.map(conn => (
+                                    <MemberCard
+                                        key={conn._id}
+                                        name={`${conn.firstName ?? ""} ${conn.lastName ?? ""}`.trim()}
+                                        school={conn.institution}
+                                        subjects={Array.isArray(conn.tSubject) ? conn.tSubject : ["None"]}
+                                        department={conn.department ?? "None"}
+                                        page="connections"
+                                    />
+                                )) : <p className="text-secondary">No cooperating faculty found</p>
+                            }
                         </div>
                     )}
                 </main>

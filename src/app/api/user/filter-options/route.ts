@@ -7,7 +7,7 @@ export async function GET() {
         const db = client.db(process.env.MONGODB_DB);
 
         const users = await db.collection("users").find(
-            {},
+            { isCooperating: true, status: "Approved" },
             {
                 projection: {
                     firstName: 1,
