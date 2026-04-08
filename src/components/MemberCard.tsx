@@ -31,9 +31,9 @@ export default function MemberCard({
       case "connected":
         return "Connected";
       case "request-sent":
-        return "Connect Request Sent";
+        return "Cancel request";
       case "request-received":
-        return "Connect Request Received";
+        return "Incoming request";
       default:
         return "Connect";
     }

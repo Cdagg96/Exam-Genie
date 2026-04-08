@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import NavBar from "@/components/navbar";
 import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
@@ -55,7 +55,13 @@ export default function SettingsPage() {
     //States
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [activeTab, setActiveTab] = useState("profile"); //Profile info, Reset password, Delete account
+    
+    const searchParams = useSearchParams();
+
+    const [activeTab, setActiveTab] = useState(() => {
+        return searchParams.get("tab") || "profile";
+    });
+
     const [userData, setUserData] = useState<UserData | null>(null);
     const [tSubjectInput, setTSubjectInput] = useState("");
 

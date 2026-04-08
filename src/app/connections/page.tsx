@@ -5,9 +5,12 @@ import NavBar from "@/components/navbar";
 import { Background } from "@/components/BackgroundModal";
 import MemberCard from "@/components/MemberCard";
 import { useAuth } from "@/components/AuthContext";
+import Link from "next/link";
+import useTheme from "@/hooks/useTheme"
 
 export default function CollaborateViewPage() {
     const { user } = useAuth();
+    const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const [viewMode, setViewMode] = useState<"connections" | "questions">("connections");
     const [selectedConnection, setSelectedConnection] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -126,6 +129,29 @@ export default function CollaborateViewPage() {
                         <p className="text-secondary text-lg max-w-2xl mx-auto">
                             View and import shared questions with your connected faculty members.
                         </p>
+                    </div>
+
+                    <div className="mb-6 text-center">
+                        <Link
+                            href="../cooperate/"
+                            className="text-secondary hover:text-primary inline-flex items-center font-medium"
+                        >
+                            Go to Cooperate
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.5}
+                                stroke="currentColor"
+                                className="w-5 h-5 ml-2 rotate-180 transition-transform duration-200 group-hover:-translate-x-1"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                                />
+                            </svg>
+                        </Link>
                     </div>
 
                     {/* Action Buttons */}

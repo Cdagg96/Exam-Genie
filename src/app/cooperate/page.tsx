@@ -9,9 +9,11 @@ import { Background } from "@/components/BackgroundModal";
 import MemberCard from "@/components/MemberCard";
 import ViewProfileModal from "@/components/ViewProfileModal"
 import Link from "next/link";
+import useTheme from "@/hooks/useTheme"
 
 export default function CooperatePage() {
     const { user, updateUser } = useAuth();
+    const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [userError, setUserError] = useState<string | null>(null);
@@ -394,7 +396,9 @@ export default function CooperatePage() {
                     </p>
 
                     <button className="btn btn-primary-blue mt-4">
-                        <Link href="../settings/" className="">Go to settings</Link>
+                        <Link href="../settings?tab=preferences" className="">
+                            Go to settings
+                        </Link>
                     </button>
                 </div>
             </div>
