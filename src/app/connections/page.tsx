@@ -10,7 +10,7 @@ import useTheme from "@/hooks/useTheme"
 import QuestionModal from "@/components/QuestionModal";
 
 export default function CollaborateViewPage() {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const { isDark, toggleTheme } = useTheme(); //Select between light/dark mode based on user preference
     const [viewMode, setViewMode] = useState<"connections" | "questions">("connections");
     const [selectedConnection, setSelectedConnection] = useState<any>(null);
@@ -173,6 +173,27 @@ export default function CollaborateViewPage() {
             console.error(err);
         }
     };
+
+    //Update the user so that the cooperating field can be used to deny people from viewing this page if not set correctly
+    useEffect(() => {
+        if (!user?._id) return;
+
+        const fetchCoopStatus = async () => {
+            try {
+                const res = await fetch(`/api/user?ids=${user._id}`);
+                if (!res.ok) throw new Error("Failed to fetch user");
+                const data = await res.json();
+                const currentUser = data.users[0];
+                if (currentUser) {
+                    updateUser({ isCooperating: currentUser.isCooperating });
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchCoopStatus();
+    }, [user?._id]);
 
     const filteredConnections = connections.filter(conn =>
         `${conn.firstName ?? ""} ${conn.lastName ?? ""}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
