@@ -103,6 +103,34 @@ export default function EditExamPage() {
     setIsDragging(false);
   };
 
+  //Check if dropping in this zone would actually move the question
+  const wouldActuallyMoveQuestion = (dropZoneKey: string, draggedQuestionId: string): boolean => {
+    if (!exam || !draggedQuestionId) return false;
+
+    const questions = exam.questions;
+    const draggedIndex = questions.findIndex(q => q.questionId === draggedQuestionId);
+    if (draggedIndex === -1) return false;
+
+    const [zoneType, indexStr] = dropZoneKey.split("-");
+    let targetIndex: number;
+
+    if (zoneType === "top") {
+      // insert before question at this index
+      targetIndex = parseInt(indexStr);
+    } else if (zoneType === "between") {
+      // current code inserts at index + 1
+      targetIndex = parseInt(indexStr) + 1;
+    } else if (zoneType === "bottom") {
+      // insert at end
+      targetIndex = parseInt(indexStr);
+    } else {
+      return false;
+    }
+
+  // these are the "no-op" positions from handleDrop
+  return !(draggedIndex === targetIndex || draggedIndex === targetIndex - 1);
+};
+
   //Check to see if its a valid zone to drag and drop
   const isValidDropZone = (dropZoneKey: string, draggedQuestionId: string): boolean => {
     if (!exam || !draggedQuestionId) return false;
@@ -857,9 +885,9 @@ export default function EditExamPage() {
                 const betweenDropZoneKey = `between-${index}`;
 
                 //Check if this drop zone is valid for the dragged question
-                const isTopDropZoneValid = isDragging && draggedQuestion && isInSameTypeSection(topDropZoneKey, draggedQuestion);
-                const isBetweenDropZoneValid = isDragging && draggedQuestion && index < exam.questions.length - 1 && isInSameTypeSection(betweenDropZoneKey, draggedQuestion);
-                const isBottomDropZoneValid = isDragging && draggedQuestion && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion);
+                const isTopDropZoneValid = isDragging && draggedQuestion && isInSameTypeSection(topDropZoneKey, draggedQuestion) && wouldActuallyMoveQuestion(topDropZoneKey, draggedQuestion);
+                const isBetweenDropZoneValid = isDragging && draggedQuestion && index < exam.questions.length - 1 && isInSameTypeSection(betweenDropZoneKey, draggedQuestion) && wouldActuallyMoveQuestion(betweenDropZoneKey, draggedQuestion);
+                const isBottomDropZoneValid = isDragging && draggedQuestion && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion) &&  wouldActuallyMoveQuestion(`bottom-${exam.questions.length}`, draggedQuestion);
 
                 return (
                   // For each question
@@ -1042,10 +1070,10 @@ export default function EditExamPage() {
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, `bottom-${exam.questions.length}`)}
                 className={`h-5 -mt-3 transition-all duration-200 rounded-lg border-2 border-dashed ${dropTarget === `bottom-${exam.questions.length}`
-                  ? (isDragging && draggedQuestion && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion) 
+                  ? (isDragging && draggedQuestion && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion ) && wouldActuallyMoveQuestion(`bottom-${exam.questions.length}`, draggedQuestion) 
                     ? 'bg-green-100 border-green-500'
                     : 'bg-red-100 border-red-500')
-                  : (isDragging && draggedQuestion && isValidDropZone(`bottom-${exam.questions.length}`, draggedQuestion) && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion))
+                  : (isDragging && draggedQuestion && isValidDropZone(`bottom-${exam.questions.length}`, draggedQuestion) && isInSameTypeSection(`bottom-${exam.questions.length}`, draggedQuestion) && wouldActuallyMoveQuestion(`bottom-${exam.questions.length}`, draggedQuestion))
                   ? 'bg-blue-100 border-blue-500 border-dashed'
                   : 'border-transparent'
                   }`}
