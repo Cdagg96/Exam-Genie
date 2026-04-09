@@ -62,6 +62,7 @@ export async function GET(req: Request) {
         const totalPoints = searchParams.get('totalPoints');
         const subject = searchParams.get('subject');
         const courseNum = searchParams.get('courseNum');
+        const topic = searchParams.get('topic');
         const lastUsed = searchParams.get('lastUsed');
         //Get filter type (default to 'before' if not specified)
         const filterType = searchParams.get('lastUsedFilterType') || 'before';
@@ -139,6 +140,10 @@ export async function GET(req: Request) {
 
         if (courseNum) {
             filter.courseNum = courseNum;
+        }
+
+        if (topic) {
+            filter.topic = topic;
         }
 
         if (filterType === "never") {
@@ -314,6 +319,7 @@ export async function POST(req: Request) {
             title,
             subject,
             courseNum,
+            topic,
             timeLimit,
             randomize = true,
             totalQuestions,
@@ -365,6 +371,7 @@ export async function POST(req: Request) {
         // If a subject or course number is given, filter on those as well
         const subjectFilter = subject && subject.trim() !== "";
         const courseNumFilter = courseNum && courseNum.trim() !== "";
+        const topicFilter = topic && topic.trim() !== "";
 
         // If a last used date is given, filter on that
         const lastUsedMatch: any = {};
@@ -432,6 +439,7 @@ export async function POST(req: Request) {
             match.userID = userID;
             if (subjectFilter) match.subject = subject;
             if (courseNumFilter) match.courseNum = courseNum;
+            if (topicFilter) match.topics = topic;
             Object.assign(match, lastUsedMatch);
 
             const available = await questionsdb.countDocuments(match);
@@ -469,6 +477,7 @@ export async function POST(req: Request) {
             match.userID = userID;
             if (subjectFilter) match.subject = subject;
             if (courseNumFilter) match.courseNum = courseNum;
+            if (topicFilter) match.topics = topic;
             Object.assign(match, lastUsedMatch);
 
             // Randomly sample questions for current type
@@ -485,12 +494,14 @@ export async function POST(req: Request) {
                     type: q.type,
                     subject: q.subject,
                     courseNum: q.courseNum,
+                    topics: q.topics,
                     points: resolvedPoints[normalizeType(q.type)] ?? 1,
                     snapshot: {
                         stem: q.stem,
                         choices: q.choices,
                         answer: q.answer,
                         difficulty: q.difficulty,
+                        topics: q.topics,
                         blankLines: q.lines
                     }
                 })
@@ -518,6 +529,7 @@ export async function POST(req: Request) {
             title,
             subject,
             courseNum,
+            topic,
             timeLimitMin: timeLimit,
             difficultyByType,
             totalPoints,

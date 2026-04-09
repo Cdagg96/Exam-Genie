@@ -75,6 +75,7 @@ export default function PastExams() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
     const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
+    const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
     const [names, setNames] = useState<{ value: string; label: string }[]>([]);
     const [calendarOpen, setCalendarOpen] = useState(false);
     const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLElement | null>(null);
@@ -93,6 +94,7 @@ export default function PastExams() {
     const [selectedTotalPoints, setSelectedTotalPoints] = useState<string>('');
     const [selectedSubject, setSelectedSubject] = useState<string>('');
     const [selectedCourseNum, setSelectedCourseNum] = useState<string>('');
+    const [selectedTopic, setSelectedTopic] = useState<string>('');
     const [selectedLastUsed, setSelectedLastUsed] = useState<Dayjs | null>(null);
     const [filtersApplied, setFiltersApplied] = useState<boolean>(false);
 
@@ -129,6 +131,7 @@ export default function PastExams() {
             if (selectedTotalPoints) queryParams.append('totalPoints', selectedTotalPoints);
             if (selectedSubject) queryParams.append('subject', selectedSubject);
             if (selectedCourseNum) queryParams.append('courseNum', selectedCourseNum);
+            if (selectedTopic) queryParams.append('topic', selectedTopic);
             if (sortBy) queryParams.append("sortBy", sortBy);
             if (sortOrder) queryParams.append("sortOrder", sortOrder);
 
@@ -192,6 +195,7 @@ export default function PastExams() {
         setSelectedTotalPoints('');
         setSelectedSubject('');
         setSelectedCourseNum('');
+        setSelectedTopic('');
         setSelectedLastUsed(null);
         setLastUsedDateEnd(null);
         setDateInputValue('');
@@ -286,6 +290,10 @@ export default function PastExams() {
             new Set(exams.map(e => e.courseNum?.trim()).filter((s): s is string => !!s))
         ).map(courseNum => ({ value: courseNum, label: courseNum }));
 
+        const uniqueTopics = Array.from(
+            new Set(exams.map(e => e.topic?.trim()).filter((s): s is string => !!s))
+        ).map(topic => ({ value: topic, label: topic }));
+
         const uniqueNames = Array.from(
             new Set(exams.map(e => e.title?.trim()).filter((s): s is string => !!s))
         ).map(name => ({ value: name, label: name }));
@@ -295,6 +303,8 @@ export default function PastExams() {
 
         //Store the list of unique topics if any changes occur in questions
         setSubjects(uniqueSubjects);
+
+        setTopics(uniqueTopics);
 
         //Store the list of unique names if any changes occur in questions
         setNames(uniqueNames);
@@ -455,7 +465,7 @@ export default function PastExams() {
                             />
 
                             {/* Difficulty Filter */}
-                            <SelectBox
+                            {/* <SelectBox
                                 label="Difficulty"
                                 placeholder="All Difficulties"
                                 options={[
@@ -467,7 +477,7 @@ export default function PastExams() {
                                 ]}
                                 onSelect={setSelectedDifficulty}
                                 value={selectedDifficulty}
-                            />
+                            /> */}
 
                             {/* Total Points Filter */}
                             <SelectBox
@@ -484,11 +494,7 @@ export default function PastExams() {
                                 onSelect={setSelectedTotalPoints}
                                 value={selectedTotalPoints}
                             />
-                        </div>
 
-
-                        {/* Last Used Filter */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                             {/* Subject Filter Box */}
                             <FilterBox
                                 options={subjects}
@@ -498,6 +504,11 @@ export default function PastExams() {
                                 value={selectedSubject}
                                 maxLength={50}
                             />
+                        </div>
+
+
+                        {/* Last Used Filter */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
 
                             {/* Course number Filter Box */}
                             <FilterBox
@@ -506,6 +517,16 @@ export default function PastExams() {
                                 placeholder="Search a Course Number"
                                 onSelect={setSelectedCourseNum}
                                 value={selectedCourseNum}
+                                maxLength={50}
+                            />
+
+                            {/* Course number Filter Box */}
+                            <FilterBox
+                                options={topics}
+                                label="Topics"
+                                placeholder="Search a Topic"
+                                onSelect={setSelectedTopic}
+                                value={selectedTopic}
                                 maxLength={50}
                             />
 
@@ -763,8 +784,11 @@ export default function PastExams() {
                                             Course Number
                                         </th>
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
-                                            Difficulty
+                                            Topic
                                         </th>
+                                        {/* <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
+                                            Difficulty
+                                        </th> */}
                                         <th className="px-6 py-4 text-center text-xs font-semibold text-primary uppercase tracking-wider border-r border-gray-200">
                                             <SortableHeader
                                                 label="Total Points"
@@ -887,10 +911,15 @@ export default function PastExams() {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
+                                                        <div className="truncate" title={exam.title}>
+                                                            {exam.topic ? exam.topic : "N/A"}
+                                                        </div>
+                                                    </td>
+                                                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                         {exam.difficulty
                                                             ? exam.difficulty
                                                             : "N/A"}
-                                                    </td>
+                                                    </td> */}
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary border-r border-gray-200">
                                                         {exam.totalPoints
                                                             ? exam.totalPoints

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import ExamPreviewModel from "@/components/examPreview";
 import SelectBox from "@/components/SelectBox";
+import FilterBox from "@/components/filterBox";
 import { useAuth } from "@/components/AuthContext";
 import { ExamDoc, ExamQuestionItem, QuestionType } from "@/types/exam";
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
@@ -42,6 +43,7 @@ export default function ExamForm() {
     const [title, setTitle] = useState("");
     const [subject, setSubject] = useState("");
     const [courseNum, setCourseNum] = useState("");
+    const [topic, setTopic] = useState("");
     const [totalQuestions, setTotalQuestions] = useState(25);
     const [timeLimit, setTimeLimit] = useState(60);
     const [randomize, setRandomize] = useState(true);
@@ -76,6 +78,7 @@ export default function ExamForm() {
     // For select dropdown
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
     const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
+    const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
 
 
     const [sections, setSections] = useState([{ ...DEFAULT_SECTION }]);
@@ -144,7 +147,32 @@ export default function ExamForm() {
                     ...options
                 ]);
             } catch (error) {
-                console.error("Error fetching subjects");
+                console.error("Error fetching Course Numbers");
+
+            }
+        }
+
+        async function loadTopics() {
+            try {
+                const response = await fetch(`/api/topics?userID=${userID}`);
+                const data = await response.json();
+
+                if (!response.ok || !data.ok) {
+                    console.log("Failed to load topics: ", data);
+                    return
+                }
+
+                const options = data.topics.map((s: string) => ({
+                    value: s,
+                    label: s
+                }))
+
+                setTopics([
+                    { value: '', label: 'All Topics' },
+                    ...options
+                ]);
+            } catch (error) {
+                console.error("Error fetching topics");
 
             }
         }
@@ -172,6 +200,7 @@ export default function ExamForm() {
             if (difficultyByType.Code) params.set("codeDifficulty", difficultyByType.Code);
             if (subject) params.set("subject", subject);
             if (courseNum) params.set("courseNum", courseNum);
+            if (topic) params.set("topic", topic);
             if (lastUsedFilterType === "never") {
                 params.set("lastUsedFilterType", "never");
             } 
@@ -211,8 +240,9 @@ export default function ExamForm() {
 
         loadCourseNums();
         loadSubjects();
+        loadTopics();
         loadQuestionTypeCounts();
-    }, [user?._id, difficultyByType, subject, courseNum, lastUsedDate, lastUsedFilterType, lastUsedDateEnd,]);
+    }, [user?._id, difficultyByType, subject, courseNum, topic, lastUsedDate, lastUsedFilterType, lastUsedDateEnd,]);
 
     // States for ordering question by type
     const [questionOrder, setQuestionOrder] = useState<QuestionType[]>([]);
@@ -356,6 +386,7 @@ export default function ExamForm() {
             title,
             subject,
             courseNum,
+            topic,
             timeLimit,
             difficultyByType,
             allowedTypes,
@@ -415,7 +446,7 @@ export default function ExamForm() {
                     <h2 className="mb-3 text-lg font-semibold text-primary">General</h2>
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-primary">
+                            <span className="text-sm font-medium text-primary mb-1 text-left">
                                 Title <span className="text-red-500">*</span>
                             </span>
                             <input
@@ -429,34 +460,47 @@ export default function ExamForm() {
                         </label>
                         
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-primary">
+                            {/* <span className="text-sm font-medium text-primary">
                                 Subject <span className="text-red-500">*</span>
-                            </span>
-                            <SelectBox
-                                label=""
+                            </span> */}
+                            <FilterBox
+                                label="Subject"
                                 options={subjects}
                                 placeholder="All Subjects"
                                 onSelect={setSubject}
-                                defaultValue=""
                                 value={subject}
+                                maxLength={50}
                             />
                         </label>
                         <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-primary">
+                            {/* <span className="text-sm font-medium text-primary">
                                 Course Number <span className="text-red-500">*</span>
-                            </span>
-                            <SelectBox
-                                label=""
+                            </span> */}
+                            <FilterBox
+                                label="Course Number"
                                 options={courseNums}
                                 placeholder="All Course Numbers"
                                 onSelect={setCourseNum}
-                                defaultValue=""
                                 value={courseNum}
+                                maxLength={50}
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            {/* <span className="text-sm font-medium text-primary">
+                                Topic <span className="text-red-500">*</span>
+                            </span> */}
+                            <FilterBox
+                                label="Topic"
+                                options={topics}
+                                placeholder="All Topics"
+                                onSelect={setTopic}
+                                value={topic}
+                                maxLength={50}
                             />
                         </label>
                         <label className="flex flex-col gap-2">
-                            <span className="text-sm font-medium text-primary">
-                                Time Limit (minutes) <span className="text-red-500">*</span>
+                            <span className="text-sm font-medium text-primary text-left">
+                                Time Limit (minutes)
                             </span>
                             <input
                                 type="number"
@@ -828,6 +872,7 @@ export default function ExamForm() {
                                 setDifficultyByType({ ...DEFAULT_DIFFICULTY_BY_TYPE });
                                 setCourseNum("");
                                 setSubject("");
+                                setTopic("");
                                 setTimeLimit(60);
                                 setRandomize(true);
                                 setPointsByType({MC: "1",TF: "1",FIB: "1",Essay: "5",Code: "10",});
