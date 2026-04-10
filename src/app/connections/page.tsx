@@ -361,7 +361,7 @@ export default function CollaborateViewPage() {
                     {/* Questions section */}
                     <div className="mb-6">
                         <h2 className="text-2xl font-semibold text-primary mb-4">
-                            {selectedConnectionName}'s Questions ({connectionQuestions.length})
+                            {selectedConnectionName}'s Questions ({getFilteredQuestions().length})
                         </h2>
 
                         {/* Question Filters */}
