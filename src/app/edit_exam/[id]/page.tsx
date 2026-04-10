@@ -30,7 +30,7 @@ const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   TF: "True/False",
   FIB: "Fill in the Blank",
   Essay: "Essay",
-  Code: "Coding",
+  Code: "Code",
 };
 
 //types for the queue of edits/deletes that they user can make
@@ -1253,7 +1253,7 @@ export default function EditExamPage() {
       }
       {isReorderTypesOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 px-4">
-          <div className="w-full max-w-lg rounded-xl bg-white dark:bg-gray-900 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="w-full max-w-lg rounded-xl bg-white dark:bg-gray-900 p-6 shadow-xl border border-gray-400 dark:border-gray-500">
             
             {/* Header */}
             <div className="mb-4 flex items-start justify-between">
@@ -1285,7 +1285,7 @@ export default function EditExamPage() {
                 No question types available in this exam.
               </p>
             ) : (
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
+              <div className="border border-gray-400 dark:border-gray-500 rounded-lg p-3 bg-white dark:bg-gray-800">
                 <div className="space-y-3">
                   {questionTypeOrder.map((type, index) => (
                     <div
@@ -1313,7 +1313,7 @@ export default function EditExamPage() {
                           : ""
                         }
 
-                        border-gray-200 dark:border-gray-700
+                        border-gray-400 dark:border-gray-500
                       `}
                     >
                       <span className="absolute left-3 font-medium text-gray-700 dark:text-gray-300">
@@ -1349,16 +1349,14 @@ export default function EditExamPage() {
             )}
 
             {/* Footer */}
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex justify-between items-center">
               <button
                 onClick={() => {
                   setIsReorderTypesOpen(false);
                   setDraggedType(null);
                   setHoveredType(null);
                 }}
-                className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm 
-                          text-gray-700 dark:text-gray-200 
-                          hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="px-3 py-2 btn btn-ghost"
               >
                 Cancel
               </button>
