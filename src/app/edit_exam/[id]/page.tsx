@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import AnswerKeyModal from "@/components/answerKeyModal";
 import AddExistingQuestionModal from "@/components/addExistingQuestionModal";
 import type { Question } from "@/types/question";
-import type { ExamQuestionItem } from "@/types/exam";
+import type { ExamQuestionItem, QuestionType } from "@/types/exam";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useAuth } from "@/components/AuthContext";
 import { Background } from "@/components/BackgroundModal"
@@ -23,6 +23,14 @@ const POINTS_BY_TYPE: Record<string, number> = {
   FIB: 1,   // or 2 if you want
   Essay: 5,
   Code: 10,
+};
+
+const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
+  MC: "Multiple Choice",
+  TF: "True/False",
+  FIB: "Fill in the Blank",
+  Essay: "Essay",
+  Code: "Coding",
 };
 
 //types for the queue of edits/deletes that they user can make
@@ -66,6 +74,10 @@ export default function EditExamPage() {
   const [isEditingInstructions, setIsEditingInstructions] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pageTopRef = useRef<HTMLDivElement>(null)
+  const [isReorderTypesOpen, setIsReorderTypesOpen] = useState(false);
+  const [questionTypeOrder, setQuestionTypeOrder] = useState<QuestionType[]>([]);
+  const [draggedType, setDraggedType] = useState<QuestionType | null>(null);
+  const [hoveredType, setHoveredType] = useState<QuestionType | null>(null);
 
   // Function to count the total points any time a point value is edited
   const recomputeTotalPoints = (questions: any[]) =>
@@ -86,6 +98,94 @@ export default function EditExamPage() {
       totalPoints: recomputeTotalPoints(questions),
     });
     setDirty(true); //marked as unsaved change
+  };
+
+  const getQuestionTypesInExamOrder = (questions: ExamQuestionItem[]): QuestionType[] => {
+  const seen = new Set<QuestionType>();
+  const orderedTypes: QuestionType[] = [];
+
+    for (const q of questions) {
+      const type = q.type as QuestionType;
+      if (!seen.has(type)) {
+        seen.add(type);
+        orderedTypes.push(type);
+      }
+    }
+
+    return orderedTypes;
+  };
+
+  const openReorderTypesModal = () => {
+    if (!exam) return;
+    setQuestionTypeOrder(getQuestionTypesInExamOrder(exam.questions ?? []));
+    setDraggedType(null);
+    setHoveredType(null);
+    setIsReorderTypesOpen(true);
+  };
+
+  const applyQuestionTypeOrder = () => {
+    if (!exam) return;
+
+    const grouped = new Map<QuestionType, ExamQuestionItem[]>();
+
+    for (const q of exam.questions ?? []) {
+      const type = q.type as QuestionType;
+      if (!grouped.has(type)) grouped.set(type, []);
+      grouped.get(type)!.push(q);
+    }
+
+    const reorderedQuestions: ExamQuestionItem[] = [];
+
+    for (const type of questionTypeOrder) {
+      const questionsOfType = grouped.get(type) ?? [];
+      reorderedQuestions.push(...questionsOfType);
+      grouped.delete(type);
+    }
+
+    // Safety: append any types that somehow were not present in questionTypeOrder
+    for (const [, remainingQuestions] of grouped) {
+      reorderedQuestions.push(...remainingQuestions);
+    }
+
+    setExam({
+      ...exam,
+      questions: reorderedQuestions,
+    });
+
+    setDirty(true);
+    setIsReorderTypesOpen(false);
+    setDraggedType(null);
+    setHoveredType(null);
+  };
+
+    const handleTypeDragStart = (type: QuestionType) => {
+    setDraggedType(type);
+  };
+
+  const handleTypeDragEnd = () => {
+    setDraggedType(null);
+    setHoveredType(null);
+  };
+
+  const handleTypeDrop = (targetType: QuestionType) => {
+    if (!draggedType || draggedType === targetType) return;
+
+    setQuestionTypeOrder((prev) => {
+      const newOrder = [...prev];
+      const oldIndex = newOrder.indexOf(draggedType);
+      const newIndex = newOrder.indexOf(targetType);
+
+      if (oldIndex === -1 || newIndex === -1) return prev;
+
+      const temp = newOrder[oldIndex];
+      newOrder[oldIndex] = newOrder[newIndex];
+      newOrder[newIndex] = temp;
+
+      return newOrder;
+    });
+
+    setDraggedType(null);
+    setHoveredType(null);
   };
 
   // Drag and drop handlers
@@ -775,6 +875,9 @@ export default function EditExamPage() {
                   <button onClick={() => setIsExistingPickerOpen(true)} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
                     + Add Existing Question
                   </button>
+                  <button onClick={openReorderTypesModal} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
+                    Reorder Question Types
+                  </button>
                   <button onClick={() => setIsAnswerKeyOpen(true)} className="px-2 py-1.5 text-xs btn btn-ghost whitespace-nowrap">
                     View Answer Key
                   </button>
@@ -1148,6 +1251,128 @@ export default function EditExamPage() {
           Back to Top
         </button>
       }
+      {isReorderTypesOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 px-4">
+          <div className="w-full max-w-lg rounded-xl bg-white dark:bg-gray-900 p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+            
+            {/* Header */}
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Reorder Question Types
+                </h2>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  Drag and drop the question types to choose the order they appear in the exam.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsReorderTypesOpen(false);
+                  setDraggedType(null);
+                  setHoveredType(null);
+                }}
+                className="text-2xl leading-none text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Body */}
+            {questionTypeOrder.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No question types available in this exam.
+              </p>
+            ) : (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
+                <div className="space-y-3">
+                  {questionTypeOrder.map((type, index) => (
+                    <div
+                      key={type}
+                      draggable
+                      onDragStart={() => handleTypeDragStart(type)}
+                      onDragEnd={handleTypeDragEnd}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (draggedType && draggedType !== type) {
+                          setHoveredType(type);
+                        }
+                      }}
+                      onDragLeave={() => setHoveredType(null)}
+                      onDrop={() => handleTypeDrop(type)}
+                      className={`relative cursor-move rounded-xl border px-4 py-3 shadow-sm flex items-center justify-center text-sm select-none transition-all
+                        
+                        ${draggedType === type 
+                          ? "opacity-50 scale-105 z-10 bg-gray-100 dark:bg-gray-700" 
+                          : "bg-white dark:bg-gray-900"
+                        }
+
+                        ${hoveredType === type && draggedType 
+                          ? "ring-1 ring-black dark:ring-white" 
+                          : ""
+                        }
+
+                        border-gray-200 dark:border-gray-700
+                      `}
+                    >
+                      <span className="absolute left-3 font-medium text-gray-700 dark:text-gray-300">
+                        {index + 1}
+                      </span>
+
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
+                        {QUESTION_TYPE_LABELS[type]}
+                      </span>
+
+                      {hoveredType === type && draggedType && (
+                        <div className="absolute right-3 pointer-events-none text-black dark:text-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-5 h-5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsReorderTypesOpen(false);
+                  setDraggedType(null);
+                  setHoveredType(null);
+                }}
+                className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm 
+                          text-gray-700 dark:text-gray-200 
+                          hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={applyQuestionTypeOrder}
+                className="rounded-lg px-4 py-2 text-sm btn btn-primary-blue"
+              >
+                Accept
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Background>
   );
 }
