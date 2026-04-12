@@ -9,6 +9,7 @@ type MemberCardProps = {
   page?: "cooperate" | "connections";
   onView?: () => void;
   onConnect?: () => void;
+  onUnfriend?: () => void;
   connectionState?: "none" | "request-sent" | "request-received" | "connected";
 };
 
@@ -21,6 +22,7 @@ export default function MemberCard({
   page,
   onView,
   onConnect,
+  onUnfriend,
   connectionState = "none",
 }: MemberCardProps) {
   const initials = name
@@ -86,9 +88,18 @@ export default function MemberCard({
           </button>
         )}
         {page === "connections" && (
-          <button className="btn btn-ghost w-full" onClick={onView}>
-            View Questions
-          </button>
+          <>
+            <button className="btn btn-ghost w-full" onClick={onView}>
+              View Questions
+            </button>
+
+            <button
+              className="btn w-full bg-red-600 hover:bg-red-700 text-white transition"
+              onClick={onUnfriend}
+            >
+              Remove connection
+            </button>
+          </>
         )}
         {/* Connect button with three stages (Connected, request sent, and original connect) */}
         {page !== "connections" && (

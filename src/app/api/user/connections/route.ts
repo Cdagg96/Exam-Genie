@@ -119,6 +119,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, message: "Friend request rejected" });
     }
 
+    if (action === "remove") {
+      //Remove connection from both users
+      await db.collection("users").updateOne(
+        { _id: userObjId },
+        { $pull: { connections: targetObjId as any } }
+      );
+
+      await db.collection("users").updateOne(
+        { _id: targetObjId },
+        { $pull: { connections: userObjId as any } }
+      );
+
+      return NextResponse.json({ ok: true, message: "Connection removed" });
+    }
+
     return NextResponse.json({ message: "Invalid action" }, { status: 400 });
   } catch (error) {
     console.error("Error updating connections:", error);
