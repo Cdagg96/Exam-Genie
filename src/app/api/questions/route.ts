@@ -25,7 +25,9 @@ export async function POST(req:Request) {
                 {status: 400}
             );
         }
-        
+
+        const normalizedCourseNum = body.courseNum?.trim();
+        body.courseNum = normalizedCourseNum;
 
         // convert fields if needed
         body.lastUsed = body.lastUsed ?? null;
@@ -36,9 +38,21 @@ export async function POST(req:Request) {
         const client = await clientPromise;
         const db = client.db(process.env.MONGODB_DB);
         const result = await db.collection("questions").insertOne(body);
+
+        
+        const updateResult = await db.collection("users").updateOne(
+            { _id: new ObjectId(body.userID) },
+            { $addToSet: { tSubject: normalizedCourseNum } }
+        );
         
         return NextResponse.json(
-            {ok: true, message: "Question created!", insertedId: result.insertedId},
+            {
+                ok: true, 
+                message: "Question created!", 
+                insertedId: result.insertedId, 
+                newSubjectAdded: updateResult.modifiedCount > 0,
+                addedSubject: updateResult.modifiedCount > 0 ? normalizedCourseNum : null
+            },
             {status: 201}
         );
     } catch (error) {

@@ -600,6 +600,7 @@ export default function EditExamPage() {
     if (!exam) return exam;
 
     const updatedQuestions = [...exam.questions]; //Get the questions from the exam
+    const newSubjectsAdded: string[] = [];
 
     //Go through all the questions
     for (let i = 0; i < updatedQuestions.length; i++) {
@@ -633,7 +634,10 @@ export default function EditExamPage() {
 
           if (res.ok && result.insertedId) {
             updatedQuestions[i] = { ...question, questionId: result.insertedId };
-          } else {
+            if (result.newSubjectAdded && result.addedSubject){
+              newSubjectsAdded.push(result.addedSubject);
+            } 
+          }else {
             toast.error(`Failed to save question ?? "Unknown error"}`);
           }
         } catch (e) {
@@ -645,6 +649,7 @@ export default function EditExamPage() {
     return {
       ...exam,
       questions: updatedQuestions,
+      newSubjectsAdded,
       _id: exam._id,
     };
   };
@@ -699,6 +704,16 @@ export default function EditExamPage() {
             }
 
             toast.success("Changes Saved!");
+            if (examWithNewQuestions.newSubjectsAdded?.length > 0) {
+              if (examWithNewQuestions.newSubjectsAdded.length === 1) {
+                toast.success(
+                  `"${examWithNewQuestions.newSubjectsAdded[0]}" was added to your profile subjects`,
+                  { duration: 3000 }
+                );
+              } else {
+                toast.success("New subjects were added to your profile");
+              }
+            }
             setDirty(false);
             router.push("/past_exams");
           } catch (e: any) {
