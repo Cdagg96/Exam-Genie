@@ -8,6 +8,7 @@ import { useAuth } from "@/components/AuthContext";
 import Link from "next/link";
 import useTheme from "@/hooks/useTheme"
 import QuestionModal from "@/components/QuestionModal";
+import UserAvatar from "@/components/UserAvatar";
 
 export default function CollaborateViewPage() {
     const { user, updateUser } = useAuth();
@@ -401,19 +402,13 @@ export default function CollaborateViewPage() {
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {filteredIncoming.length > 0 ? filteredIncoming.map(req => {
-                                        const initials = `${req.firstName ?? ""} ${req.lastName ?? ""}`
-                                            .split(" ")
-                                            .map((n: string) => n[0])
-                                            .join("")
-                                            .toUpperCase();
-
                                         return (
                                             <div key={req._id} className="card-primary p-5 rounded-2xl shadow-sm hover:shadow-md transition">
-                                                {/* Displays  information of user */}
+                                                {/* Displays information of user */}
                                                 <div className="flex items-center gap-4">
                                                     {/* Avatar */}
-                                                    <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
-                                                        {initials}
+                                                    <div className="rounded-full overflow-hidden">
+                                                        <UserAvatar user={req} size={64} />
                                                     </div>
 
                                                     <div>
@@ -474,19 +469,13 @@ export default function CollaborateViewPage() {
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {filteredOutgoing.length > 0 ? filteredOutgoing.map(req => {
-                                        const initials = `${req.firstName ?? ""} ${req.lastName ?? ""}`
-                                            .split(" ")
-                                            .map((n: string) => n[0])
-                                            .join("")
-                                            .toUpperCase();
-
                                         return (
                                             <div key={req._id} className="card-primary p-5 rounded-2xl shadow-sm hover:shadow-md transition">
                                                 {/* Displays information of user */}
                                                 <div className="flex items-center gap-4">
                                                     {/* Avatar */}
-                                                    <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
-                                                        {initials}
+                                                    <div className="rounded-full overflow-hidden">
+                                                        <UserAvatar user={req} size={64} />
                                                     </div>
 
                                                     <div>
@@ -541,6 +530,7 @@ export default function CollaborateViewPage() {
                                 filteredConnections.length > 0 ? filteredConnections.map(conn => (
                                     <MemberCard
                                         key={conn._id}
+                                        user={conn}
                                         name={`${conn.firstName ?? ""} ${conn.lastName ?? ""}`.trim()}
                                         school={conn.institution}
                                         subjects={Array.isArray(conn.tSubject) ? conn.tSubject : ["None"]}

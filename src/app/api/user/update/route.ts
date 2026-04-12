@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 
 export async function PUT(req: Request) {
     try {
-        const { userId, firstName, lastName, phone, email, institution, department, tSubject } = await req.json();
+        const { userId, firstName, lastName, phone, email, institution, department, tSubject, profileImage } = await req.json();
 
         //Validate required fields
         if (!userId || !firstName || !lastName || !phone || !email || !institution || !department || !tSubject) {
@@ -50,6 +50,7 @@ export async function PUT(req: Request) {
                     institution,
                     department,
                     tSubject,
+                    profileImage,
                     updatedOn: new Date()
                 }
             }
