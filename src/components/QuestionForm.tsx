@@ -231,6 +231,9 @@ export default function BackgroundModal({
 
             if (res.ok) {
                 toast.success("Question added to question bank");
+                if(result.newSubjectAdded){
+                    toast.success(`${result.addedSubject} subject was added to your profile`, {duration: 3000});
+                }
                 onClose();
             } else {
                 console.error(result);
