@@ -30,7 +30,8 @@ export default function AuthBridge() {
         tSubject: (session.user as any).tSubject ?? [],
         isAdmin: (session.user as any).isAdmin ?? false,
         status: (session.user as any).status ?? "",
-        isCooperating: (session.user as any).isCooperating ?? false
+        isCooperating: (session.user as any).isCooperating ?? false,
+        profileImage: (session.user as any).profileImage ?? "",
       };
 
       // Prevent unnecessary re-logins / loops

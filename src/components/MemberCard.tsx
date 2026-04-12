@@ -1,4 +1,7 @@
+import UserAvatar from "./UserAvatar";
+
 type MemberCardProps = {
+  user?: any;
   name: string;
   school: string;
   subjects: string[];
@@ -10,6 +13,7 @@ type MemberCardProps = {
 };
 
 export default function MemberCard({
+  user,
   name,
   school,
   subjects,
@@ -46,8 +50,8 @@ export default function MemberCard({
       {/* Displays the basic information of user on each card */}
       <div className="flex items-center gap-4">
         {/* Avatar */}
-        <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
-          {initials}
+        <div className="rounded-full overflow-hidden">
+          <UserAvatar user={user} size={64} />
         </div>
 
         <div>

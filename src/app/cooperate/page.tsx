@@ -365,6 +365,7 @@ export default function CooperatePage() {
                             .map((user) => (
                                 <MemberCard
                                     key={user._id}
+                                    user={user}
                                     name={`${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()}
                                     school={user.institution}
                                     subjects={Array.isArray(user.tSubject) ? user.tSubject : ["None"]}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import NavBar from "@/components/navbar";
 import { Background } from "@/components/BackgroundModal";
+import UserAvatar from "@/components/UserAvatar";
 
 type ViewProfileModalProps = {
   isOpen: boolean;
@@ -20,14 +21,6 @@ export default function ViewProfileModal({
 
   const fullName =
     `${member.firstName ?? ""} ${member.lastName ?? ""}`.trim() || "Unknown User";
-
-  const initials = fullName
-    .split(" ")
-    .filter(Boolean)
-    .map((n: string) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 
   const subjects = Array.isArray(member.tSubject) ? member.tSubject : [];
 
@@ -58,8 +51,8 @@ export default function ViewProfileModal({
         </button>
 
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center text-xl font-semibold">
-            {initials}
+          <div className="rounded-full overflow-hidden">
+            <UserAvatar user={member} size={64} />
           </div>
 
           <div>

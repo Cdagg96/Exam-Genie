@@ -18,6 +18,7 @@ type User = {
   isAdmin?: boolean;
   status?: string;
   isCooperating: boolean;
+  profileImage?: string;
 };
 
 // Auth Struct

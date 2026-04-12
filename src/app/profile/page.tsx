@@ -7,6 +7,7 @@ import { Background } from "@/components/BackgroundModal";
 import { useAuth } from "@/components/AuthContext";
 import { signOut } from "next-auth/react"; 
 import useTheme from "@/hooks/useTheme"
+import UserAvatar from "@/components/UserAvatar";
 
 interface UserData {
   _id: string;
@@ -134,8 +135,9 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               {/* Avatar + info */}
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow">
-                  {userData ? getInitials() : "U"}
+                {/* Profile picture */}
+                <div className="rounded-full overflow-hidden">
+                  <UserAvatar user={userData} size={64} />
                 </div>
 
                 <div>

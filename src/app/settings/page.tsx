@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import NavBar from "@/components/navbar";
@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import useTheme from "@/hooks/useTheme"
 import InstructionEditor from "@/components/InstructionEditor";
 import { signOut } from "next-auth/react";
+import UserAvatar from "@/components/UserAvatar";
 
 interface UserData {
     _id: string;
@@ -31,6 +32,7 @@ interface UserData {
         };
     };
     isCooperating?: boolean;
+    profileImage?: string;
 }
 
 export default function SettingsPage() {
@@ -67,6 +69,11 @@ export default function SettingsPage() {
 
     //for saving users prefered instructions
     const [isSavingInstructions, setIsSavingInstructions] = useState(false);
+
+    //For profile image upload and removal
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [pendingProfileImage, setPendingProfileImage] = useState<string | null>(null);
+    const [removeProfileImage, setRemoveProfileImage] = useState(false);
 
     //makes sure that the email comes in valid format
     const isValidEmail = (email: string) => {
@@ -218,7 +225,10 @@ export default function SettingsPage() {
                     institution: formData.institution,
                     department: formData.department,
                     tSubject: parsedSubjects,
-                    isCooperating: formData.isCooperating
+                    isCooperating: formData.isCooperating,
+                    profileImage: removeProfileImage
+                        ? null
+                        : pendingProfileImage,
                 })
             });
 
@@ -226,16 +236,12 @@ export default function SettingsPage() {
 
             if (response.ok) {
                 toast.success("Profile updated successfully");
+                
                 //Update auth context with new data
-                updateUser({
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    phone: formData.phone,
-                    email: formData.email,
-                    institution: formData.institution,
-                    department: formData.department,
-                    tSubject: parsedSubjects,
-                });
+                updateUser(data.user);
+
+                setRemoveProfileImage(false);
+                setPendingProfileImage(null);
             } else {
                 toast.error("Failed to update profile");
             }
@@ -343,6 +349,33 @@ export default function SettingsPage() {
         }
     };
 
+    //Profile image handler
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const arrayBuffer = await file.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString("base64");
+        const dataUrl = `data:${file.type};base64,${base64}`;
+
+        setPendingProfileImage(dataUrl);
+        setRemoveProfileImage(false);
+
+        setUserData(prev =>
+            prev ? { ...prev, profileImage: dataUrl } : prev
+        );
+    };
+
+    //Option to remove profile picture
+    const handleRemoveProfileImage = () => {
+        setPendingProfileImage(null);
+        setRemoveProfileImage(true);
+
+        setUserData(prev =>
+            prev ? { ...prev, profileImage: undefined } : prev
+        );
+    };
+
     //If not logged in
     if (!user) {
         return (
@@ -410,6 +443,81 @@ export default function SettingsPage() {
                         {/* Profile Tab */}
                         {activeTab === "profile" && (
                             <form onSubmit={handleProfileUpdate} className="p-6 space-y-6">
+                                <div className="gap-4 mb-6">
+                                    <label className="block text-sm text-secondary mb-2">
+                                        Profile Picture
+                                    </label>
+
+                                    <div
+                                        className="relative w-[64px] h-[64px] cursor-pointer group"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                    <div className="flex items-center gap-3">
+                                        {/* Profile picture */}
+                                        <div
+                                            className="relative w-[64px] h-[64px] cursor-pointer group"
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
+                                            <div className="rounded-full overflow-hidden">
+                                                <UserAvatar user={userData} size={64} />
+                                            </div>
+                                        </div>
+
+                                        {/* Remove button NEXT TO avatar */}
+                                        {userData?.profileImage && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveProfileImage();
+                                                }}
+                                                className="text-red-600 hover:text-red-700 text-sm cursor-pointer transition"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    strokeWidth={1.5}
+                                                    stroke="currentColor"
+                                                    className="w-5 h-5"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="M6 18 18 6M6 6l12 12"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                        {/* Show editability with pencil icon and dimming on hover */}
+                                        <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                strokeWidth={1.5}
+                                                stroke="currentColor"
+                                                className="w-6 h-6 text-white"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageUpload}
+                                    />
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm text-secondary mb-2">

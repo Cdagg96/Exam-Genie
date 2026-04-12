@@ -6,18 +6,17 @@ import Image from "next/image";
 import Link from "next/link";
 import LoginModal from "./LoginModal";
 import { useAuth } from "@/components/AuthContext";
-import { signOut } from "next-auth/react"; 
+import { signOut } from "next-auth/react";
+import UserAvatar from "@/components/UserAvatar";
 
 export default function Navbar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const { user } = useAuth(); 
+  const { user } = useAuth();
 
-   const isAdmin = user?.isAdmin === true;
+  const isAdmin = user?.isAdmin === true;
 
   const handleSignOut = async () => {
-    // This signs out of NextAuth (clears cookies + session)
     await signOut({ callbackUrl: "/" });
-    // No need to call logout(); AuthBridge will see unauthenticated and clear AuthContext.
   };
 
   return (
@@ -32,6 +31,7 @@ export default function Navbar() {
             height={80}
           />
         </Link>
+
         <div className="flex items-center space-x-8">
           <Link href="../data_view/" className="text-secondary hover:text-primary">Questions</Link>
           <Link href="../exam_gen/" className="text-secondary hover:text-primary">Generator</Link>
@@ -39,38 +39,28 @@ export default function Navbar() {
           <Link href="../cooperate/" className="text-secondary hover:text-primary">Cooperate</Link>
           <Link href="../contact/" className="text-secondary hover:text-primary">Contact</Link>
 
-          {/* Profile Icon */}
           <div className="relative group py-1">
-            <div className="flex items-center cursor-pointer">
-              <Image
-                className="rounded-full"
-                src="/profileIcon.png"
-                alt="Profile"
-                width={36}
-                height={36}
-              />
-            </div>
+            {/* Signed out view */}
+            {!user ? (
+              <button
+                onClick={() => setIsLoginOpen(true)}
+                className="text-secondary hover:text-primary cursor-pointer"
+              >
+                Sign in
+              </button>
+            ) : (
+              <>
+                {/* Signed in view */}
+                <div className="flex items-center cursor-pointer">
+                  <button className="btn btn-primary-blue">
+                    Account ▾
+                  </button>
+                </div>
 
-            {/* Dropdown */}
-            <div
-              className="
-                absolute right-0 top-10 z-50
-                w-48 rounded-2xl card-primary p-2
-
-                opacity-0 invisible
-                group-hover:opacity-100 group-hover:visible
-                transition-opacity duration-150
-              "
-            >
-              {!user ? (
-                <button
-                  onClick={() => setIsLoginOpen(true)}
-                  className="w-full text-left px-4 py-2 rounded-xl hover:bg-secondary text-primary"
+                {/* Dropdown */}
+                <div
+                  className="absolute right-0 top-10 z-50 w-48 rounded-2xl card-primary p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-150"
                 >
-                  Sign in
-                </button>
-              ) : (
-                <>
                   <Link
                     href="/profile"
                     className="block px-4 py-2 rounded-xl hover:bg-secondary text-primary"
@@ -102,15 +92,15 @@ export default function Navbar() {
                   >
                     Sign out
                   </button>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
-      
-    {/* Login Modal */}
-    <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+
+      {/* Login Modal */}
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)}/>
     </>
   );
 }
