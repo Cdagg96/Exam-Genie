@@ -52,6 +52,14 @@ const STEPS: Step[] = [
     description: "Download polished exams and answer keys, ready for printing and classroom use.",
     video: "videos/ExamDownloadTutorialUpdated.mp4",
   },
+  {
+    id: "cooperate",
+    title: "Cooperate + Connect",
+    description: "Connect with other faculty members and share questions with each other.",
+    route: "/connections",
+    video: "videos/CooperateAndConnectionsTutorial.mp4",
+    buttonName: "Go to connections page",
+  },
 ];
 
 export default function Home() {
