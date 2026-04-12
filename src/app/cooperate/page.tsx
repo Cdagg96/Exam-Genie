@@ -250,14 +250,14 @@ export default function CooperatePage() {
                         href="../connections/"
                         className="text-secondary hover:text-primary inline-flex items-center font-medium ml-6"
                     >
-                        Go to Connections
+                        Return to Connections
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
                             strokeWidth={1.5}
                             stroke="currentColor"
-                            className="w-5 h-5 ml-2 transition-transform duration-200 group-hover:translate-x-1"
+                            className="w-5 h-5 ml-2 rotate-180 transition-transform duration-200 group-hover:-translate-x-1"
                         >
                             <path
                                 strokeLinecap="round"

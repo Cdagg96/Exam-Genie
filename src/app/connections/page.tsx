@@ -218,6 +218,33 @@ export default function CollaborateViewPage() {
         fetchUserQuestions(connection._id);
     };
 
+    const handleUnfriend = async (targetUserId: string) => {
+        if (!user?._id) return;
+
+        const confirmed = window.confirm("Are you sure you want to remove this connection?");
+        if (!confirmed) return;
+
+        try {
+            const res = await fetch("/api/user/connections", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: String(user._id),
+                    targetUserId,
+                    action: "remove"
+                })
+            });
+
+            if (!res.ok) throw new Error("Failed to remove connection");
+
+            toast.success("Connection removed");
+            fetchConnections();
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to remove connection");
+        }
+    };
+
     const handleBackToConnections = () => {
         setViewMode("connections");
         setSelectedConnection(null);
@@ -440,8 +467,35 @@ export default function CollaborateViewPage() {
                         </div>
 
                         {loadingQuestions ? (
-                            <div className="text-center py-8">
-                                <p className="text-secondary">Loading questions...</p>
+                            <div className="flex justify-center items-center space-x-2 py-4">
+                                {/* Spinning circle loading animation */}
+                                <svg
+                                    className="animate-spin h-12 w-12 text-secondary"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-50"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    />
+                                    <circle
+                                        className="opacity-75"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeDasharray="50"
+                                        strokeDashoffset="20"
+                                    />
+                                </svg>
+                                <span className="text-secondary text-lg">Loading questions...</span>
                             </div>
                         ) : getFilteredQuestions().length > 0 ? (
                             <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -531,7 +585,7 @@ export default function CollaborateViewPage() {
                                 viewBox="0 0 24 24"
                                 strokeWidth={1.5}
                                 stroke="currentColor"
-                                className="w-5 h-5 ml-2 rotate-180 transition-transform duration-200 group-hover:-translate-x-1"
+                                className="w-5 h-5 ml-2 transition-transform duration-200 group-hover:translate-x-1"
                             >
                                 <path
                                     strokeLinecap="round"
@@ -731,7 +785,40 @@ export default function CollaborateViewPage() {
                         //Connections view
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {loadingConnections ? <p className="text-secondary">Loading...</p> :
+                            {loadingConnections ? (
+                                <div className="col-span-full flex justify-center items-center py-12">
+                                    <div className="flex items-center gap-3 text-secondary">
+                                        <svg
+                                            className="animate-spin h-6 w-6"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-50"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            />
+                                            <circle
+                                                className="opacity-75"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="3"
+                                                strokeLinecap="round"
+                                                strokeDasharray="50"
+                                                strokeDashoffset="20"
+                                            />
+                                        </svg>
+
+                                        <span>Loading connections...</span>
+                                    </div>
+                                </div>
+                            ) :
                                 filteredConnections.length > 0 ? filteredConnections.map(conn => (
                                     <MemberCard
                                         key={conn._id}
@@ -741,8 +828,17 @@ export default function CollaborateViewPage() {
                                         department={conn.department ?? "None"}
                                         page="connections"
                                         onView={() => handleViewConnection(conn)}
+                                        onUnfriend={() => handleUnfriend(conn._id)}
                                     />
-                                )) : <p className="text-secondary">No cooperating faculty found</p>
+                                )) : <div className="col-span-full flex flex-col items-center justify-center py-20 text-center card-primary">
+                                    <h3 className="text-2xl font-semibold text-primary mb-2">
+                                        No connections yet
+                                    </h3>
+
+                                    <p className="text-secondary max-w-md">
+                                        Go to the cooperate page to find faculty members and start building your network.
+                                    </p>
+                                </div>
                             }
                         </div>
                     )}
