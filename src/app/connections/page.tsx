@@ -9,6 +9,8 @@ import Link from "next/link";
 import useTheme from "@/hooks/useTheme"
 import QuestionModal from "@/components/QuestionModal";
 import UserAvatar from "@/components/UserAvatar";
+import { toast } from "react-hot-toast";
+import SelectBox from "@/components/SelectBox";
 
 export default function CollaborateViewPage() {
     const { user, updateUser } = useAuth();
@@ -28,6 +30,33 @@ export default function CollaborateViewPage() {
     const [selectedConnectionName, setSelectedConnectionName] = useState("");
     const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [importingQuestionId, setImportingQuestionId] = useState<string | null>(null);
+
+    //Filter states for questions
+    const [questionTypeFilter, setQuestionTypeFilter] = useState<string>("");
+    const [questionSubjectFilter, setQuestionSubjectFilter] = useState<string>("");
+    const [questionDifficultyFilter, setQuestionDifficultyFilter] = useState<string>("");
+    const [questionCourseNumFilter, setQuestionCourseNumFilter] = useState<string>("");
+    const [questionTopicFilter, setQuestionTopicFilter] = useState<string>("");
+
+    //Available filter options
+    const [availableSubjects, setAvailableSubjects] = useState<{ value: string; label: string }[]>([]);
+    const [availableCourseNums, setAvailableCourseNums] = useState<{ value: string; label: string }[]>([]);
+
+    //Extract unique filter options from questions
+    const updateFilterOptions = (questions: any[]) => {
+        //Extract unique subjects
+        const uniqueSubjects = Array.from(
+            new Set(questions.map(q => q.subject?.trim()).filter((s): s is string => !!s))
+        ).map(subject => ({ value: subject, label: subject }));
+        setAvailableSubjects(uniqueSubjects);
+
+        //Extract unique course numbers
+        const uniqueCourseNums = Array.from(
+            new Set(questions.map(q => q.courseNum?.trim()).filter((c): c is string => !!c))
+        ).map(courseNum => ({ value: courseNum, label: courseNum }));
+        setAvailableCourseNums(uniqueCourseNums);
+    };
 
     const fetchUserQuestions = async (userId: string) => {
         try {
@@ -38,12 +67,57 @@ export default function CollaborateViewPage() {
 
             const questions = Array.isArray(data) ? data : data.items || [];
             setConnectionQuestions(questions);
+            updateFilterOptions(questions);
         } catch (err) {
             console.error("Error fetching user questions:", err);
             setConnectionQuestions([]);
         } finally {
             setLoadingQuestions(false);
         }
+    };
+
+    //Filter questions based on selected filters
+    const getFilteredQuestions = () => {
+        let filtered = connectionQuestions;
+
+        //Filter by type
+        if (questionTypeFilter) {
+            filtered = filtered.filter(q => q.type === questionTypeFilter);
+        }
+
+        //Filter by subject
+        if (questionSubjectFilter) {
+            filtered = filtered.filter(q => q.subject === questionSubjectFilter);
+        }
+
+        //Filter by difficulty
+        if (questionDifficultyFilter) {
+            filtered = filtered.filter(q => q.difficulty === parseInt(questionDifficultyFilter));
+        }
+
+        //Filter by course number
+        if (questionCourseNumFilter) {
+            filtered = filtered.filter(q => q.courseNum === questionCourseNumFilter);
+        }
+
+        //Filter by topic
+        if (questionTopicFilter) {
+            filtered = filtered.filter(q =>
+                q.topics && q.topics.some((topic: string) =>
+                    topic.toLowerCase().includes(questionTopicFilter.toLowerCase())
+                )
+            );
+        }
+
+        return filtered;
+    };
+
+    const handleClearQuestionFilters = () => {
+        setQuestionTypeFilter("");
+        setQuestionSubjectFilter("");
+        setQuestionDifficultyFilter("");
+        setQuestionCourseNumFilter("");
+        setQuestionTopicFilter("");
     };
 
     // Fetch the current user's connections
@@ -89,6 +163,43 @@ export default function CollaborateViewPage() {
             console.error(err);
         } finally {
             setLoadingConnections(false);
+        }
+    };
+
+    //Importing other users questions
+    const handleImportQuestion = async (questionId: string) => {
+        if (!user?._id) return;
+
+        try {
+            setImportingQuestionId(questionId);
+
+            const res = await fetch("/api/import", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: user._id,
+                    sourceQuestionId: questionId
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                //Similar question already exists
+                if (res.status === 409 && data.existing) {
+                    toast.error("You already have a similar question in your collection");
+                } else {
+                    throw new Error(data.error || "Failed to import question");
+                }
+                return;
+            }
+
+            toast.success("Question imported successfully!");
+
+        } catch (err) {
+            toast.error("Error importing question:");
+        } finally {
+            setImportingQuestionId(null);
         }
     };
 
@@ -251,16 +362,91 @@ export default function CollaborateViewPage() {
                     {/* Questions section */}
                     <div className="mb-6">
                         <h2 className="text-2xl font-semibold text-primary mb-4">
-                            {selectedConnectionName}'s Questions ({connectionQuestions.length})
+                            {selectedConnectionName}'s Questions ({getFilteredQuestions().length})
                         </h2>
+
+                        {/* Question Filters */}
+                        <div className="card-primary p-6 mb-6">
+                            <h3 className="text-lg font-semibold text-primary mb-4">Filter Questions</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {/* Question Type Filter */}
+                                <SelectBox
+                                    label="Question Type"
+                                    placeholder="All Types"
+                                    options={[
+                                        { value: '', label: 'All Types' },
+                                        { value: 'MC', label: 'Multiple Choice' },
+                                        { value: 'TF', label: 'True/False' },
+                                        { value: 'FIB', label: 'Fill In The Blank' },
+                                        { value: 'Essay', label: 'Essay' },
+                                        { value: 'Code', label: 'Coding' },
+                                    ]}
+                                    onSelect={setQuestionTypeFilter}
+                                    value={questionTypeFilter}
+                                />
+
+                                {/* Subject Filter */}
+                                <SelectBox
+                                    label="Subject"
+                                    placeholder="All Subjects"
+                                    options={[{ value: '', label: 'All Subjects' }, ...availableSubjects]}
+                                    onSelect={setQuestionSubjectFilter}
+                                    value={questionSubjectFilter}
+                                />
+
+                                {/* Difficulty Filter */}
+                                <SelectBox
+                                    label="Difficulty"
+                                    placeholder="All Difficulties"
+                                    options={[
+                                        { value: '', label: 'All Difficulties' },
+                                        { value: '1', label: '1' },
+                                        { value: '2', label: '2' },
+                                        { value: '3', label: '3' },
+                                        { value: '4', label: '4' },
+                                        { value: '5', label: '5' },
+                                    ]}
+                                    onSelect={setQuestionDifficultyFilter}
+                                    value={questionDifficultyFilter}
+                                />
+
+                                {/* Course Number Filter */}
+                                <SelectBox
+                                    label="Course Number"
+                                    placeholder="All Courses"
+                                    options={[{ value: '', label: 'All Courses' }, ...availableCourseNums]}
+                                    onSelect={setQuestionCourseNumFilter}
+                                    value={questionCourseNumFilter}
+                                />
+
+                                {/* Topic Filter */}
+                                <div>
+                                    <label className="block text-sm font-sm text-primary mb-2">Topic</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by topic..."
+                                        value={questionTopicFilter}
+                                        onChange={(e) => setQuestionTopicFilter(e.target.value)}
+                                        className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Filter Actions */}
+                            <div className="flex justify-end space-x-4 mt-6">
+                                <button onClick={handleClearQuestionFilters} className="px-4 py-2 btn btn-ghost">
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </div>
 
                         {loadingQuestions ? (
                             <div className="text-center py-8">
                                 <p className="text-secondary">Loading questions...</p>
                             </div>
-                        ) : connectionQuestions.length > 0 ? (
+                        ) : getFilteredQuestions().length > 0 ? (
                             <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {connectionQuestions.map((question: any) => (
+                                {getFilteredQuestions().map((question: any) => (
                                     <div
                                         key={question._id}
                                         className="card-primary p-6 hover:shadow-lg transition-all group"
@@ -303,10 +489,21 @@ export default function CollaborateViewPage() {
                                                 View Details
                                             </button>
                                             <button
-                                                onClick={() => {}}
-                                                className="px-4 py-2 btn btn-ghost rounded-lg transition text-sm"
+                                                onClick={() => handleImportQuestion(question._id)}
+                                                disabled={importingQuestionId === question._id}
+                                                className="px-4 py-2 btn btn-ghost rounded-lg transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                Import
+                                                {importingQuestionId === question._id ? (
+                                                    <span className="flex items-center gap-2">
+                                                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Importing...
+                                                    </span>
+                                                ) : (
+                                                    "Import"
+                                                )}
                                             </button>
                                         </div>
                                     </div>
@@ -314,10 +511,7 @@ export default function CollaborateViewPage() {
                             </div>
                         ) : (
                             <div className="text-center py-12 bg-gray-50 rounded-xl">
-                                <p className="text-secondary">No questions found from this connection.</p>
-                                <p className="text-sm text-secondary mt-2">
-                                    When {selectedConnectionName} adds questions, they will appear here.
-                                </p>
+                                <p className="text-secondary">No questions found.</p>
                             </div>
                         )}
                     </div>
@@ -588,6 +782,8 @@ export default function CollaborateViewPage() {
                     setIsModalOpen(false);
                     setSelectedQuestion(null);
                 }}
+                onImport={handleImportQuestion}
+                isImporting={importingQuestionId === selectedQuestion?._id}
             />
         </Background>
     );
