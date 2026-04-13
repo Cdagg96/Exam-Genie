@@ -31,6 +31,7 @@ export default function CooperatePage() {
     const [institutionOptions, setInstitutionOptions] = useState<{ label: string; value: string }[]>([]);
     const [subjectOptions, setSubjectOptions] = useState<{ label: string; value: string }[]>([]);
     const [departmentOptions, setDepartmentOptions] = useState<{ label: string; value: string }[]>([]);
+    const [allFilterUsers, setAllFilterUsers] = useState<any[]>([]);
 
     const [connectionsData, setConnectionsData] = useState<{
         connections: string[];
@@ -67,20 +68,22 @@ export default function CooperatePage() {
     };
 
     //For filter dropdowns
-    const fetchFilterOptions = async () => {
+    const fetchAllFilterUsers = async () => {
         try {
-            const res = await fetch("/api/user/filter-options");
-            const data = await res.json();
+            const response = await fetch(`/api/user`, { method: "GET" });
 
-        setNameOptions(formatOptions(data.names ?? []));
-        setInstitutionOptions(formatOptions(data.institutions ?? []));
-        setSubjectOptions(formatOptions(data.subjects ?? []));
-        setDepartmentOptions(formatOptions(data.departments ?? []));
+            if (!response.ok) {
+                throw new Error("Failed to fetch filter users");
+            }
+
+            const data = await response.json();
+            setAllFilterUsers(data.users ?? []);
         } catch (err) {
-            console.error("Error fetching filter options", err);
+            console.error("Error fetching filter users", err);
+            setAllFilterUsers([]);
         }
     };
-
+   
     //Get all the connections of a user
     const fetchConnections = async () => {
         if (!user?._id) return;
@@ -101,7 +104,7 @@ export default function CooperatePage() {
 
     useEffect(() => {
         fetchUsers();
-        fetchFilterOptions();
+        fetchAllFilterUsers();
     }, []);
 
     useEffect(() => {
@@ -128,6 +131,70 @@ export default function CooperatePage() {
 
         fetchCoopStatus();
     }, [user?._id]);
+
+    useEffect(() => {
+        if (!user) {
+            setNameOptions([]);
+            return;
+        }
+
+        const pool = filterUsersForOptions({ ignore: "name" });
+
+        const names = Array.from(
+            new Set(
+                pool.map((u) => `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim())
+            )
+        ).filter((name) => name.trim() !== "");
+
+        setNameOptions(formatOptions(names));
+    }, [allFilterUsers, user, selectedInstitution, selectedSubject, selectedDepartment]);
+
+    useEffect(() => {
+        if (!user) {
+            setInstitutionOptions([]);
+            return;
+        }
+
+        const pool = filterUsersForOptions({ ignore: "institution" });
+
+        const institutions = Array.from(
+            new Set(pool.map((u) => u.institution?.trim()).filter((s): s is string => !!s))
+        );
+
+        setInstitutionOptions(formatOptions(institutions));
+    }, [allFilterUsers, user, searchName, selectedSubject, selectedDepartment]);
+
+    useEffect(() => {
+        if (!user) {
+            setSubjectOptions([]);
+            return;
+        }
+
+        const pool = filterUsersForOptions({ ignore: "subject" });
+
+        const subjects = Array.from(
+            new Set(
+                pool.flatMap((u) => Array.isArray(u.tSubject) ? u.tSubject : [])
+            )
+        ).filter((s): s is string => typeof s === "string" && s.trim() !== "");
+
+        setSubjectOptions(formatOptions(subjects));
+    }, [allFilterUsers, user, searchName, selectedInstitution, selectedDepartment]);
+
+    useEffect(() => {
+        if (!user) {
+            setDepartmentOptions([]);
+            return;
+        }
+
+        const pool = filterUsersForOptions({ ignore: "department" });
+
+        const departments = Array.from(
+            new Set(pool.map((u) => u.department?.trim()).filter((s): s is string => !!s))
+        );
+
+        setDepartmentOptions(formatOptions(departments));
+    }, [allFilterUsers, user, searchName, selectedInstitution, selectedSubject]);
 
     //Apply filters
     const handleApplyFilters = () => {
@@ -198,6 +265,38 @@ export default function CooperatePage() {
                 label: item,
                 value: item,
     }));
+
+    const filterUsersForOptions = ({
+        ignore,
+    }: {
+        ignore?: "name" | "institution" | "subject" | "department";
+    }) => {
+        return allFilterUsers
+            .filter((u) => u._id !== user?._id)
+            .filter((u) => u.isCooperating === true)
+            .filter((u) => !["Denied", "Pending"].includes(u.status))
+            .filter((u) => {
+                if (ignore !== "name" && searchName) {
+                    const fullName = `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim();
+                    if (fullName !== searchName) return false;
+                }
+
+                if (ignore !== "institution" && selectedInstitution) {
+                    if ((u.institution || "").trim() !== selectedInstitution) return false;
+                }
+
+                if (ignore !== "subject" && selectedSubject) {
+                    const subjects = Array.isArray(u.tSubject) ? u.tSubject : [];
+                    if (!subjects.includes(selectedSubject)) return false;
+                }
+
+                if (ignore !== "department" && selectedDepartment) {
+                    if ((u.department || "").trim() !== selectedDepartment) return false;
+                }
+
+                return true;
+            });
+    };
 
     let content; //Variable to hold different formats for the page (Not logged in, cooperation not enabled, and finally the actual page functionality)
 

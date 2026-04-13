@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import NavBar from "@/components/navbar";
 import QuestionForm from "@/components/QuestionForm";
 import FilterBox from "@/components/filterBox";
@@ -70,9 +70,10 @@ export default function DatabaseActionPage() {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
-    const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
-    const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
+    //removed these because they are now calculated live with memo
+    //const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
+    //const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
+    //const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
     const [questionTextToDelete, setQuestionTextToDelete] = useState<string>("");
@@ -117,6 +118,199 @@ export default function DatabaseActionPage() {
     // Custom ordering states
     const [sortBy, setSortBy] = useState<"difficulty" | "lastUsed" | "">("");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+    const matchesLastUsedFilter = (question: Question) => {
+        if (lastUsedFilterType === "never") {
+            return !question.lastUsed;
+        }
+
+        if (!lastUsedDate) return true;
+        if (!question.lastUsed) return false;
+
+        const questionDate = dayjs(question.lastUsed);
+        if (!questionDate.isValid()) return false;
+
+        if (lastUsedFilterType === "before") {
+            return questionDate.isBefore(lastUsedDate, "day");
+        }
+
+        if (lastUsedFilterType === "after") {
+            return questionDate.isAfter(lastUsedDate, "day");
+        }
+
+        if (lastUsedFilterType === "range") {
+            if (!lastUsedDateEnd) return questionDate.isSame(lastUsedDate, "day");
+            return (
+                (questionDate.isAfter(lastUsedDate, "day") || questionDate.isSame(lastUsedDate, "day")) &&
+                (questionDate.isBefore(lastUsedDateEnd, "day") || questionDate.isSame(lastUsedDateEnd, "day"))
+            );
+        }
+
+        return true;
+    };
+
+    const filterQuestionsForOptions = ({
+        ignore,
+    }: {
+        ignore?: "topic" | "difficulty" | "type" | "subject" | "courseNum";
+    }) => {
+        return allFilterQuestions.filter((question) => {
+            if (ignore !== "topic" && selectedTopic) {
+                if (!question.topics?.includes(selectedTopic)) return false;
+            }
+
+            if (ignore !== "difficulty" && selectedDifficulty) {
+                if (String(question.difficulty) !== selectedDifficulty) return false;
+            }
+
+            if (ignore !== "type" && selectedType) {
+                if (question.type !== selectedType) return false;
+            }
+
+            if (ignore !== "subject" && selectedSubject) {
+                if ((question.subject || "").trim() !== selectedSubject) return false;
+            }
+
+            if (ignore !== "courseNum" && selectedCourseNum) {
+                if ((question.courseNum || "").trim() !== selectedCourseNum) return false;
+            }
+
+            if (!matchesLastUsedFilter(question)) return false;
+
+            return true;
+        });
+    };
+
+    const topics = useMemo(() => {
+        if (!user?._id) return [];
+
+        const pool = filterQuestionsForOptions({ ignore: "topic" });
+
+        return Array.from(new Set(pool.flatMap((q) => q.topics || [])))
+            .filter(Boolean)
+            .sort()
+            .map((topic) => ({ value: topic, label: topic }));
+    }, [
+        allFilterQuestions,
+        user?._id,
+        selectedDifficulty,
+        selectedType,
+        selectedSubject,
+        selectedCourseNum,
+        lastUsedDate,
+        lastUsedDateEnd,
+        lastUsedFilterType,
+    ]);
+
+    const subjects = useMemo(() => {
+        if (!user?._id) return [];
+
+        const pool = filterQuestionsForOptions({ ignore: "subject" });
+
+        return Array.from(
+            new Set(pool.map((q) => q.subject?.trim()).filter((s): s is string => !!s))
+        )
+            .sort()
+            .map((subject) => ({ value: subject, label: subject }));
+    }, [
+        allFilterQuestions,
+        user?._id,
+        selectedTopic,
+        selectedDifficulty,
+        selectedType,
+        selectedCourseNum,
+        lastUsedDate,
+        lastUsedDateEnd,
+        lastUsedFilterType,
+    ]);
+
+    const courseNums = useMemo(() => {
+        if (!user?._id) return [];
+
+        const pool = filterQuestionsForOptions({ ignore: "courseNum" });
+
+        return Array.from(
+            new Set(pool.map((q) => q.courseNum?.trim()).filter((s): s is string => !!s))
+        )
+            .sort()
+            .map((courseNum) => ({ value: courseNum, label: courseNum }));
+    }, [
+        allFilterQuestions,
+        user?._id,
+        selectedTopic,
+        selectedDifficulty,
+        selectedType,
+        selectedSubject,
+        lastUsedDate,
+        lastUsedDateEnd,
+        lastUsedFilterType,
+    ]);
+
+    const difficultyOptions = useMemo(() => {
+        if (!user?._id) {
+            return [{ value: "", label: "All Difficulties" }];
+        }
+
+        const pool = filterQuestionsForOptions({ ignore: "difficulty" });
+
+        const difficulties = Array.from(
+            new Set(
+                pool
+                    .map((q) => q.difficulty)
+                    .filter((d) => d != null)
+                    .map(String)
+            )
+        ).sort((a, b) => Number(a) - Number(b));
+
+        return [
+            { value: "", label: "All Difficulties" },
+            ...difficulties.map((d) => ({ value: d, label: d })),
+        ];
+    }, [
+        allFilterQuestions,
+        user?._id,
+        selectedTopic,
+        selectedType,
+        selectedSubject,
+        selectedCourseNum,
+        lastUsedDate,
+        lastUsedDateEnd,
+        lastUsedFilterType,
+    ]);
+
+    const typeOptions = useMemo(() => {
+        if (!user?._id) {
+            return [{ value: "", label: "All Types" }];
+        }
+
+        const pool = filterQuestionsForOptions({ ignore: "type" });
+
+        const types = Array.from(
+            new Set(
+                pool
+                    .map((q) => q.type)
+                    .filter((t) => t != null)
+            )
+        ).sort();
+
+        return [
+            { value: "", label: "All Types" },
+            ...types.map((type) => ({
+                value: type,
+                label: type === "FIB" ? "Fill In The Blank" : type,
+            })),
+        ];
+    }, [
+        allFilterQuestions,
+        user?._id,
+        selectedTopic,
+        selectedDifficulty,
+        selectedSubject,
+        selectedCourseNum,
+        lastUsedDate,
+        lastUsedDateEnd,
+        lastUsedFilterType,
+    ]);
 
     //Fetch questions with filters
     const fetchQuestionsWithFilters = async () => {
@@ -316,57 +510,60 @@ export default function DatabaseActionPage() {
         }
     }, [totalPages]);
 
-    //Creates a unique list of topics for the filter box
-    useEffect(() => {
-        if (!user?._id) {
-            setTopics([]);
-            return;
-        }
-        const uniqueTopics = Array.from(
-            new Set(allFilterQuestions.flatMap(quest => quest.topics || []))
-        ).map(topic => ({ value: topic, label: topic }));
 
-        //Store the list of unique topics if any changes occur in questions
-        setTopics(uniqueTopics);
-    }, [allFilterQuestions, user?._id]);
+    /* OLD FILTER USE EFFECTS */
+
+    // //Creates a unique list of topics for the filter box
+    // useEffect(() => {
+    //     if (!user?._id) {
+    //         setTopics([]);
+    //         return;
+    //     }
+    //     const uniqueTopics = Array.from(
+    //         new Set(allFilterQuestions.flatMap(quest => quest.topics || []))
+    //     ).map(topic => ({ value: topic, label: topic }));
+
+    //     //Store the list of unique topics if any changes occur in questions
+    //     setTopics(uniqueTopics);
+    // }, [allFilterQuestions, user?._id]);
 
     //Creates a unique list of subjects for the filter box
-    useEffect(() => {
-        if (!user?._id) {
-            setSubjects([]);
-            return;
-        }
-        const uniqueSubjects = Array.from(
-            new Set(
-                allFilterQuestions.map(quest => quest.subject?.trim()).filter((s): s is string => !!s))
-        ).map(subject => ({ value: subject, label: subject }));
+    // useEffect(() => {
+    //     if (!user?._id) {
+    //         setSubjects([]);
+    //         return;
+    //     }
+    //     const uniqueSubjects = Array.from(
+    //         new Set(
+    //             allFilterQuestions.map(quest => quest.subject?.trim()).filter((s): s is string => !!s))
+    //     ).map(subject => ({ value: subject, label: subject }));
 
-        //Store the list of unique topics if any changes occur in questions
-        setSubjects(uniqueSubjects);
-    }, [allFilterQuestions, user?._id]);
+    //     //Store the list of unique topics if any changes occur in questions
+    //     setSubjects(uniqueSubjects);
+    // }, [allFilterQuestions, user?._id]);
 
     //Creates a unique list of course numbers for the filter box
-    useEffect(() => {
-        if (!user?._id) {
-            setCourseNums([]);
-            return;
-        }
-        const uniqueCourseNums = Array.from(
-            new Set(allFilterQuestions.map(quest => quest.courseNum?.trim()).filter((s): s is string => !!s))
-        ).map(courseNum => ({ value: courseNum, label: courseNum }));
+    // useEffect(() => {
+    //     if (!user?._id) {
+    //         setCourseNums([]);
+    //         return;
+    //     }
+    //     const uniqueCourseNums = Array.from(
+    //         new Set(allFilterQuestions.map(quest => quest.courseNum?.trim()).filter((s): s is string => !!s))
+    //     ).map(courseNum => ({ value: courseNum, label: courseNum }));
 
-        //Store the list of unique topics if any changes occur in questions
-        setCourseNums(uniqueCourseNums);
-    }, [allFilterQuestions, user?._id]);
+    //     //Store the list of unique topics if any changes occur in questions
+    //     setCourseNums(uniqueCourseNums);
+    // }, [allFilterQuestions, user?._id]);
 
-    useEffect(() => {
-        console.log("allFilterQuestions length:", allFilterQuestions.length);
-        console.log("topics length:", topics.length, topics);
-        console.log("subjects length:", subjects.length, subjects);
-        console.log("courseNums length:", courseNums.length, courseNums);
-        console.log("questions length (current page only):", questions.length);
-        console.log("current limit:", limit);
-    }, [allFilterQuestions, topics, subjects, courseNums, questions, limit]);
+    // useEffect(() => {
+    //     console.log("allFilterQuestions length:", allFilterQuestions.length);
+    //     console.log("topics length:", topics.length, topics);
+    //     console.log("subjects length:", subjects.length, subjects);
+    //     console.log("courseNums length:", courseNums.length, courseNums);
+    //     console.log("questions length (current page only):", questions.length);
+    //     console.log("current limit:", limit);
+    // }, [allFilterQuestions, topics, subjects, courseNums, questions, limit]);
 
     //Runs when the add question form closes to potentially grab new questions just added
     const handleFormClose = () => {
@@ -622,14 +819,7 @@ export default function DatabaseActionPage() {
                             <SelectBox
                                 label="Difficulty"
                                 placeholder="All Difficulties"
-                                options={[
-                                    { value: '', label: 'All Difficulties' },
-                                    { value: '1', label: '1' },
-                                    { value: '2', label: '2' },
-                                    { value: '3', label: '3' },
-                                    { value: '4', label: '4' },
-                                    { value: '5', label: '5' },
-                                ]}
+                                options={difficultyOptions}
                                 onSelect={setSelectedDifficulty}
                                 value={selectedDifficulty}
                             />
@@ -638,14 +828,7 @@ export default function DatabaseActionPage() {
                             <SelectBox
                                 label="Type"
                                 placeholder="All Types"
-                                options={[
-                                    { value: '', label: 'All Types' },
-                                    { value: 'Multiple Choice', label: 'Multiple Choice' },
-                                    { value: 'Essay', label: 'Essay' },
-                                    { value: 'FIB', label: 'Fill In The Blank' },
-                                    { value: 'True/False', label: 'True/False' },
-                                    { value: 'Code', label: 'Code' },
-                                ]}
+                                options={typeOptions}
                                 onSelect={setSelectedType}
                                 value={selectedType}
                             />
