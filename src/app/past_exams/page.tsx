@@ -77,6 +77,7 @@ export default function PastExams() {
     const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
     const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
     const [names, setNames] = useState<{ value: string; label: string }[]>([]);
+    const [allFilterExams, setAllFilterExams] = useState<ExamWithMeta[]>([]);
     const [calendarOpen, setCalendarOpen] = useState(false);
     const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLElement | null>(null);
     const [dateInputValue, setDateInputValue] = useState<string>("");
@@ -112,6 +113,71 @@ export default function PastExams() {
     // Custom ordering states
     const [sortBy, setSortBy] = useState<"totalPoints" | "lastUsed" | "createdAt" | "">("");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+    const matchesLastUsedFilter = (exam: ExamWithMeta) => {
+        if (!selectedLastUsed) return true;
+        if (!exam.lastUsed) return false;
+
+        const examDate = dayjs(exam.lastUsed);
+        if (!examDate.isValid()) return false;
+
+        if (lastUsedFilterType === "before") {
+            return examDate.isBefore(selectedLastUsed, "day");
+        }
+
+        if (lastUsedFilterType === "after") {
+            return examDate.isAfter(selectedLastUsed, "day");
+        }
+
+        if (lastUsedFilterType === "range") {
+            if (!lastUsedDateEnd) return examDate.isSame(selectedLastUsed, "day");
+
+            return (
+                (examDate.isAfter(selectedLastUsed, "day") || examDate.isSame(selectedLastUsed, "day")) &&
+                (examDate.isBefore(lastUsedDateEnd, "day") || examDate.isSame(lastUsedDateEnd, "day"))
+            );
+        }
+
+        return true;
+    };
+
+    const filterExamsForOptions = ({
+        ignore,
+    }: {
+        ignore?: "name" | "subject" | "courseNum" | "topic" | "totalPoints";
+    }) => {
+        return allFilterExams.filter((exam) => {
+            if (ignore !== "name" && selectedName) {
+                if ((exam.title || "").trim() !== selectedName) return false;
+            }
+
+            if (ignore !== "subject" && selectedSubject) {
+                if ((exam.subject || "").trim() !== selectedSubject) return false;
+            }
+
+            if (ignore !== "courseNum" && selectedCourseNum) {
+                if ((exam.courseNum || "").trim() !== selectedCourseNum) return false;
+            }
+
+            if (ignore !== "topic" && selectedTopic) {
+                if ((exam.topic || "").trim() !== selectedTopic) return false;
+            }
+
+            if (ignore !== "totalPoints" && selectedTotalPoints) {
+                const points = exam.totalPoints ?? 0;
+
+                if (selectedTotalPoints === "1-5" && !(points >= 1 && points <= 5)) return false;
+                if (selectedTotalPoints === "6-10" && !(points >= 6 && points <= 10)) return false;
+                if (selectedTotalPoints === "11-15" && !(points >= 11 && points <= 15)) return false;
+                if (selectedTotalPoints === "16-20" && !(points >= 16 && points <= 20)) return false;
+                if (selectedTotalPoints === "25+" && !(points >= 25)) return false;
+            }
+
+            if (!matchesLastUsedFilter(exam)) return false;
+
+            return true;
+        });
+    };
 
     // Fetch exams from MongoDB
     const fetchExamsWithFilters = async () => {
@@ -206,6 +272,38 @@ export default function PastExams() {
         fetchExams();
     }
 
+    const fetchAllFilterExams = async () => {
+        try {
+            if (!user?._id) {
+                setAllFilterExams([]);
+                return;
+            }
+
+            const queryParams = new URLSearchParams();
+            queryParams.append("userID", user._id);
+            queryParams.set("page", "1");
+            queryParams.set("limit", "10000");
+
+            const response = await fetch(`/api/exams?${queryParams.toString()}`, {
+                method: "GET",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch filter exams");
+            }
+
+            const data = await response.json();
+            setAllFilterExams(data.items ?? []);
+        } catch (err) {
+            console.error("Error fetching filter exams:", err);
+            setAllFilterExams([]);
+        }
+    };
+
+    useEffect(() => {
+        fetchAllFilterExams();
+    }, [user?._id]);
+
     const fetchExams = async () => {
         try {
             setLoading(true);
@@ -274,41 +372,103 @@ export default function PastExams() {
         setPage(1);
     }, [user?._id]);
 
-    //Creates a unique list of subjects and course numbers for the filter box
+   
     useEffect(() => {
-        if (!user) {
+        if (!user?._id) {
             setSubjects([]);
+            return;
+        }
+
+        const pool = filterExamsForOptions({ ignore: "subject" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((e) => e.subject?.trim())
+                    .filter((s): s is NonNullable<typeof s> => !!s)
+            )
+        )
+            .sort()
+            .map((subject) => ({
+                value: subject,
+                label: subject,
+            }));
+
+        setSubjects(options);
+    }, [allFilterExams, user?._id, selectedName, selectedCourseNum, selectedTopic, selectedTotalPoints, selectedLastUsed, lastUsedDateEnd, lastUsedFilterType]);
+
+    useEffect(() => {
+        if (!user?._id) {
             setCourseNums([]);
+            return;
+        }
+
+        const pool = filterExamsForOptions({ ignore: "courseNum" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((e) => e.courseNum?.trim())
+                    .filter((s): s is NonNullable<typeof s> => !!s)
+            )
+        )
+            .sort()
+            .map((courseNum) => ({
+                value: courseNum,
+                label: courseNum,
+            }));
+
+        setCourseNums(options);
+    }, [allFilterExams, user?._id, selectedName, selectedSubject, selectedTopic, selectedTotalPoints, selectedLastUsed, lastUsedDateEnd, lastUsedFilterType]);
+
+    useEffect(() => {
+        if (!user?._id) {
+            setTopics([]);
+            return;
+        }
+
+        const pool = filterExamsForOptions({ ignore: "topic" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((e) => e.topic?.trim())
+                    .filter((s): s is NonNullable<typeof s> => !!s)
+            )
+        )
+            .sort()
+            .map((topic) => ({
+                value: topic,
+                label: topic,
+            }));
+
+        setTopics(options);
+    }, [allFilterExams, user?._id, selectedName, selectedSubject, selectedCourseNum, selectedTotalPoints, selectedLastUsed, lastUsedDateEnd, lastUsedFilterType]);
+
+
+    useEffect(() => {
+        if (!user?._id) {
             setNames([]);
             return;
         }
-        const uniqueSubjects = Array.from(
-            new Set(exams.map(e => e.subject?.trim()).filter((s): s is string => !!s))
-        ).map(subject => ({ value: subject, label: subject }));
 
-        const uniqueCourseNums = Array.from(
-            new Set(exams.map(e => e.courseNum?.trim()).filter((s): s is string => !!s))
-        ).map(courseNum => ({ value: courseNum, label: courseNum }));
+        const pool = filterExamsForOptions({ ignore: "name" });
 
-        const uniqueTopics = Array.from(
-            new Set(exams.map(e => e.topic?.trim()).filter((s): s is string => !!s))
-        ).map(topic => ({ value: topic, label: topic }));
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((e) => e.title?.trim())
+                    .filter((s): s is NonNullable<typeof s> => !!s)
+            )
+        )
+            .sort()
+            .map((name) => ({
+                value: name,
+                label: name,
+            }));
 
-        const uniqueNames = Array.from(
-            new Set(exams.map(e => e.title?.trim()).filter((s): s is string => !!s))
-        ).map(name => ({ value: name, label: name }));
-
-        //Store the list of unique topics if any changes occur in questions
-        setCourseNums(uniqueCourseNums);
-
-        //Store the list of unique topics if any changes occur in questions
-        setSubjects(uniqueSubjects);
-
-        setTopics(uniqueTopics);
-
-        //Store the list of unique names if any changes occur in questions
-        setNames(uniqueNames);
-    }, [exams, user]);
+        setNames(options);
+    }, [allFilterExams, user?._id, selectedSubject, selectedCourseNum, selectedTopic, selectedTotalPoints, selectedLastUsed, lastUsedDateEnd, lastUsedFilterType]);
 
     // Delete exam handler
     const handleDeleteClick = (examId: string, examTitle: string) => {

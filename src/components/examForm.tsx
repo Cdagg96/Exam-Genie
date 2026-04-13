@@ -79,6 +79,7 @@ export default function ExamForm() {
     const [subjects, setSubjects] = useState<{ value: string; label: string }[]>([]);
     const [courseNums, setCourseNums] = useState<{ value: string; label: string }[]>([]);
     const [topics, setTopics] = useState<{ value: string; label: string }[]>([]);
+    const [allFilterQuestions, setAllFilterQuestions] = useState<any[]>([]);
 
 
     const [sections, setSections] = useState([{ ...DEFAULT_SECTION }]);
@@ -98,82 +99,76 @@ export default function ExamForm() {
     const [calendarEndOpen, setCalendarEndOpen] = useState(false);
     const [calendarEndAnchorEl, setCalendarEndAnchorEl] = useState<HTMLDivElement | null>(null);
 
+
+    const matchesLastUsedFilter = (question: any) => {
+        if (lastUsedFilterType === "never") {
+            return !question.lastUsed;
+        }
+
+        if (!lastUsedDate) return true;
+        if (!question.lastUsed) return false;
+
+        const questionDate = dayjs(question.lastUsed);
+        if (!questionDate.isValid()) return false;
+
+        if (lastUsedFilterType === "before") {
+            return questionDate.isBefore(lastUsedDate, "day");
+        }
+
+        if (lastUsedFilterType === "after") {
+            return questionDate.isAfter(lastUsedDate, "day");
+        }
+
+        if (lastUsedFilterType === "range") {
+            if (!lastUsedDateEnd) return questionDate.isSame(lastUsedDate, "day");
+
+            return (
+                (questionDate.isAfter(lastUsedDate, "day") || questionDate.isSame(lastUsedDate, "day")) &&
+                (questionDate.isBefore(lastUsedDateEnd, "day") || questionDate.isSame(lastUsedDateEnd, "day"))
+            );
+        }
+
+        return true;
+    };
+    const filterQuestionsForOptions = ({
+        ignore,
+    }: {
+        ignore?: "subject" | "courseNum" | "topic";
+    }) => {
+        return allFilterQuestions.filter((question) => {
+            if (ignore !== "subject" && subject) {
+                if ((question.subject || "").trim() !== subject) return false;
+            }
+
+            if (ignore !== "courseNum" && courseNum) {
+                if ((question.courseNum || "").trim() !== courseNum) return false;
+            }
+
+            if (ignore !== "topic" && topic) {
+                if (!question.topics?.includes(topic)) return false;
+            }
+
+            if (!matchesLastUsedFilter(question)) return false;
+
+            return true;
+        });
+    };
+
     //Runs when page opens to get subjects
     useEffect(() => {
         const userID = user?._id;
         if (!userID) return;
-        async function loadSubjects() {
+       
+        async function loadFilterQuestions() {
             try {
-                const response = await fetch(`/api/subjects?userID=${userID}`);
+                const response = await fetch(`/api/questions?userId=${userID}`);
                 const data = await response.json();
 
-                if (!response.ok || !data.ok) {
-                    console.log("Failed to load subjects: ", data);
-                    return
-                }
-
-                const options = data.subjects.map((s: string) => ({
-                    value: s,
-                    label: s
-                }))
-
-                setSubjects([
-                    { value: '', label: 'All Subjects' },
-                    ...options
-                ]);
+                const questions = Array.isArray(data) ? data : data.items ?? [];
+                setAllFilterQuestions(questions);
             } catch (error) {
-                console.error("Error fetching subjects");
-
-            }
-        }
-
-        async function loadCourseNums() {
-            try {
-                const response = await fetch(`/api/course_numbers?userID=${userID}`);
-                const data = await response.json();
-
-                if (!response.ok || !data.ok) {
-                    console.log("Failed to load course numbers: ", data);
-                    return
-                }
-
-                const options = data.courseNums.map((s: string) => ({
-                    value: s,
-                    label: s
-                }))
-
-                setCourseNums([
-                    { value: '', label: 'All Course Numbers' },
-                    ...options
-                ]);
-            } catch (error) {
-                console.error("Error fetching Course Numbers");
-
-            }
-        }
-
-        async function loadTopics() {
-            try {
-                const response = await fetch(`/api/topics?userID=${userID}`);
-                const data = await response.json();
-
-                if (!response.ok || !data.ok) {
-                    console.log("Failed to load topics: ", data);
-                    return
-                }
-
-                const options = data.topics.map((s: string) => ({
-                    value: s,
-                    label: s
-                }))
-
-                setTopics([
-                    { value: '', label: 'All Topics' },
-                    ...options
-                ]);
-            } catch (error) {
-                console.error("Error fetching topics");
-
+                console.error("Error fetching filter questions", error);
+                setAllFilterQuestions([]);
             }
         }
 
@@ -238,9 +233,7 @@ export default function ExamForm() {
             }
         }
 
-        loadCourseNums();
-        loadSubjects();
-        loadTopics();
+        loadFilterQuestions();
         loadQuestionTypeCounts();
     }, [user?._id, difficultyByType, subject, courseNum, topic, lastUsedDate, lastUsedFilterType, lastUsedDateEnd,]);
 
@@ -335,6 +328,86 @@ export default function ExamForm() {
             return [...filtered, ...newOnes]; // Combine the existing ordered types as well as new ones
         });
     }, [typeCounts]);
+    useEffect(() => {
+        if (!user?._id) {
+            setSubjects([]);
+            return;
+        }
+
+        const pool = filterQuestionsForOptions({ ignore: "subject" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((q) => q.subject?.trim())
+                    .filter((s): s is NonNullable<typeof s> => !!s)
+            )
+        )
+            .sort()
+            .map((s) => ({
+                value: s,
+                label: s,
+            }));
+
+        setSubjects([
+            { value: "", label: "All Subjects" },
+            ...options,
+        ]);
+    }, [allFilterQuestions, user?._id, courseNum, topic, lastUsedDate, lastUsedDateEnd, lastUsedFilterType]);
+
+    useEffect(() => {
+        if (!user?._id) {
+            setCourseNums([]);
+            return;
+        }
+
+        const pool = filterQuestionsForOptions({ ignore: "courseNum" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((q) => q.courseNum?.trim())
+                    .filter((s): s is NonNullable<typeof s> => !!s)
+            )
+        )
+            .sort()
+            .map((s) => ({
+                value: s,
+                label: s,
+            }));
+
+        setCourseNums([
+            { value: "", label: "All Course Numbers" },
+            ...options,
+        ]);
+    }, [allFilterQuestions, user?._id, subject, topic, lastUsedDate, lastUsedDateEnd, lastUsedFilterType]);
+
+    useEffect(() => {
+        if (!user?._id) {
+            setTopics([]);
+            return;
+        }
+
+        const pool = filterQuestionsForOptions({ ignore: "topic" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .flatMap((q) => q.topics || [])
+                    .filter((t): t is NonNullable<typeof t> => !!t)
+            )
+        )
+            .sort()
+            .map((t) => ({
+                value: t,
+                label: t,
+            }));
+
+        setTopics([
+            { value: "", label: "All Topics" },
+            ...options,
+        ]);
+    }, [allFilterQuestions, user?._id, subject, courseNum, lastUsedDate, lastUsedDateEnd, lastUsedFilterType]);
 
     //this is to convert the string in the points box to an integer 
     function normalizePoints(p: Record<QuestionType, string>) {
