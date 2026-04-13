@@ -40,23 +40,11 @@ export default function CollaborateViewPage() {
     const [questionTopicFilter, setQuestionTopicFilter] = useState<string>("");
 
     //Available filter options
+    const [availableTypes, setAvailableTypes] = useState<{ value: string; label: string }[]>([]);
     const [availableSubjects, setAvailableSubjects] = useState<{ value: string; label: string }[]>([]);
+    const [availableDifficulties, setAvailableDifficulties] = useState<{ value: string; label: string }[]>([]);
     const [availableCourseNums, setAvailableCourseNums] = useState<{ value: string; label: string }[]>([]);
-
-    //Extract unique filter options from questions
-    const updateFilterOptions = (questions: any[]) => {
-        //Extract unique subjects
-        const uniqueSubjects = Array.from(
-            new Set(questions.map(q => q.subject?.trim()).filter((s): s is string => !!s))
-        ).map(subject => ({ value: subject, label: subject }));
-        setAvailableSubjects(uniqueSubjects);
-
-        //Extract unique course numbers
-        const uniqueCourseNums = Array.from(
-            new Set(questions.map(q => q.courseNum?.trim()).filter((c): c is string => !!c))
-        ).map(courseNum => ({ value: courseNum, label: courseNum }));
-        setAvailableCourseNums(uniqueCourseNums);
-    };
+    const [availableTopics, setAvailableTopics] = useState<{ value: string; label: string }[]>([]);
 
     const fetchUserQuestions = async (userId: string) => {
         try {
@@ -67,13 +55,46 @@ export default function CollaborateViewPage() {
 
             const questions = Array.isArray(data) ? data : data.items || [];
             setConnectionQuestions(questions);
-            updateFilterOptions(questions);
         } catch (err) {
             console.error("Error fetching user questions:", err);
             setConnectionQuestions([]);
         } finally {
             setLoadingQuestions(false);
         }
+    };
+
+    const filterQuestionsForOptions = ({
+        ignore,
+    }: {
+        ignore?: "type" | "subject" | "difficulty" | "courseNum" | "topic";
+    }) => {
+        return connectionQuestions.filter((q) => {
+            if (ignore !== "type" && questionTypeFilter) {
+                if (q.type !== questionTypeFilter) return false;
+            }
+
+            if (ignore !== "subject" && questionSubjectFilter) {
+                if ((q.subject || "").trim() !== questionSubjectFilter) return false;
+            }
+
+            if (ignore !== "difficulty" && questionDifficultyFilter) {
+                if (String(q.difficulty) !== questionDifficultyFilter) return false;
+            }
+
+            if (ignore !== "courseNum" && questionCourseNumFilter) {
+                if ((q.courseNum || "").trim() !== questionCourseNumFilter) return false;
+            }
+
+            if (ignore !== "topic" && questionTopicFilter) {
+                const topics = Array.isArray(q.topics) ? q.topics : [];
+                const hasMatch = topics.some((topic: string) =>
+                    topic.toLowerCase().includes(questionTopicFilter.toLowerCase())
+                );
+                if (!hasMatch) return false;
+            }
+
+            return true;
+        });
     };
 
     //Filter questions based on selected filters
@@ -103,9 +124,7 @@ export default function CollaborateViewPage() {
         //Filter by topic
         if (questionTopicFilter) {
             filtered = filtered.filter(q =>
-                q.topics && q.topics.some((topic: string) =>
-                    topic.toLowerCase().includes(questionTopicFilter.toLowerCase())
-                )
+                Array.isArray(q.topics) && q.topics.includes(questionTopicFilter)
             );
         }
 
@@ -334,6 +353,107 @@ export default function CollaborateViewPage() {
         fetchCoopStatus();
     }, [user?._id]);
 
+    useEffect(() => {
+        const pool = filterQuestionsForOptions({ ignore: "type" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((q) => q.type)
+                    .filter((t): t is string => typeof t === "string" && t.trim() !== "")
+            )
+        )
+            .sort()
+            .map((type) => ({
+                value: type,
+                label:
+                    type === "MC" ? "Multiple Choice" :
+                    type === "TF" ? "True/False" :
+                    type === "FIB" ? "Fill In The Blank" :
+                    type === "Code" ? "Coding" :
+                    type,
+            }));
+
+        setAvailableTypes(options);
+    }, [connectionQuestions, questionSubjectFilter, questionDifficultyFilter, questionCourseNumFilter, questionTopicFilter]);
+
+    useEffect(() => {
+        const pool = filterQuestionsForOptions({ ignore: "subject" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((q) => q.subject?.trim())
+                    .filter((s): s is string => !!s)
+            )
+        )
+            .sort()
+            .map((subject) => ({
+                value: subject,
+                label: subject,
+            }));
+
+        setAvailableSubjects(options);
+    }, [connectionQuestions, questionTypeFilter, questionDifficultyFilter, questionCourseNumFilter, questionTopicFilter]);
+
+    useEffect(() => {
+        const pool = filterQuestionsForOptions({ ignore: "difficulty" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((q) => q.difficulty)
+                    .filter((d) => d != null)
+                    .map(String)
+            )
+        )
+            .sort((a, b) => Number(a) - Number(b))
+            .map((difficulty) => ({
+                value: difficulty,
+                label: difficulty,
+            }));
+
+        setAvailableDifficulties(options);
+    }, [connectionQuestions, questionTypeFilter, questionSubjectFilter, questionCourseNumFilter, questionTopicFilter]);
+    
+    useEffect(() => {
+        const pool = filterQuestionsForOptions({ ignore: "courseNum" });
+
+        const options = Array.from(
+            new Set(
+                pool
+                    .map((q) => q.courseNum?.trim())
+                    .filter((c): c is string => !!c)
+            )
+        )
+            .sort()
+            .map((courseNum) => ({
+                value: courseNum,
+                label: courseNum,
+            }));
+
+        setAvailableCourseNums(options);
+    }, [connectionQuestions, questionTypeFilter, questionSubjectFilter, questionDifficultyFilter, questionTopicFilter]);
+
+    useEffect(() => {
+        const pool = filterQuestionsForOptions({ ignore: "topic" });
+
+        const options = Array.from(
+            new Set(
+                pool.flatMap((q) => Array.isArray(q.topics) ? q.topics : [])
+            )
+        )
+            .filter((t): t is string => typeof t === "string" && t.trim() !== "")
+            .sort()
+            .map((topic) => ({
+                value: topic,
+                label: topic,
+            }));
+
+        setAvailableTopics(options);
+    }, [connectionQuestions, questionTypeFilter, questionSubjectFilter, questionDifficultyFilter, questionCourseNumFilter]);
+
+
     const filteredConnections = connections.filter(conn =>
         `${conn.firstName ?? ""} ${conn.lastName ?? ""}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (conn.institution || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -400,14 +520,7 @@ export default function CollaborateViewPage() {
                                 <SelectBox
                                     label="Question Type"
                                     placeholder="All Types"
-                                    options={[
-                                        { value: '', label: 'All Types' },
-                                        { value: 'MC', label: 'Multiple Choice' },
-                                        { value: 'TF', label: 'True/False' },
-                                        { value: 'FIB', label: 'Fill In The Blank' },
-                                        { value: 'Essay', label: 'Essay' },
-                                        { value: 'Code', label: 'Coding' },
-                                    ]}
+                                    options={[{ value: '', label: 'All Types' }, ...availableTypes]}
                                     onSelect={setQuestionTypeFilter}
                                     value={questionTypeFilter}
                                 />
@@ -425,14 +538,7 @@ export default function CollaborateViewPage() {
                                 <SelectBox
                                     label="Difficulty"
                                     placeholder="All Difficulties"
-                                    options={[
-                                        { value: '', label: 'All Difficulties' },
-                                        { value: '1', label: '1' },
-                                        { value: '2', label: '2' },
-                                        { value: '3', label: '3' },
-                                        { value: '4', label: '4' },
-                                        { value: '5', label: '5' },
-                                    ]}
+                                    options={[{ value: '', label: 'All Difficulties' }, ...availableDifficulties]}
                                     onSelect={setQuestionDifficultyFilter}
                                     value={questionDifficultyFilter}
                                 />
@@ -447,16 +553,13 @@ export default function CollaborateViewPage() {
                                 />
 
                                 {/* Topic Filter */}
-                                <div>
-                                    <label className="block text-sm font-sm text-primary mb-2">Topic</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Search by topic..."
-                                        value={questionTopicFilter}
-                                        onChange={(e) => setQuestionTopicFilter(e.target.value)}
-                                        className="border-primary text-secondary px-4 py-3 w-full rounded-xl"
-                                    />
-                                </div>
+                                <SelectBox
+                                    label="Topic"
+                                    placeholder="All Topics"
+                                    options={[{ value: '', label: 'All Topics' }, ...availableTopics]}
+                                    onSelect={setQuestionTopicFilter}
+                                    value={questionTopicFilter}
+                                />
                             </div>
 
                             {/* Filter Actions */}
