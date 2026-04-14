@@ -32,6 +32,12 @@ export default function CollaborateViewPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [importingQuestionId, setImportingQuestionId] = useState<string | null>(null);
 
+    //States for removing connections
+    const [showUnfriendConfirm, setShowUnfriendConfirm] = useState(false);
+    const [pendingUnfriendId, setPendingUnfriendId] = useState<string | null>(null);
+    const [pendingUnfriendName, setPendingUnfriendName] = useState("");
+    const [unfriendLoading, setUnfriendLoading] = useState(false);
+
     //Filter states for questions
     const [questionTypeFilter, setQuestionTypeFilter] = useState<string>("");
     const [questionSubjectFilter, setQuestionSubjectFilter] = useState<string>("");
@@ -238,33 +244,6 @@ export default function CollaborateViewPage() {
         fetchUserQuestions(connection._id);
     };
 
-    const handleUnfriend = async (targetUserId: string) => {
-        if (!user?._id) return;
-
-        const confirmed = window.confirm("Are you sure you want to remove this connection?");
-        if (!confirmed) return;
-
-        try {
-            const res = await fetch("/api/user/connections", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userId: String(user._id),
-                    targetUserId,
-                    action: "remove"
-                })
-            });
-
-            if (!res.ok) throw new Error("Failed to remove connection");
-
-            toast.success("Connection removed");
-            fetchConnections();
-        } catch (err) {
-            console.error(err);
-            toast.error("Failed to remove connection");
-        }
-    };
-
     const handleBackToConnections = () => {
         setViewMode("connections");
         setSelectedConnection(null);
@@ -330,6 +309,48 @@ export default function CollaborateViewPage() {
         } catch (err) {
             console.error(err);
         }
+    };
+
+    const handleUnfriend = (targetUserId: string, name?: string) => {
+        setPendingUnfriendId(targetUserId);
+        setPendingUnfriendName(name || "");
+        setShowUnfriendConfirm(true);
+    };
+
+    const confirmUnfriend = async () => {
+        if (!user?._id || !pendingUnfriendId) return;
+
+        try {
+            setUnfriendLoading(true);
+
+            const res = await fetch("/api/user/connections", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: String(user._id),
+                    targetUserId: pendingUnfriendId,
+                    action: "remove"
+                })
+            });
+
+            if (!res.ok) throw new Error("Failed to remove connection");
+
+            toast.success("Connection removed");
+            fetchConnections();
+
+            setShowUnfriendConfirm(false);
+            setPendingUnfriendId(null);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to remove connection");
+        } finally {
+            setUnfriendLoading(false);
+        }
+    };
+
+    const cancelUnfriend = () => {
+        setShowUnfriendConfirm(false);
+        setPendingUnfriendId(null);
     };
 
     //Update the user so that the cooperating field can be used to deny people from viewing this page if not set correctly
@@ -921,7 +942,12 @@ export default function CollaborateViewPage() {
                                         department={conn.department ?? "None"}
                                         page="connections"
                                         onView={() => handleViewConnection(conn)}
-                                        onUnfriend={() => handleUnfriend(conn._id)}
+                                        onUnfriend={() =>
+                                            handleUnfriend(
+                                                conn._id,
+                                                `${conn.firstName ?? ""} ${conn.lastName ?? ""}`.trim()
+                                            )
+                                        }
                                     />
                                 )) : <div className="col-span-full flex flex-col items-center justify-center py-20 text-center card-primary">
                                     <h3 className="text-2xl font-semibold text-primary mb-2">
@@ -973,6 +999,61 @@ export default function CollaborateViewPage() {
                     {content}
                 </main>
             </div>
+
+            {/* Remove connection confirmation popup */}
+            {showUnfriendConfirm && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                    <div className="card-primary text-primary rounded-2xl shadow-2xl w-[40rem] p-6 relative overflow-hidden">
+
+                        {/* Close button */}
+                        <button
+                            onClick={cancelUnfriend}
+                            className="absolute top-4 right-4 text-black hover:text-gray-500 text-3xl"
+                        >
+                            &times;
+                        </button>
+
+                        <h1 className="text-2xl font-bold mb-4 text-center">
+                            Remove Connection
+                        </h1>
+
+                        <p className="text-secondary text-center mb-6">
+                            Are you sure you want to remove this connection? This action cannot be undone.
+                        </p>
+
+                        {pendingUnfriendName && (
+                            <div className="border-primary rounded-lg p-4 bg-gray-200 text-center mb-6">
+                                <p className="text-gray-800 font-semibold">
+                                    {pendingUnfriendName}
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="flex justify-center gap-4 pt-2">
+                            <button
+                                type="button"
+                                className="btn btn-ghost px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all"
+                                onClick={cancelUnfriend}
+                                disabled={unfriendLoading}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className={`px-6 py-2 rounded-lg text-white bg-red-600 hover:bg-red-700 transition-all ${
+                                    unfriendLoading ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                                onClick={confirmUnfriend}
+                                disabled={unfriendLoading}
+                            >
+                                {unfriendLoading ? "Removing..." : "Remove"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Add the modal here */}
             <QuestionModal
                 question={selectedQuestion}
