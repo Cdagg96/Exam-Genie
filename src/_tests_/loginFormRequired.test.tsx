@@ -1,0 +1,177 @@
+import React from "react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import LoginModal from "@/components/LoginModal";
+import toast from "react-hot-toast";
+import { error } from "console";
+
+//Mock hot toast
+vi.mock("react-hot-toast", () => {
+  return {
+    default: {
+      error: vi.fn(),
+      success: vi.fn(),
+    },
+    error: vi.fn(),
+    success: vi.fn(),
+  };
+});
+
+//Mock fetch globally
+global.fetch = vi.fn();
+
+// Mock the AuthContext
+vi.mock("@/components/AuthContext", () => ({
+  useAuth: () => ({
+    login: vi.fn()
+  })
+}));
+
+describe("LoginModal Alerts", () => {
+  const mockOnClose = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(global.fetch).mockReset();
+  });
+
+  it("shows login alert if email or password is missing", async () => {
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={vi.fn()}
+      />
+    );
+
+    //Click the "Sign In" button without entering fields
+    const signInButton = screen.getByText("Sign In");
+    fireEvent.click(signInButton);
+
+    //Wait for the alert to appear
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Not all login fields are filled out.");
+    });
+  });
+
+  it("shows register alert if role, email, or password is missing", async () => {
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={mockOnClose}
+      />
+    );
+
+    //Switch to register
+    const signUpLink = screen.getByRole("button", { name: /Sign up/i });
+    fireEvent.click(signUpLink);
+
+    //Click the "Register" button without filling anything
+    const registerButton = screen.getByRole("button", { name: /^Register$/i });
+    fireEvent.click(registerButton);
+
+    //Wait for the alert to appear
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Please enter a valid email address.");
+    });
+
+  });
+
+  it("does not show alert if login fields are filled", async () => {
+    //Mock successful login response
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: "Login successful" }),
+    } as Response);
+
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={mockOnClose}
+      />
+    );
+
+    const emailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
+    const passwordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
+
+    const signInButton = screen.getByText("Sign In");
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.click(signInButton);
+
+    //Check that the "Not all fields" alert is NOT shown
+    await waitFor(() => {
+      expect(toast.error).not.toHaveBeenCalledWith("Not all login fields are filled out.");
+    });
+  });
+
+  it("does not show alert if register fields are filled", async () => {
+    //Mock successful registration response
+    vi.mocked(global.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: "User registered successfully" }),
+    } as Response);
+
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={mockOnClose}
+      />
+    );
+
+    //Switch to register
+    const signUpLink = screen.getByRole("button", { name: /Sign up/i });
+    fireEvent.click(signUpLink);
+
+    //Get register inputs 
+    const firstNameInput = screen.getByPlaceholderText("First Name") as HTMLInputElement;
+    const lastNameInput = screen.getByPlaceholderText("Last Name") as HTMLInputElement;
+    const phoneInput = screen.getByPlaceholderText("Phone Number") as HTMLInputElement;
+    const registerEmailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
+    const registerPasswordInput = screen.getByPlaceholderText("Password") as HTMLInputElement;
+    const proofLinkInput = screen.getByPlaceholderText("Proof Link") as HTMLInputElement;
+
+    // Fill all fields
+    fireEvent.change(firstNameInput, { target: { value: "John" } });
+    fireEvent.change(lastNameInput, { target: { value: "Doe" } });
+    fireEvent.change(phoneInput, { target: { value: "1234567890" } });
+    fireEvent.change(registerEmailInput, { target: { value: "teacher@example.com" } });
+    fireEvent.change(registerPasswordInput, { target: { value: "password123" } });
+    fireEvent.change(proofLinkInput, { target: { value: "https://example.com/proof.pdf" } });
+
+    //Get the main register button
+    const registerButton = screen.getByRole("button", { name: /Register/i });
+    fireEvent.click(registerButton);
+
+    //Check that alert does not show
+    await waitFor(() => {
+      expect(toast.error).not.toHaveBeenCalledWith("Not all registration fields are filled out.");
+    });
+  });
+
+  it("hide/unhide the password when the eye icon is clicked", () => {
+    render(
+      <LoginModal
+        isOpen={true}
+        onClose={mockOnClose}
+      />
+    );
+
+    //Get the input in the password box
+    const input = screen.getByPlaceholderText("Password") as HTMLInputElement;
+
+    //Start with hidden password
+    expect(input.type).toBe("password");
+
+    //Get the visibility toggle button
+    const visibilityButton = input.parentElement?.querySelector("button") as HTMLButtonElement;
+
+    //Click the visibility toggle button to unhide the password
+    fireEvent.click(visibilityButton);
+    expect(input.type).toBe("text");
+
+    //Click the visibility toggle button again to hide the password
+    fireEvent.click(visibilityButton);
+    expect(input.type).toBe("password");
+  });
+});

@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+/* Custom coloring for borders, buttons, text, and cards */
+@layer components {
+  .text-blue-gradient {
+    @apply text-center font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent;
+  }
+  
+  .text-primary {
+    @apply text-gray-900 dark:text-white;
+  }
+
+  .text-secondary {
+    @apply text-gray-600 dark:text-slate-400;
+  }
+
+  .border-primary {
+    @apply border border-slate-400 rounded-2xl dark:border-white;
+  }
+
+  .border-secondary {
+    @apply border border-white dark:border-slate-200;
+  }
+
+  .bg-main {
+    @apply absolute inset-0 bg-gradient-to-b from-[#dbeafe] via-[#e0f2fe] to-white dark:from-[#0b1020] dark:via-[#0f172a] dark:to-[#111827];
+  }
+
+  .bg-primary {
+    @apply bg-white dark:bg-slate-800;
+  }
+
+  .bg-secondary {
+    @apply bg-slate-50 dark:bg-slate-800;
+  }
+
+  .card-primary {
+    @apply bg-white dark:bg-slate-800
+           border border-slate-200 dark:border-black
+           rounded-2xl shadow;
+  }
+
+  .card-secondary {
+    @apply bg-slate-50 dark:bg-slate-700
+           border border-slate-100 dark:border-slate-200
+           rounded-2xl;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-2
+           text-sm font-medium transition-all focus:outline-none;
+  }
+
+  .btn-primary-pink {
+    @apply text-white shadow
+           border border-fuchsia-400/40
+           bg-gradient-to-r from-indigo-600/60 via-fuchsia-600/60 to-purple-600/60
+           hover:scale-[1.03] hover:shadow-[0_0_40px_rgba(217,70,239,0.35)];
+  }
+
+  .btn-primary-blue {
+    @apply text-white shadow
+           border border-cyan-400/40
+           bg-gradient-to-r from-sky-500/60 via-cyan-500/60 to-blue-600/60
+           hover:scale-[1.03] hover:shadow-[0_0_40px_rgba(56,189,248,0.35)];
+  }
+
+  .btn-ghost {
+    @apply text-cyan-100 border border-cyan-300/30
+           bg-gradient-to-r from-slate-800/60 to-slate-900/60
+           backdrop-blur hover:scale-[1.03]
+           hover:border-cyan-300/60 hover:shadow-[0_0_30px_rgba(34,211,238,0.25)];
+           
+    @apply dark:text-white
+           dark:border-white
+           dark:bg-gradient-to-r dark:from-slate-600/60 dark:to-slate-900/60
+           dark:hover:border-white
+           dark:hover:shadow-[0_0_30px_rgba(34,211,238,0.25)];
+  }
+}
+
+/* Scroll bar customization */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #363535;
+  border-radius: 4px;
+}
