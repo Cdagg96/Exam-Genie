@@ -27,7 +27,7 @@ const STEPS: Step[] = [
     title: "Manage Questions",
     description: "Create, edit, and organize your question bank. Add multiple choice, true/false, fill in the blank, code, and essay questions.",
     route: "/data_view",
-    video: "/videos/QuestionBankTutorialUpdated.mp4",
+    video: "/videos/ManageQuestionsTutorial.mp4",
     buttonName: "Go to questions page",
   },
   {
@@ -35,7 +35,7 @@ const STEPS: Step[] = [
     title: "Generate Exams",
     description: "Enter exam details, select questions, assign point values, and choose how your exam is organized.",
     route: "/exam_gen",
-    video: "/videos/GenerateExamTutorialUpdated.mp4",
+    video: "/videos/GenerateExamsTutorial.mp4",
     buttonName: "Go to generator page",
   },
   {
@@ -43,21 +43,21 @@ const STEPS: Step[] = [
     title: "Manage Exams",
     description: "Review and update existing exams, reorder questions, adjust settings, or remove exams when they are no longer needed.",
     route: "/past_exams",
-    video: "videos/EditExamTutorialUpdated.mp4",
+    video: "videos/ManageExamsTutorial.mp4",
     buttonName: "Go to exams page",
   },
   {
     id: "print",
     title: "Download Exams",
     description: "Download polished exams and answer keys, ready for printing and classroom use.",
-    video: "videos/ExamDownloadTutorialUpdated.mp4",
+    video: "videos/DownloadExamsTutorial.mp4",
   },
   {
     id: "cooperate",
     title: "Cooperate + Connect",
     description: "Connect with other faculty members and share questions with each other.",
     route: "/connections",
-    video: "videos/CooperateAndConnectionsTutorial.mp4",
+    video: "videos/CooperateAndConnectTutorial.mp4",
     buttonName: "Go to connections page",
   },
 ];

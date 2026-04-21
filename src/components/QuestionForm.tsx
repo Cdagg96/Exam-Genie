@@ -267,7 +267,7 @@ export default function BackgroundModal({
                             value={stem}
                             onChange={(e) => setStem(e.target.value)}
                             required
-                            maxLength={100}
+                            maxLength={250}
                         />
 
                         {/* Question Type */}
@@ -419,7 +419,7 @@ export default function BackgroundModal({
                                     value={extendedAnswer}
                                     onChange={(e) => setExAnswer(e.target.value)}
                                     required
-                                    maxLength={1000}
+                                    maxLength={500}
                                 />
                                 <label className="block text-sm font-medium text-primary mb-2">
                                     Number of blank lines

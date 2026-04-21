@@ -926,7 +926,9 @@ export default function EditExamPage() {
 
           {/* Header (always displayed currently) */}
           <header className="mb-6 border-b pb-4 text-center">
-            <div className="text-sm text-gray-600">Department of {exam.subject}</div>
+            {exam.subject && (
+              <div className="text-sm text-gray-600">Department of {exam.subject}</div>
+            )}
             <h1 className="mt-1 text-2xl font-bold">{exam.title}</h1>
             <div className=" mt-1 text-sm text-gray-600">{exam.courseNum}</div>
             <div className="text-[13px] text-gray-600">

@@ -585,12 +585,12 @@ export default function PastExams() {
 
     return (
         <Background>
-            <div className="flex flex-col justify-between min-h-screen p-4 text-center">
+            <div className="flex flex-col min-h-screen p-4">
                 <header>
                     <NavBar />
                 </header>
 
-                <main className="flex flex-col items-center justify-center pt-8">
+                <main className="flex flex-col items-center justify-center text-center pt-8">
                     <h1 className="text-4xl font-bold text-blue-gradient mb-4">
                         Generated Exams
                     </h1>

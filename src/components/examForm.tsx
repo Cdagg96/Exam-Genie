@@ -780,7 +780,7 @@ export default function ExamForm() {
                                         />
 
                                         <select
-                                        className="border border-primary text-secondary px-2 py-2 w-full bg-white"
+                                        className="border border-primary text-secondary px-2 py-2 w-full"
                                         value={difficultyByType[t.value] ?? ""}
                                         onChange={(e) =>
                                             setDifficultyByType((prev) => ({
@@ -789,24 +789,25 @@ export default function ExamForm() {
                                             }))
                                         }
                                         >
-                                        <option value="">Any Difficulty</option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5</option>
+                                        <option className="bg-primary text-primary" value="">Any Difficulty</option>
+                                        <option className="bg-primary text-primary" value="1">1</option>
+                                        <option className="bg-primary text-primary" value="2">2</option>
+                                        <option className="bg-primary text-primary" value="3">3</option>
+                                        <option className="bg-primary text-primary" value="4">4</option>
+                                        <option className="bg-primary text-primary" value="5">5</option>
                                         </select>
                                     </div>
                                     </div>
                                 ))}
                                 </div>
                         </div>
+
                         {/* Question Order */}
                         <div>
                             <h2 className="mb-3 text-lg font-semibold text-primary">Question Order</h2>
 
                             {/* Instructions */}
-                            <p className="mb-3 text-sm text-secondary">
+                            <p className="mb-10 text-sm text-secondary">
                                 Drag and drop the question types to set the order they will appear in the exam.
                             </p>
 
@@ -820,7 +821,7 @@ export default function ExamForm() {
                                             </p>
                                         ) : (
                                             // Start displaying the drag and drop box 
-                                            <div className="border border-primary text-secondary px-3 py-3">
+                                            <div className="border border-primary text-secondary px-8 py-8">
                                                 <div className="space-y-3">
                                                     { /* Render each question type in the current user order */}
                                                     {questionOrder.map((type) => (
@@ -900,14 +901,14 @@ export default function ExamForm() {
                         </div>
                         {/* Point Values */ }
                         <div>
-                            <h2 className="text-lg font-semibold text-primary">Point Values</h2>
+                            <h2 className="mb-3 text-lg font-semibold text-primary">Point Values</h2>
                             <p className="mb-3 text-sm text-secondary">
                                 Default values can be set here and adjusted later in Edit Exam.
                             </p>
                             <div className="grid gap-4 sm:grid-cols-1">
                                 {TYPES.map((t) => {
                                     return (
-                                        <label key={t.value} className="flex flex-col gap-0.5">
+                                        <label key={t.value} className="flex flex-col gap-1">
                                             <span className="text-sm font-medium text-primary">{t.label}</span>
 
                                             <input
@@ -915,7 +916,7 @@ export default function ExamForm() {
                                                 min={0}
                                                 max={50}
                                                 placeholder={"0"}
-                                                className="border-primary text-secondary px-2"
+                                                className="border border-primary text-secondary px-2 py-2 w-full"
                                                 value={pointsByType[t.value] ?? ""}
                                                 onChange={(e) => {
                                                     const v = e.target.value;
