@@ -774,11 +774,11 @@ export default function DatabaseActionPage() {
 
     return (
         <Background>
-            <div className="flex flex-col justify-between min-h-screen p-4 text-center">
+            <div className="flex flex-col min-h-screen p-4">
                 <header>
                     <NavBar />
                 </header>
-                <main className="flex flex-col items-center justify-center pt-8">
+                <main className="flex flex-col items-center justify-center text-center pt-8">
                     <h1 className="text-4xl mb-4 text-blue-gradient">
                         Question Bank
                     </h1>

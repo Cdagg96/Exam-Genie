@@ -1,108 +1,87 @@
-/**
- * File to test the home page
- *
- * Test1 -> Hover over Create Test info icon shows description text
- * Test2 -> Mouse leave hides description for Create Test
- * Test3 -> Hover over View Your Questions info icon shows description text
- * Test4 -> Mouse leave hides description for View Your Questions
- */
-
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, test, expect, vi } from "vitest";
 import React from "react";
-
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, test, expect, vi } from "vitest";
+import "@testing-library/jest-dom";
 import Home from "../app/page";
 
-// Mock the AuthContext
 vi.mock("@/components/AuthContext", () => ({
   useAuth: () => ({
     user: null,
     login: vi.fn(),
     logout: vi.fn(),
-    isAuthenticated: false
-  })
+    isAuthenticated: false,
+  }),
 }));
 
-describe("Home Page Info Icon Tests", () => {
-    //1. Test for Create Test info icon to display the description only on hover
-    test("Hovering over Create Test info icon shows description of the button", async () => {
-        const user = userEvent.setup();
-        render(<Home />);
+vi.mock("@/components/navbar", () => ({
+  default: () => <div>Mock NavBar</div>,
+}));
 
-        const infoIcon = screen.getByTestId("create-test-icon"); //Grab the create test SVG by using the test ID
+vi.mock("@/components/BackgroundModal", () => ({
+  Background: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
-        //Description should not be visible initially (user has not hovered yet)
-        expect(
-            screen.queryByText(/Click to create a new test by selecting saved questions/i)
-        ).not.toBeInTheDocument();
+vi.mock("next/image", () => ({
+  default: (props: any) => <img {...props} />,
+}));
 
-        await user.hover(infoIcon); //Hover over the icon
+vi.mock("next/link", () => ({
+  default: ({ href, children, className }: any) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  ),
+}));
 
-        //Description should now be visible (user is hovering)
-        expect(
-            screen.getByText(/Click to create a new test by selecting saved questions/i)
-        ).toBeInTheDocument();
-    });
+vi.mock("@/hooks/useTheme", () => ({
+  default: () => ({
+    isDark: false,
+    toggleTheme: vi.fn(),
+  }),
+}));
 
-    //2. Test for Create Test info icon to hide the description on mouse leave
-    test("Mouse leaving the icon hides the description of the button", async () => {
-        const user = userEvent.setup();
-        render(<Home />);
+describe("Home Page", () => {
+  test("renders welcome step by default", () => {
+    render(<Home />);
 
-        const infoIcon = screen.getByTestId("create-test-icon");
+    expect(screen.getByText("Exam Genie")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Welcome to Exam Genie, a tool designed for professors/i)
+    ).toBeInTheDocument();
+  });
 
-        //Hover first
-        await user.hover(infoIcon);
+  test("clicking Manage Questions tab shows its description and link", () => {
+    render(<Home />);
 
-        expect(
-            screen.getByText(/Click to create a new test by selecting saved questions/i)
-        ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Manage Questions" }));
 
-        //Move mouse off of the icon
-        await user.unhover(infoIcon);
+    expect(
+      screen.getByText(/Create, edit, and organize your question bank/i)
+    ).toBeInTheDocument();
 
-        //Description should no longer be visible
-        expect(
-            screen.queryByText(/Click to create a new test by selecting saved questions/i)
-        ).not.toBeInTheDocument();
-    });
+    expect(
+      screen.getByRole("link", { name: /go to questions page/i })
+    ).toHaveAttribute("href", "/data_view");
+  });
 
-    //3. Test for View Your Questions info icon to display the description only on hover
-    test("Hovering over View Your Questions info icon shows description of the button", async () => {
-        const user = userEvent.setup();
-        render(<Home />);
+  test("Next button advances to the next tutorial step", () => {
+    render(<Home />);
 
-        const infoIcon = screen.getByTestId("view-questions-icon");
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
-        expect(
-            screen.queryByText(/Click to view and manage saved questions/i)
-        ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Create, edit, and organize your question bank/i)
+    ).toBeInTheDocument();
+  });
 
-        await user.hover(infoIcon); 
+  test("Back button returns to previous step", () => {
+    render(<Home />);
 
-        expect(
-            screen.getByText(/Click to view and manage saved questions/i)
-        ).toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+    fireEvent.click(screen.getByRole("button", { name: /back/i }));
 
-    //4. Test for View Your Questions info icon to hide the description on mouse leave
-    test("Mouse leaving the icon hides the description of the button", async () => {
-        const user = userEvent.setup();
-        render(<Home />);
-
-        const infoIcon = screen.getByTestId("view-questions-icon");
-
-        await user.hover(infoIcon);
-
-        expect(
-            screen.getByText(/Click to view and manage saved questions/i)
-        ).toBeInTheDocument();
-
-        await user.unhover(infoIcon);
-
-        expect(
-            screen.queryByText(/Click to view and manage saved questions/i)
-        ).not.toBeInTheDocument();
-    });
+    expect(
+      screen.getByText(/Welcome to Exam Genie, a tool designed for professors/i)
+    ).toBeInTheDocument();
+  });
 });

@@ -115,8 +115,35 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-xl">Loading...</div>
+      <div className="flex justify-center items-center h-screen space-x-2 py-4">
+        {/* Spinning circle loading animation */}
+        <svg
+          className="animate-spin h-12 w-12 text-secondary"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-50"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <circle
+            className="opacity-75"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray="50"
+            strokeDashoffset="20"
+          />
+        </svg>
+        <span className="text-secondary text-lg">Loading...</span>
       </div>
     );
   }

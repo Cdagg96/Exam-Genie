@@ -244,7 +244,7 @@ export default function EditQuestionModal({
                                 onChange={(e) => setStem(e.target.value)}
                                 required
                                 disabled={loading}
-                                maxLength={100}
+                                maxLength={250}
                             />
                         </div>
 
@@ -394,7 +394,7 @@ export default function EditQuestionModal({
                                     required
                                     disabled={loading}
                                     rows={4}
-                                    maxLength={1000}
+                                    maxLength={500}
                                 />
                                 <label className="block text-sm font-medium text-primary mb-2 mt-4">
                                     Number of blank lines

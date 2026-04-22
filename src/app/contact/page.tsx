@@ -61,11 +61,11 @@ export default function ContactPage() {
 
   return (
     <Background>
-      <div className="flex flex-col justify-between min-h-screen p-4 text-center">
+      <div className="flex flex-col min-h-screen p-4">
         <header>
           <NavBar />
         </header>
-        <main className="flex flex-col items-center justify-center pt-8">
+        <main className="flex flex-col items-center justify-center text-center pt-8">
           {/* Prompt */}
           <h1 className="text-4xl text-blue-gradient mb-4">Contact Us</h1>
           <p className="text-secondary mb-8 text-lg max-w-2xl">
